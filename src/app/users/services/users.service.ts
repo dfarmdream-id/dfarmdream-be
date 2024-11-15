@@ -85,24 +85,22 @@ export class UsersService {
       this.userRepository.firstOrThrow({
         OR: [
           {
-            email: signInDto.email,
+            email: signInDto.username,
           },
           {
-            username: signInDto.email,
+            username: signInDto.username,
           },
         ],
       }),
     ).pipe(
       map((user) => {
-        if (user.email != signInDto.email) throw new Error('error.not_found');
-
         if (!verifySync(signInDto.password, user.password))
           throw new Error('error.password_not_match');
 
         return user;
       }),
-      catchError((error) => {
-        throw new Error(error.message);
+      catchError(() => {
+        throw new Error('error.user_not_found');
       }),
     );
   }

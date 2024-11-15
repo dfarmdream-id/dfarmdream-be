@@ -10,20 +10,31 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
+enum UserStatus {
+  ACTIVE
+  INACTIVE
+}
+
 model User {
-  id       String  @id @default(uuid())
-  email    String
-  username String
-  fullName String?
-  password String
+  id         String      @id @default(uuid())
+  email      String?
+  username   String
+  fullName   String?
+  password   String
+  identityId String?
+  phone      String?
+  address    String?
+  position   String?
+  status     UserStatus? @default(INACTIVE)
 
   deletedAt DateTime?
-  createdAt DateTime  @default(now())
-  updatedAt DateTime  @updatedAt
+  createdAt DateTime   @default(now())
+  updatedAt DateTime   @updatedAt
   blog      Blog[]
-  Faq       Faq[]
+  faq       Faq[]
+  roleUser  RoleUser[]
 
-  @@index([email, username])
+  @@index([email, username, identityId])
 }
 
 model Blog {
@@ -63,4 +74,41 @@ model Faq {
   deletedAt   DateTime?
   createdAt   DateTime  @default(now())
   updatedAt   DateTime  @updatedAt
+}
+
+model Role {
+  id   String @id @unique @default(uuid())
+  name String
+
+  deletedAt DateTime?
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+}
+
+model RolePermission {
+  id           String    @id @unique @default(uuid())
+  roleId       String
+  permissionId String
+  deletedAt    DateTime?
+  createdAt    DateTime  @default(now())
+  updatedAt    DateTime  @updatedAt
+}
+
+model RoleUser {
+  id        String    @id @unique @default(uuid())
+  userId    String
+  user      User      @relation(fields: [userId], references: [id])
+  roleId    String
+  deletedAt DateTime?
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+}
+
+model Permission {
+  id        String    @id @unique @default(uuid())
+  name      String
+  roleId    String
+  deletedAt DateTime?
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
 }

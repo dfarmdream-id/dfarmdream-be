@@ -1,5 +1,5 @@
 import { ApiProperty } from '@nestjs/swagger';
-import { IsEmail, IsString, Matches } from 'class-validator';
+import { IsEmail, IsOptional, IsString, Matches } from 'class-validator';
 import { i18nValidationMessage } from 'nestjs-i18n';
 
 export class CreateUsersDto {
@@ -14,6 +14,7 @@ export class CreateUsersDto {
   @IsString({
     message: i18nValidationMessage('validation.string'),
   })
+  @IsOptional()
   @IsEmail(
     {},
     {

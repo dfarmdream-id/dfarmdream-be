@@ -1,5 +1,5 @@
 import { hash } from '@node-rs/bcrypt';
-import { PrismaClient, User } from '@prisma/client';
+import { PrismaClient } from '@prisma/client';
 
 const prisma = new PrismaClient();
 
@@ -10,7 +10,7 @@ async function main(): Promise<void> {
     password: await hash('123456'),
     username: 'admin',
     fullName: 'admin',
-  } satisfies Omit<User, 'createdAt' | 'updatedAt' | 'deletedAt'>;
+  };
 
   if ((await prisma.user.count({ where: { id: user.id } })) == 0) {
     await prisma.user.create({

@@ -1,5 +1,6 @@
 {
   "not_found": "Data not found",
   "user_already_exist": "User already exist",
-  "password_not_match": "Password not match"
+  "password_not_match": "Password not match",
+  "user_not_found": "User not found"
 }
