@@ -83,7 +83,14 @@ export class UsersService {
   public signIn(signInDto: SignInDto) {
     return from(
       this.userRepository.firstOrThrow({
-        email: signInDto.email,
+        OR: [
+          {
+            email: signInDto.email,
+          },
+          {
+            username: signInDto.email,
+          },
+        ],
       }),
     ).pipe(
       map((user) => {

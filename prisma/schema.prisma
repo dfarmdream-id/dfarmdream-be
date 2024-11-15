@@ -6,7 +6,7 @@ generator client {
 }
 
 datasource db {
-  provider = "sqlite"
+  provider = "postgresql"
   url      = env("DATABASE_URL")
 }
 
@@ -22,6 +22,8 @@ model User {
   updatedAt DateTime  @updatedAt
   blog      Blog[]
   Faq       Faq[]
+
+  @@index([email, username])
 }
 
 model Blog {
