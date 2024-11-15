@@ -1,0 +1,64 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id       String  @id @default(uuid())
+  email    String
+  username String
+  fullName String?
+  password String
+
+  deletedAt DateTime?
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+  blog      Blog[]
+  Faq       Faq[]
+}
+
+model Blog {
+  id        String    @id @unique @default(uuid())
+  title     String
+  content   String
+  author    User      @relation(fields: [userId], references: [id])
+  deletedAt DateTime?
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+  userId    String
+  cover     File?     @relation(fields: [coverId], references: [id])
+  coverId   String?
+  slug      String
+}
+
+model File {
+  id        String    @id @unique @default(uuid())
+  name      String
+  size      Int
+  url       String?
+  public    Boolean   @default(false)
+  deletedAt DateTime?
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+  mime      String
+  provider  String    @default("S3")
+  Blog      Blog[]
+}
+
+model Faq {
+  id          String    @id @unique @default(uuid())
+  question    String
+  answer      String
+  createdBy   User      @relation(fields: [createdById], references: [id])
+  createdById String
+  deletedAt   DateTime?
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+}

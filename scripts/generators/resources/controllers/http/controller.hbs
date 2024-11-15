@@ -1,0 +1,82 @@
+import {
+  Body,
+  Controller,
+  Delete,
+  Get,
+  HttpException,
+  HttpStatus,
+  Param,
+  Post,
+  Put,
+  Query,
+} from '@nestjs/common';
+import { {{className}}Service } from 'src/app/{{fileName}}/services';
+import { PaginationQueryDto } from 'src/common/dtos/pagination-query.dto';
+import { ResponseEntity } from 'src/common/entities/response.entity';
+import { Create{{className}}Dto, Update{{className}}Dto } from 'src/app/{{fileName}}/dtos';
+import { ApiTags } from '@nestjs/swagger';
+import { catchError, map } from 'rxjs';
+import { Observable } from 'rxjs';
+
+@ApiTags('{{className}}')
+@Controller({
+  path: '{{variableName}}',
+  version: '1',
+})
+export class {{className}}HttpController {
+  constructor(private readonly {{variableName}}Service: {{className}}Service) {}
+
+  @Post()
+  public create(@Body() create{{className}}Dto: Create{{className}}Dto): Observable<ResponseEntity> {
+    return this.{{variableName}}Service.create(create{{className}}Dto).pipe(
+      map(data => new ResponseEntity({ data, message: 'success' })),
+      catchError(error => {
+        throw new HttpException(error.message, HttpStatus.BAD_REQUEST);
+      }),
+    );
+  }
+
+  @Get()
+  public index(@Query() paginateDto: PaginationQueryDto): Observable<ResponseEntity> {
+    return this.{{variableName}}Service.paginate(paginateDto).pipe(
+      map(data => new ResponseEntity({ data, message: 'success' })),
+      catchError(error => {
+        throw new HttpException(error.message, HttpStatus.NOT_FOUND);
+      }),
+    );
+  }
+
+  @Get(':id')
+  public detail(@Param('id') id: string): Observable<ResponseEntity> {
+    return this.{{variableName}}Service.detail(id).pipe(
+      map(data => new ResponseEntity({ data, message: 'success' })),
+      catchError(error => {
+        throw new HttpException(error.message, HttpStatus.NOT_FOUND);
+      }),
+    );
+  }
+
+  @Delete(':id')
+  public destroy(@Param('id') id: string): Observable<ResponseEntity> {
+    return this.{{variableName}}Service.destroy(id).pipe(
+      map(data => new ResponseEntity({ data, message: 'success' })),
+      catchError(error => {
+        throw new HttpException(error.message, HttpStatus.BAD_REQUEST);
+      }),
+    );
+  }
+
+  @Put(':id')
+  public update(
+    @Param('id') id: string,
+    @Body() update{{className}}Dto: Update{{className}}Dto,
+  ): Observable<ResponseEntity> {
+    return this.{{variableName}}Service.update(id, update{{className}}Dto).pipe(
+      map(data => new ResponseEntity({ data, message: 'success' })),
+      catchError(error => {
+        throw new HttpException(error.message, HttpStatus.BAD_REQUEST);
+      }),
+    );
+  }
+}
+

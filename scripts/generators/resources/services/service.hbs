@@ -1,0 +1,31 @@
+import { Injectable } from '@nestjs/common';
+import { {{className}}Repository } from '../repositories';
+import { PaginationQueryDto } from 'src/common/dtos/pagination-query.dto';
+import { Create{{className}}Dto, Update{{className}}Dto } from '../dtos';
+import { from, Observable } from 'rxjs';
+
+@Injectable()
+export class {{className}}Service {
+  constructor(private readonly {{variableName}}Repository: {{className}}Repository) {}
+
+  public paginate(paginateDto: PaginationQueryDto) {
+    return from(this.{{variableName}}Repository.paginate(paginateDto));
+  }
+
+  public detail(id: string) {
+    return from(this.{{variableName}}Repository.firstOrThrow({ id }));
+  }
+
+  public destroy(id: string) {
+    return from(this.{{variableName}}Repository.delete({ id }));
+  }
+
+  public create(create{{className}}Dto: Create{{className}}Dto) {
+    return from(this.{{variableName}}Repository.create(create{{className}}Dto));
+  }
+
+  public update(id: string, update{{className}}Dto: Update{{className}}Dto) {
+    return from(this.{{variableName}}Repository.update({ id }, update{{className}}Dto));
+  }
+}
+

@@ -1,0 +1,5 @@
+{
+  "not_found": "Data tidak ditemukan",
+  "user_already_exist": "User sudah ada",
+  "password_not_match": "Password tidak cocok"
+}
