@@ -2,14 +2,20 @@ import { Injectable } from '@nestjs/common';
 import { PositionsRepository } from '../repositories';
 import { PaginationQueryDto } from 'src/common/dtos/pagination-query.dto';
 import { CreatePositionsDto, UpdatePositionsDto } from '../dtos';
-import { from, Observable } from 'rxjs';
+import { from } from 'rxjs';
 
 @Injectable()
 export class PositionsService {
   constructor(private readonly positionRepository: PositionsRepository) {}
 
   public paginate(paginateDto: PaginationQueryDto) {
-    return from(this.positionRepository.paginate(paginateDto));
+    return from(
+      this.positionRepository.paginate(paginateDto, {
+        where: {
+          deletedAt: null,
+        },
+      }),
+    );
   }
 
   public detail(id: string) {
@@ -28,4 +34,3 @@ export class PositionsService {
     return from(this.positionRepository.update({ id }, updatePositionsDto));
   }
 }
-

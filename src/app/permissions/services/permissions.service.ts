@@ -9,7 +9,13 @@ export class PermissionsService {
   constructor(private readonly permissionRepository: PermissionsRepository) {}
 
   public paginate(paginateDto: PaginationQueryDto) {
-    return from(this.permissionRepository.paginate(paginateDto));
+    return from(
+      this.permissionRepository.paginate(paginateDto, {
+        where: {
+          deletedAt: null,
+        },
+      }),
+    );
   }
 
   public detail(id: string) {

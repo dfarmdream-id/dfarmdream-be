@@ -9,7 +9,13 @@ export class SitesService {
   constructor(private readonly siteRepository: SitesRepository) {}
 
   public paginate(paginateDto: PaginationQueryDto) {
-    return from(this.siteRepository.paginate(paginateDto));
+    return from(
+      this.siteRepository.paginate(paginateDto, {
+        where: {
+          deletedAt: null,
+        },
+      }),
+    );
   }
 
   public detail(id: string) {

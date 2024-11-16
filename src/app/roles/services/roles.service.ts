@@ -11,6 +11,9 @@ export class RolesService {
   public paginate(paginateDto: PaginationQueryDto) {
     return from(
       this.roleRepository.paginate(paginateDto, {
+        where: {
+          deletedAt: null,
+        },
         include: {
           permissions: {
             include: {

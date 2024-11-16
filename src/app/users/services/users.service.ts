@@ -11,7 +11,11 @@ export class UsersService {
   constructor(private readonly userRepository: UsersRepository) {}
 
   public paginate(paginateDto: PaginationQueryDto) {
-    return this.userRepository.paginate(paginateDto);
+    return this.userRepository.paginate(paginateDto, {
+      where: {
+        deletedAt: null,
+      },
+    });
   }
 
   public detail(id: string) {
