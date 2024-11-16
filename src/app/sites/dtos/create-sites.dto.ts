@@ -1,5 +1,5 @@
 import { ApiProperty } from '@nestjs/swagger';
-import { IsString } from 'class-validator';
+import { IsOptional, IsString } from 'class-validator';
 
 export class CreateSitesDto {
   @ApiProperty()
@@ -8,18 +8,22 @@ export class CreateSitesDto {
 
   @ApiProperty()
   @IsString()
+  @IsOptional()
   provinceId: string;
 
   @ApiProperty()
   @IsString()
+  @IsOptional()
   cityId: string;
 
   @ApiProperty()
   @IsString()
+  @IsOptional()
   districtId: string;
 
   @ApiProperty()
   @IsString()
+  @IsOptional()
   subDistrictId: string;
 
   @ApiProperty()
