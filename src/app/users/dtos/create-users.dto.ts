@@ -1,7 +1,9 @@
 import { ApiProperty } from '@nestjs/swagger';
+import { UserStatus } from '@prisma/client';
 import {
   IsArray,
   IsEmail,
+  IsEnum,
   IsOptional,
   IsString,
   IsUUID,
@@ -87,4 +89,14 @@ export class CreateUsersDto {
   @IsString()
   @IsOptional()
   phone: string;
+
+  @ApiProperty()
+  @IsString()
+  @IsEnum(UserStatus)
+  status: `${UserStatus}`;
+
+  @ApiProperty()
+  @IsString()
+  @IsOptional()
+  identityId: string;
 }

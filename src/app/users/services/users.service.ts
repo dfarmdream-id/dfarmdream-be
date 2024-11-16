@@ -60,6 +60,10 @@ export class UsersService {
         password: hashSync(createUsersDto.password),
         username: createUsersDto.username,
         address: createUsersDto.address,
+        fullName: createUsersDto.fullName,
+        identityId: createUsersDto.identityId,
+        status: createUsersDto.status,
+        email: createUsersDto.email,
         phone: createUsersDto.phone,
         sites: {
           createMany: {
