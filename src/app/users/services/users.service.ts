@@ -28,6 +28,13 @@ export class UsersService {
           id: true,
           email: true,
           fullName: true,
+          username: true,
+          address: true,
+          phone: true,
+          sites: true,
+          position: true,
+          createdAt: true,
+          updatedAt: true,
         },
       ),
     ).pipe(
