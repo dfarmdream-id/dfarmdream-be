@@ -17,6 +17,7 @@ import { ResponseEntity } from 'src/common/entities/response.entity';
 import { CreateUsersDto, UpdateUsersDto } from '../dtos';
 import { ApiSecurity, ApiTags } from '@nestjs/swagger';
 import { AuthGuard } from '@app/auth';
+import { catchError, map } from 'rxjs';
 
 @ApiTags('Users')
 @ApiSecurity('JWT')
@@ -56,16 +57,12 @@ export class UsersController {
 
   @Get(':id')
   public async detail(@Param('id') id: string) {
-    try {
-      const data = await this.userService.detail(id);
-
-      return new ResponseEntity({
-        data,
-        message: 'success',
-      });
-    } catch (error) {
-      throw new HttpException(error.message, HttpStatus.NOT_FOUND);
-    }
+    return this.userService.detail(id).pipe(
+      map((data) => new ResponseEntity({ data, message: 'success' })),
+      catchError((error) => {
+        throw new HttpException(error.message, HttpStatus.NOT_FOUND);
+      }),
+    );
   }
 
   @Delete(':id')
