@@ -45,7 +45,22 @@ export class UsersService {
 
   public async create(createUsersDto: CreateUsersDto) {
     try {
-      return this.userRepository.create(createUsersDto);
+      return this.userRepository.create({
+        password: hashSync(createUsersDto.password),
+        username: createUsersDto.username,
+        address: createUsersDto.address,
+        phone: createUsersDto.phone,
+        site: {
+          connect: {
+            id: createUsersDto.siteId,
+          },
+        },
+        position: {
+          connect: {
+            id: createUsersDto.positionId,
+          },
+        },
+      });
     } catch (error) {
       throw new Error(error);
     }
@@ -53,7 +68,22 @@ export class UsersService {
 
   public async update(id: string, updateUsersDto: UpdateUsersDto) {
     try {
-      return this.userRepository.update({ id }, updateUsersDto);
+      return this.userRepository.update(
+        { id },
+        {
+          address: updateUsersDto.address,
+          fullName: updateUsersDto.fullName,
+          email: updateUsersDto.email,
+          site: {
+            connect: {
+              id: updateUsersDto.siteId,
+            },
+          },
+          roles: {
+            set: updateUsersDto.roles,
+          },
+        },
+      );
     } catch (error) {
       throw new Error(error.message);
     }
@@ -73,7 +103,9 @@ export class UsersService {
       }),
       switchMap((password) => {
         return this.userRepository.create({
-          ...signUpDto,
+          username: signUpDto.username,
+          fullName: signUpDto.fullName,
+          email: signUpDto.email,
           password,
         });
       }),

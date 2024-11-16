@@ -3,9 +3,13 @@ import { UsersModule } from './users/users.module';
 import { ResponseEntity } from 'src/common/entities/response.entity';
 import { ApiTags } from '@nestjs/swagger';
 import { AuthModule } from './auth';
-import { BlogsModule } from './blogs';
 import { FilesModule } from './files';
-import { FaqsModule } from './faqs';
+// import { BlogsModule } from './blogs';
+// import { FaqsModule } from './faqs';
+import { PermissionsModule } from './permissions';
+import { RolesModule } from './roles';
+import { SitesModule } from './sites';
+import { PositionsModule } from './positions';
 
 @ApiTags('App Spec')
 @Controller()
@@ -24,7 +28,17 @@ class AppController {
 }
 
 @Module({
-  imports: [UsersModule, AuthModule, BlogsModule, FilesModule, FaqsModule],
+  imports: [
+    UsersModule,
+    AuthModule,
+    // BlogsModule,
+    FilesModule,
+    // FaqsModule,
+    PermissionsModule,
+    RolesModule,
+    SitesModule,
+    PositionsModule,
+  ],
   controllers: [AppController],
   exports: [FilesModule],
 })

@@ -1,6 +1,23 @@
 import { ApiProperty } from '@nestjs/swagger';
-import { IsEmail, IsOptional, IsString, Matches } from 'class-validator';
+import {
+  IsArray,
+  IsEmail,
+  IsOptional,
+  IsString,
+  IsUUID,
+  Matches,
+} from 'class-validator';
 import { i18nValidationMessage } from 'nestjs-i18n';
+
+class UserRole {
+  @ApiProperty({
+    example: 'provide id if update',
+  })
+  id: string;
+
+  @ApiProperty()
+  roleId: string;
+}
 
 export class CreateUsersDto {
   @ApiProperty()
@@ -34,4 +51,28 @@ export class CreateUsersDto {
     message: i18nValidationMessage('validation.string'),
   })
   password: string;
+
+  @ApiProperty({
+    type: [UserRole],
+  })
+  @IsArray()
+  roles: UserRole[];
+
+  @ApiProperty()
+  @IsUUID()
+  positionId: string;
+
+  @ApiProperty()
+  @IsUUID()
+  siteId: string;
+
+  @ApiProperty()
+  @IsString()
+  @IsOptional()
+  address: string;
+
+  @ApiProperty()
+  @IsString()
+  @IsOptional()
+  phone: string;
 }
