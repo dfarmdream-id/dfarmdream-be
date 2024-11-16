@@ -7,8 +7,7 @@ import { ResponseEntity } from 'src/common/entities/response.entity';
 import { CreateSitesDto, UpdateSitesDto } from 'src/app/sites/dtos';
 import { map, catchError } from 'rxjs/operators';
 import { ApiTags } from '@nestjs/swagger';
-import { from, Observable } from 'rxjs';
-import { Prisma } from '@prisma/client';
+import { from } from 'rxjs';
 
 @ApiTags('Sites')
 @Controller({
@@ -43,9 +42,7 @@ export class SitesMicroserviceController {
   }
 
   @MessagePattern('site.find')
-  public find(
-    @Payload() filter: Omit<Filter, 'include'>,
-  ): Observable<Prisma.SiteCreateInput[]> {
+  public find(@Payload() filter: Omit<Filter, 'include'>) {
     return from(this.siteRepository.find(filter)).pipe(
       catchError((error) => {
         throw new RpcException(

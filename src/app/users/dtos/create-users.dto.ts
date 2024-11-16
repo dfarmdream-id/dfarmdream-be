@@ -19,6 +19,16 @@ class UserRole {
   roleId: string;
 }
 
+class Sites {
+  @ApiProperty()
+  @IsOptional()
+  id: string;
+
+  @ApiProperty()
+  @IsUUID()
+  siteId: string;
+}
+
 export class CreateUsersDto {
   @ApiProperty()
   @IsString({
@@ -62,9 +72,11 @@ export class CreateUsersDto {
   @IsUUID()
   positionId: string;
 
-  @ApiProperty()
-  @IsUUID()
-  siteId: string;
+  @ApiProperty({
+    example: [Sites],
+  })
+  @IsArray()
+  sites: Sites[];
 
   @ApiProperty()
   @IsString()

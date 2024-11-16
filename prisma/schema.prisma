@@ -25,7 +25,6 @@ model User {
   phone      String?
   address    String?
   position   Position?   @relation(fields: [positionId], references: [id])
-  site       Site?       @relation(fields: [siteId], references: [id])
   status     UserStatus? @default(INACTIVE)
 
   deletedAt  DateTime?
@@ -35,9 +34,20 @@ model User {
   faq        Faq[]
   roles      RoleUser[]
   positionId String?
-  siteId     String?
+  sites      UserSite[]
 
   @@index([email, username, identityId])
+}
+
+model UserSite {
+  id        String    @id @unique @default(uuid())
+  userId    String
+  siteId    String
+  deletedAt DateTime?
+  user      User      @relation(fields: [userId], references: [id])
+  site      Site      @relation(fields: [siteId], references: [id])
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
 }
 
 model Blog {
@@ -120,12 +130,21 @@ model Permission {
 }
 
 model Site {
-  id        String    @id @unique @default(uuid())
-  name      String
-  deletedAt DateTime?
-  createdAt DateTime  @default(now())
-  updatedAt DateTime  @updatedAt
-  user      User[]
+  id            String      @id @unique @default(uuid())
+  name          String
+  deletedAt     DateTime?
+  createdAt     DateTime    @default(now())
+  updatedAt     DateTime    @updatedAt
+  province      Province    @relation(fields: [provinceId], references: [id])
+  provinceId    String
+  city          City        @relation(fields: [cityId], references: [id])
+  cityId        String
+  district      District    @relation(fields: [districtId], references: [id])
+  districtId    String
+  subDistrict   SubDistrict @relation(fields: [subDistrictId], references: [id])
+  subDistrictId String
+  userSites     UserSite[]
+  address       String?
 }
 
 model Position {
@@ -135,4 +154,49 @@ model Position {
   createdAt DateTime  @default(now())
   updatedAt DateTime  @updatedAt
   user      User[]
+}
+
+model Province {
+  id String @id @default(uuid())
+
+  name      String
+  deletedAt DateTime?
+  createdAt DateTime  @default(now())
+  city      City[]
+  Site      Site[]
+}
+
+model City {
+  id String @id @default(uuid())
+
+  name       String
+  province   Province   @relation(fields: [provinceId], references: [id])
+  deletedAt  DateTime?
+  createdAt  DateTime   @default(now())
+  provinceId String
+  district   District[]
+  site       Site[]
+}
+
+model District {
+  id String @id @default(uuid())
+
+  name        String
+  city        City          @relation(fields: [cityId], references: [id])
+  deletedAt   DateTime?
+  createdAt   DateTime      @default(now())
+  cityId      String
+  subDistrict SubDistrict[]
+  site        Site[]
+}
+
+model SubDistrict {
+  id String @id @default(uuid())
+
+  name       String
+  district   District  @relation(fields: [districtId], references: [id])
+  deletedAt  DateTime?
+  createdAt  DateTime  @default(now())
+  districtId String
+  site       Site[]
 }

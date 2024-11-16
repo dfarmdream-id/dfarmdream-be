@@ -50,9 +50,10 @@ export class UsersService {
         username: createUsersDto.username,
         address: createUsersDto.address,
         phone: createUsersDto.phone,
-        site: {
-          connect: {
-            id: createUsersDto.siteId,
+        sites: {
+          createMany: {
+            data: createUsersDto.sites,
+            skipDuplicates: true,
           },
         },
         position: {
@@ -74,10 +75,8 @@ export class UsersService {
           address: updateUsersDto.address,
           fullName: updateUsersDto.fullName,
           email: updateUsersDto.email,
-          site: {
-            connect: {
-              id: updateUsersDto.siteId,
-            },
+          sites: {
+            set: updateUsersDto.sites,
           },
           roles: {
             set: updateUsersDto.roles,
