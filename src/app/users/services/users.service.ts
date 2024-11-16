@@ -80,20 +80,31 @@ export class UsersService {
 
   public async update(id: string, updateUsersDto: UpdateUsersDto) {
     try {
-      return this.userRepository.update(
-        { id },
-        {
-          address: updateUsersDto.address,
-          fullName: updateUsersDto.fullName,
-          email: updateUsersDto.email,
-          sites: {
-            set: updateUsersDto.sites,
-          },
-          roles: {
-            set: updateUsersDto.roles,
-          },
+      const payload = {
+        address: updateUsersDto.address,
+        fullName: updateUsersDto.fullName,
+        email: updateUsersDto.email,
+        sites: {
+          set: updateUsersDto.sites,
         },
-      );
+        phone: updateUsersDto.phone,
+
+        roles: {
+          set: updateUsersDto.roles,
+        },
+      };
+
+      if (updateUsersDto.positionId) {
+        Object.assign(payload, {
+          position: {
+            connect: {
+              id: updateUsersDto.positionId,
+            },
+          },
+        });
+      }
+
+      return this.userRepository.update({ id }, payload);
     } catch (error) {
       throw new Error(error.message);
     }

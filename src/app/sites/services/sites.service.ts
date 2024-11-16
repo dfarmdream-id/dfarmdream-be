@@ -27,32 +27,52 @@ export class SitesService {
   }
 
   public create(createSitesDto: CreateSitesDto) {
-    return from(
-      this.siteRepository.create({
-        name: createSitesDto.name,
-        city: {
-          connect: {
-            id: createSitesDto.cityId,
-          },
-        },
+    const payload = {
+      name: createSitesDto.name,
+      address: createSitesDto.address,
+    };
+
+    if (createSitesDto.provinceId) {
+      Object.assign(payload, {
         province: {
           connect: {
             id: createSitesDto.provinceId,
           },
         },
+      });
+    }
+
+    if (createSitesDto.cityId) {
+      Object.assign(payload, {
+        city: {
+          connect: {
+            id: createSitesDto.cityId,
+          },
+        },
+      });
+    }
+
+    if (createSitesDto.districtId) {
+      Object.assign(payload, {
         district: {
           connect: {
             id: createSitesDto.districtId,
           },
         },
+      });
+    }
+
+    if (createSitesDto.subDistrictId) {
+      Object.assign(payload, {
         subDistrict: {
           connect: {
             id: createSitesDto.subDistrictId,
           },
         },
-        address: createSitesDto.address,
-      }),
-    );
+      });
+    }
+
+    return from(this.siteRepository.create(payload));
   }
 
   public update(id: string, updateSitesDto: UpdateSitesDto) {
