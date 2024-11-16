@@ -1,5 +1,8 @@
 import { Module } from '@nestjs/common';
-import { SitesHttpController, SitesMicroserviceController } from './controllers';
+import {
+  SitesHttpController,
+  SitesMicroserviceController,
+} from './controllers';
 import { SitesService } from './services';
 import { SitesRepository } from './repositories';
 

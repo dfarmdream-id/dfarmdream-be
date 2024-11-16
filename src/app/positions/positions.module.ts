@@ -1,5 +1,8 @@
 import { Module } from '@nestjs/common';
-import { PositionsHttpController, PositionsMicroserviceController } from './controllers';
+import {
+  PositionsHttpController,
+  PositionsMicroserviceController,
+} from './controllers';
 import { PositionsService } from './services';
 import { PositionsRepository } from './repositories';
 

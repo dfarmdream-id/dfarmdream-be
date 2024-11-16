@@ -1,5 +1,8 @@
 import { Module } from '@nestjs/common';
-import { RolesHttpController, RolesMicroserviceController } from './controllers';
+import {
+  RolesHttpController,
+  RolesMicroserviceController,
+} from './controllers';
 import { RolesService } from './services';
 import { RolesRepository } from './repositories';
 

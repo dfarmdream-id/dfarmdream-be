@@ -9,9 +9,7 @@ import { I18nService } from 'nestjs-i18n';
 
 @Catch(HttpException)
 export class HttpExceptionFilter implements ExceptionFilter {
-  constructor(
-    private readonly i18n: I18nService
-  ) { }
+  constructor(private readonly i18n: I18nService) {}
 
   catch(exception: any, host: ArgumentsHost) {
     const ctx = host.switchToHttp();
@@ -22,16 +20,20 @@ export class HttpExceptionFilter implements ExceptionFilter {
       new ResponseEntity({
         status,
         message: exception.message,
-        errors: exception.getResponse().errors?.map((err: { field: string, message: string[] }) => {
-          return {
-            field: err.field,
-            message: err.message.map((item) => this.i18n.t(item.split('|')[0], {
-              args: {
-                field: err.field
-              }
-            })),
-          };
-        }),
+        errors: exception
+          .getResponse()
+          .errors?.map((err: { field: string; message: string[] }) => {
+            return {
+              field: err.field,
+              message: err.message.map((item) =>
+                this.i18n.t(item.split('|')[0], {
+                  args: {
+                    field: err.field,
+                  },
+                }),
+              ),
+            };
+          }),
       }),
     );
   }

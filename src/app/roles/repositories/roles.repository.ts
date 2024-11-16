@@ -45,16 +45,16 @@ export class RolesRepository {
             totalData: count,
           }),
       ),
-      catchError(() => {
-        throw new Error();
+      catchError((error) => {
+        throw error;
       }),
     );
   }
 
   public create(data: Prisma.RoleCreateInput) {
     return from(this.prismaService.role.create({ data })).pipe(
-      catchError(() => {
-        throw new Error();
+      catchError((error) => {
+        throw error;
       }),
     );
   }
@@ -64,8 +64,8 @@ export class RolesRepository {
     data: Prisma.RoleUpdateInput,
   ) {
     return from(this.prismaService.role.update({ where, data })).pipe(
-      catchError(() => {
-        throw new Error();
+      catchError((error) => {
+        throw error;
       }),
     );
   }
@@ -77,16 +77,16 @@ export class RolesRepository {
         data: { deletedAt: new Date() },
       }),
     ).pipe(
-      catchError(() => {
-        throw new Error();
+      catchError((error) => {
+        throw error;
       }),
     );
   }
 
   public first(where: Prisma.RoleWhereUniqueInput, select?: Prisma.RoleSelect) {
     return from(this.prismaService.role.findUnique({ where, select })).pipe(
-      catchError(() => {
-        throw new Error();
+      catchError((error) => {
+        throw error;
       }),
     );
   }
@@ -96,24 +96,24 @@ export class RolesRepository {
     select?: Prisma.RoleSelect,
   ) {
     return from(this.prismaService.role.findUnique({ where, select })).pipe(
-      catchError(() => {
-        throw new Error();
+      catchError((error) => {
+        throw error;
       }),
     );
   }
 
   public find(filter: Filter) {
     return from(this.prismaService.role.findMany(filter)).pipe(
-      catchError(() => {
-        throw new Error();
+      catchError((error) => {
+        throw error;
       }),
     );
   }
 
   public count(filter: Omit<Filter, 'include'>) {
     return from(this.prismaService.role.count(filter)).pipe(
-      catchError(() => {
-        throw new Error();
+      catchError((error) => {
+        throw error;
       }),
     );
   }
@@ -121,8 +121,8 @@ export class RolesRepository {
   public any(filter: Omit<Filter, 'include'>) {
     return this.count(filter).pipe(
       map((count) => count > 0),
-      catchError(() => {
-        throw new Error();
+      catchError((error) => {
+        throw error;
       }),
     );
   }

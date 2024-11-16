@@ -45,8 +45,8 @@ export class FilesRepository {
             totalData: count,
           }),
       ),
-      catchError(() => {
-        throw new Error();
+      catchError((error) => {
+        throw error;
       }),
     );
   }
@@ -64,8 +64,8 @@ export class FilesRepository {
     data: Prisma.FileUpdateInput,
   ) {
     return from(this.prismaService.file.update({ where, data })).pipe(
-      catchError(() => {
-        throw new Error();
+      catchError((error) => {
+        throw error;
       }),
     );
   }
@@ -77,16 +77,16 @@ export class FilesRepository {
         data: { deletedAt: new Date() },
       }),
     ).pipe(
-      catchError(() => {
-        throw new Error();
+      catchError((error) => {
+        throw error;
       }),
     );
   }
 
   public first(where: Prisma.FileWhereUniqueInput, select?: Prisma.FileSelect) {
     return from(this.prismaService.file.findUnique({ where, select })).pipe(
-      catchError(() => {
-        throw new Error();
+      catchError((error) => {
+        throw error;
       }),
     );
   }
@@ -96,24 +96,24 @@ export class FilesRepository {
     select?: Prisma.FileSelect,
   ) {
     return from(this.prismaService.file.findUnique({ where, select })).pipe(
-      catchError(() => {
-        throw new Error();
+      catchError((error) => {
+        throw error;
       }),
     );
   }
 
   public find(filter: Filter) {
     return from(this.prismaService.file.findMany(filter)).pipe(
-      catchError(() => {
-        throw new Error();
+      catchError((error) => {
+        throw error;
       }),
     );
   }
 
   public count(filter: Omit<Filter, 'include'>) {
     return from(this.prismaService.file.count(filter)).pipe(
-      catchError(() => {
-        throw new Error();
+      catchError((error) => {
+        throw error;
       }),
     );
   }
@@ -121,8 +121,8 @@ export class FilesRepository {
   public any(filter: Omit<Filter, 'include'>) {
     return this.count(filter).pipe(
       map((count) => count > 0),
-      catchError(() => {
-        throw new Error();
+      catchError((error) => {
+        throw error;
       }),
     );
   }

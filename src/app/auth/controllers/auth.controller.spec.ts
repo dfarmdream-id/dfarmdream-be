@@ -1,5 +1,4 @@
-
-import { describe, beforeEach, expect, it, } from 'vitest'
+import { describe, beforeEach, expect, it } from 'vitest';
 import { Test } from '@nestjs/testing';
 import { AuthService } from '../services/auth.service';
 import { AuthController } from '../controllers/auth.controller';
@@ -10,21 +9,21 @@ import { AppModule } from '@src/app/app.module';
 import { MainModule } from '@src/main.module';
 
 describe('AuthController', () => {
-    let authController: AuthController;
-    let authService: AuthService;
+  let authController: AuthController;
+  let authService: AuthService;
 
-    beforeEach(async () => {
-        const moduleRef = await Test.createTestingModule({
-            imports: [UsersModule, MainModule],
-            controllers: [AuthController],
-            providers: [AuthService,],
-        }).compile();
+  beforeEach(async () => {
+    const moduleRef = await Test.createTestingModule({
+      imports: [UsersModule, MainModule],
+      controllers: [AuthController],
+      providers: [AuthService],
+    }).compile();
 
-        authService = moduleRef.get<AuthService>(AuthService);
-        authController = moduleRef.get<AuthController>(AuthController);
-    });
+    authService = moduleRef.get<AuthService>(AuthService);
+    authController = moduleRef.get<AuthController>(AuthController);
+  });
 
-    it('its defined', () => {
-        expect(authService).toBeDefined()
-    });
+  it('its defined', () => {
+    expect(authService).toBeDefined();
+  });
 });

@@ -50,6 +50,7 @@ export class SitesHttpController {
     return this.siteService.paginate(paginateDto).pipe(
       map((data) => new ResponseEntity({ data, message: 'success' })),
       catchError((error) => {
+        console.log(error);
         throw new HttpException(error.message, HttpStatus.NOT_FOUND);
       }),
     );

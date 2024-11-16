@@ -27,20 +27,24 @@ export class FilesHttpController {
   constructor(private readonly fileService: FilesService) {}
 
   @Post()
-  public create(@Body() createFilesDto: CreateFilesDto): Observable<ResponseEntity> {
+  public create(
+    @Body() createFilesDto: CreateFilesDto,
+  ): Observable<ResponseEntity> {
     return from(this.fileService.create(createFilesDto)).pipe(
-      map(data => new ResponseEntity({ data, message: 'success' })),
-      catchError(error => {
+      map((data) => new ResponseEntity({ data, message: 'success' })),
+      catchError((error) => {
         throw new HttpException(error.message, HttpStatus.BAD_REQUEST);
       }),
     );
   }
 
   @Get()
-  public index(@Query() paginateDto: PaginationQueryDto): Observable<ResponseEntity> {
+  public index(
+    @Query() paginateDto: PaginationQueryDto,
+  ): Observable<ResponseEntity> {
     return from(this.fileService.paginate(paginateDto)).pipe(
-      map(data => new ResponseEntity({ data, message: 'success' })),
-      catchError(error => {
+      map((data) => new ResponseEntity({ data, message: 'success' })),
+      catchError((error) => {
         throw new HttpException(error.message, HttpStatus.NOT_FOUND);
       }),
     );
@@ -49,8 +53,8 @@ export class FilesHttpController {
   @Get(':id')
   public detail(@Param('id') id: string): Observable<ResponseEntity> {
     return from(this.fileService.detail(id)).pipe(
-      map(data => new ResponseEntity({ data, message: 'success' })),
-      catchError(error => {
+      map((data) => new ResponseEntity({ data, message: 'success' })),
+      catchError((error) => {
         throw new HttpException(error.message, HttpStatus.NOT_FOUND);
       }),
     );
@@ -59,8 +63,8 @@ export class FilesHttpController {
   @Delete(':id')
   public destroy(@Param('id') id: string): Observable<ResponseEntity> {
     return from(this.fileService.destroy(id)).pipe(
-      map(data => new ResponseEntity({ data, message: 'success' })),
-      catchError(error => {
+      map((data) => new ResponseEntity({ data, message: 'success' })),
+      catchError((error) => {
         throw new HttpException(error.message, HttpStatus.BAD_REQUEST);
       }),
     );
@@ -72,11 +76,10 @@ export class FilesHttpController {
     @Body() updateFilesDto: UpdateFilesDto,
   ): Observable<ResponseEntity> {
     return from(this.fileService.update(id, updateFilesDto)).pipe(
-      map(data => new ResponseEntity({ data, message: 'success' })),
-      catchError(error => {
+      map((data) => new ResponseEntity({ data, message: 'success' })),
+      catchError((error) => {
         throw new HttpException(error.message, HttpStatus.BAD_REQUEST);
       }),
     );
   }
 }
-

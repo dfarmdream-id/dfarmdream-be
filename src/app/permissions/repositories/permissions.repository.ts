@@ -43,16 +43,16 @@ export class PermissionsRepository {
             totalData: count,
           }),
       ),
-      catchError(() => {
-        throw new Error();
+      catchError((error) => {
+        throw error;
       }),
     );
   }
 
   public create(data: Prisma.PermissionCreateInput) {
     return from(this.prismaService.permission.create({ data })).pipe(
-      catchError(() => {
-        throw new Error();
+      catchError((error) => {
+        throw error;
       }),
     );
   }
@@ -62,8 +62,8 @@ export class PermissionsRepository {
     data: Prisma.PermissionUpdateInput,
   ) {
     return from(this.prismaService.permission.update({ where, data })).pipe(
-      catchError(() => {
-        throw new Error();
+      catchError((error) => {
+        throw error;
       }),
     );
   }
@@ -75,8 +75,8 @@ export class PermissionsRepository {
         data: { deletedAt: new Date() },
       }),
     ).pipe(
-      catchError(() => {
-        throw new Error();
+      catchError((error) => {
+        throw error;
       }),
     );
   }
@@ -88,8 +88,8 @@ export class PermissionsRepository {
     return from(
       this.prismaService.permission.findUnique({ where, select }),
     ).pipe(
-      catchError(() => {
-        throw new Error();
+      catchError((error) => {
+        throw error;
       }),
     );
   }
@@ -101,24 +101,24 @@ export class PermissionsRepository {
     return from(
       this.prismaService.permission.findUnique({ where, select }),
     ).pipe(
-      catchError(() => {
-        throw new Error();
+      catchError((error) => {
+        throw error;
       }),
     );
   }
 
   public find(filter: Filter) {
     return from(this.prismaService.permission.findMany(filter)).pipe(
-      catchError(() => {
-        throw new Error();
+      catchError((error) => {
+        throw error;
       }),
     );
   }
 
   public count(filter: Omit<Filter, 'include'>) {
     return from(this.prismaService.permission.count(filter)).pipe(
-      catchError(() => {
-        throw new Error();
+      catchError((error) => {
+        throw error;
       }),
     );
   }
@@ -126,8 +126,8 @@ export class PermissionsRepository {
   public any(filter: Omit<Filter, 'include'>) {
     return this.count(filter).pipe(
       map((count) => count > 0),
-      catchError(() => {
-        throw new Error();
+      catchError((error) => {
+        throw error;
       }),
     );
   }

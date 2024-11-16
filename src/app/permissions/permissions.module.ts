@@ -1,5 +1,8 @@
 import { Module } from '@nestjs/common';
-import { PermissionsHttpController, PermissionsMicroserviceController } from './controllers';
+import {
+  PermissionsHttpController,
+  PermissionsMicroserviceController,
+} from './controllers';
 import { PermissionsService } from './services';
 import { PermissionsRepository } from './repositories';
 

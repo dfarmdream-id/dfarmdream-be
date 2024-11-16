@@ -45,8 +45,8 @@ export class FaqsRepository {
             totalData: count,
           }),
       ),
-      catchError(() => {
-        throw new Error();
+      catchError((error) => {
+        throw error;
       }),
     );
   }
@@ -64,8 +64,8 @@ export class FaqsRepository {
     data: Prisma.FaqUpdateInput,
   ) {
     return from(this.prismaService.faq.update({ where, data })).pipe(
-      catchError(() => {
-        throw new Error();
+      catchError((error) => {
+        throw error;
       }),
     );
   }
@@ -77,16 +77,16 @@ export class FaqsRepository {
         data: { deletedAt: new Date() },
       }),
     ).pipe(
-      catchError(() => {
-        throw new Error();
+      catchError((error) => {
+        throw error;
       }),
     );
   }
 
   public first(where: Prisma.FaqWhereUniqueInput, select?: Prisma.FaqSelect) {
     return from(this.prismaService.faq.findUnique({ where, select })).pipe(
-      catchError(() => {
-        throw new Error();
+      catchError((error) => {
+        throw error;
       }),
     );
   }
@@ -96,24 +96,24 @@ export class FaqsRepository {
     select?: Prisma.FaqSelect,
   ) {
     return from(this.prismaService.faq.findUnique({ where, select })).pipe(
-      catchError(() => {
-        throw new Error();
+      catchError((error) => {
+        throw error;
       }),
     );
   }
 
   public find(filter: Filter) {
     return from(this.prismaService.faq.findMany(filter)).pipe(
-      catchError(() => {
-        throw new Error();
+      catchError((error) => {
+        throw error;
       }),
     );
   }
 
   public count(filter: Omit<Filter, 'include'>) {
     return from(this.prismaService.faq.count(filter)).pipe(
-      catchError(() => {
-        throw new Error();
+      catchError((error) => {
+        throw error;
       }),
     );
   }
@@ -121,8 +121,8 @@ export class FaqsRepository {
   public any(filter: Omit<Filter, 'include'>) {
     return this.count(filter).pipe(
       map((count) => count > 0),
-      catchError(() => {
-        throw new Error();
+      catchError((error) => {
+        throw error;
       }),
     );
   }
