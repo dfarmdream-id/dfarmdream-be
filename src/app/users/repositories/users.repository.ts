@@ -63,9 +63,9 @@ export class UsersRepository {
 
   public async firstOrThrow(
     where: Partial<Prisma.UserWhereUniqueInput>,
-    select?: Prisma.UserSelect,
+    include?: Prisma.UserInclude,
   ) {
-    const data = await this.prismaService.user.findFirst({ where, select });
+    const data = await this.prismaService.user.findFirst({ where, include });
     if (!data) throw new Error('error.not_found');
     return data;
   }

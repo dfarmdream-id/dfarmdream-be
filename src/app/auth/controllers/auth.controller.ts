@@ -9,13 +9,14 @@ import {
 } from '@nestjs/common';
 import { AuthService } from '../services';
 import { ApiOperation, ApiSecurity, ApiTags } from '@nestjs/swagger';
-import { SignInDto } from '../dtos/sign-in.dto';
+import { SignInChoose, SignInDto } from '../dtos/sign-in.dto';
 import { ResponseEntity } from '@src/common/entities/response.entity';
 import { AuthGuard } from '../guards';
 import { User } from '../decorators';
 import { User as Auth } from '@prisma/client';
 import { SignUpDto } from '../dtos';
 import { catchError, map } from 'rxjs';
+import { pick } from 'lodash';
 
 @ApiTags('Auth')
 @Controller({
@@ -25,12 +26,27 @@ import { catchError, map } from 'rxjs';
 export class AuthController {
   constructor(private readonly authService: AuthService) {}
 
+  @Post('sign-in')
+  signInSite(@Body() createAuthDto: SignInDto) {
+    return this.authService.signIn(createAuthDto).pipe(
+      map(
+        (data) =>
+          new ResponseEntity({
+            data: pick(data, 'user').user,
+          }),
+      ),
+      catchError((error) => {
+        throw new HttpException(error.message, HttpStatus.UNAUTHORIZED);
+      }),
+    );
+  }
+
   @ApiOperation({
     summary: 'Sign in',
   })
-  @Post('sign-in')
-  signIn(@Body() createAuthDto: SignInDto) {
-    return this.authService.signIn(createAuthDto).pipe(
+  @Post('sign-in/choose')
+  signIn(@Body() createAuthDto: SignInChoose) {
+    return this.authService.signInChoose(createAuthDto).pipe(
       map((data) => new ResponseEntity({ data })),
       catchError((error) => {
         throw new HttpException(error.message, HttpStatus.UNAUTHORIZED);
@@ -51,7 +67,7 @@ export class AuthController {
   @ApiSecurity('JWT')
   @UseGuards(AuthGuard)
   @Get('profile')
-  profile(@User() user: Auth) {
+  profile(@User() user: Auth & { siteId: string }) {
     return this.authService.profile(user).pipe(
       map(
         (data) =>

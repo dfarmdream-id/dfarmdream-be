@@ -30,24 +30,9 @@ export class UsersService {
 
   public detail(id: string) {
     return from(
-      this.userRepository.firstOrThrow(
-        {
-          id,
-        },
-        {
-          id: true,
-          email: true,
-          fullName: true,
-          username: true,
-          address: true,
-          phone: true,
-          sites: true,
-          position: true,
-          createdAt: true,
-          updatedAt: true,
-          roles: true,
-        },
-      ),
+      this.userRepository.firstOrThrow({
+        id,
+      }),
     ).pipe(
       catchError((error) => {
         throw new Error(error);
@@ -176,16 +161,25 @@ export class UsersService {
 
   public signIn(signInDto: SignInDto) {
     return from(
-      this.userRepository.firstOrThrow({
-        OR: [
-          {
-            email: signInDto.username,
+      this.userRepository.firstOrThrow(
+        {
+          OR: [
+            {
+              email: signInDto.username,
+            },
+            {
+              username: signInDto.username,
+            },
+          ],
+        },
+        {
+          sites: {
+            include: {
+              site: true,
+            },
           },
-          {
-            username: signInDto.username,
-          },
-        ],
-      }),
+        },
+      ),
     ).pipe(
       map((user) => {
         if (!verifySync(signInDto.password, user.password))

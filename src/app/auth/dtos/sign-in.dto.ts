@@ -1,5 +1,5 @@
 import { ApiProperty } from '@nestjs/swagger';
-import { IsString } from 'class-validator';
+import { IsString, IsUUID } from 'class-validator';
 import { i18nValidationMessage } from 'nestjs-i18n';
 
 export class SignInDto {
@@ -14,4 +14,10 @@ export class SignInDto {
     message: i18nValidationMessage('validation.string'),
   })
   password: string;
+}
+
+export class SignInChoose extends SignInDto {
+  @ApiProperty()
+  @IsUUID()
+  siteId: string;
 }
