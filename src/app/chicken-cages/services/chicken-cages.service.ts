@@ -14,6 +14,9 @@ export class ChickenCagesService {
         include: {
           site: true,
         },
+        where: {
+          deletedAt: null,
+        },
       }),
     );
   }

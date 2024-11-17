@@ -14,7 +14,13 @@ export class DocumentInvestmentsService {
   ) {}
 
   public paginate(paginateDto: PaginationQueryDto) {
-    return from(this.documentinvestmentRepository.paginate(paginateDto));
+    return from(
+      this.documentinvestmentRepository.paginate(paginateDto, {
+        where: {
+          deletedAt: null,
+        },
+      }),
+    );
   }
 
   public detail(id: string) {

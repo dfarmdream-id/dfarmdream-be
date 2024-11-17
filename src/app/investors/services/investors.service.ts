@@ -9,7 +9,13 @@ export class InvestorsService {
   constructor(private readonly investorRepository: InvestorsRepository) {}
 
   public paginate(paginateDto: PaginationQueryDto) {
-    return from(this.investorRepository.paginate(paginateDto));
+    return from(
+      this.investorRepository.paginate(paginateDto, {
+        where: {
+          deletedAt: null,
+        },
+      }),
+    );
   }
 
   public detail(id: string) {

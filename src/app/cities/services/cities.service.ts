@@ -9,7 +9,13 @@ export class CitiesService {
   constructor(private readonly cityRepository: CitiesRepository) {}
 
   public paginate(paginateDto: PaginationQueryDto) {
-    return from(this.cityRepository.paginate(paginateDto));
+    return from(
+      this.cityRepository.paginate(paginateDto, {
+        where: {
+          deletedAt: null,
+        },
+      }),
+    );
   }
 
   public detail(id: string) {

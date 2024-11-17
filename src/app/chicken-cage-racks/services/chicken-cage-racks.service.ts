@@ -2,14 +2,22 @@ import { Injectable } from '@nestjs/common';
 import { ChickenCageRacksRepository } from '../repositories';
 import { PaginationQueryDto } from 'src/common/dtos/pagination-query.dto';
 import { CreateChickenCageRacksDto, UpdateChickenCageRacksDto } from '../dtos';
-import { from, Observable } from 'rxjs';
+import { from } from 'rxjs';
 
 @Injectable()
 export class ChickenCageRacksService {
-  constructor(private readonly chickencagerackRepository: ChickenCageRacksRepository) {}
+  constructor(
+    private readonly chickencagerackRepository: ChickenCageRacksRepository,
+  ) {}
 
   public paginate(paginateDto: PaginationQueryDto) {
-    return from(this.chickencagerackRepository.paginate(paginateDto));
+    return from(
+      this.chickencagerackRepository.paginate(paginateDto, {
+        where: {
+          deletedAt: null,
+        },
+      }),
+    );
   }
 
   public detail(id: string) {
@@ -21,11 +29,17 @@ export class ChickenCageRacksService {
   }
 
   public create(createChickenCageRacksDto: CreateChickenCageRacksDto) {
-    return from(this.chickencagerackRepository.create(createChickenCageRacksDto));
+    return from(
+      this.chickencagerackRepository.create(createChickenCageRacksDto),
+    );
   }
 
-  public update(id: string, updateChickenCageRacksDto: UpdateChickenCageRacksDto) {
-    return from(this.chickencagerackRepository.update({ id }, updateChickenCageRacksDto));
+  public update(
+    id: string,
+    updateChickenCageRacksDto: UpdateChickenCageRacksDto,
+  ) {
+    return from(
+      this.chickencagerackRepository.update({ id }, updateChickenCageRacksDto),
+    );
   }
 }
-

@@ -9,7 +9,13 @@ export class SubDistrictsService {
   constructor(private readonly subdistrictRepository: SubDistrictsRepository) {}
 
   public paginate(paginateDto: PaginationQueryDto) {
-    return from(this.subdistrictRepository.paginate(paginateDto));
+    return from(
+      this.subdistrictRepository.paginate(paginateDto, {
+        where: {
+          deletedAt: null,
+        },
+      }),
+    );
   }
 
   public detail(id: string) {
