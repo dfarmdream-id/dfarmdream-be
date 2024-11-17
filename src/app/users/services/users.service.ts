@@ -120,7 +120,9 @@ export class UsersService {
           },
         },
         phone: updateUsersDto.phone,
-
+        password: updateUsersDto.password
+          ? hashSync(updateUsersDto.password)
+          : undefined,
         roles: {
           createMany: {
             data:
@@ -130,6 +132,7 @@ export class UsersService {
             skipDuplicates: true,
           },
         },
+        status: updateUsersDto.status,
       };
 
       if (updateUsersDto.positionId) {
