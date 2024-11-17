@@ -10,6 +10,15 @@ import { PermissionsModule } from './permissions';
 import { RolesModule } from './roles';
 import { SitesModule } from './sites';
 import { PositionsModule } from './positions';
+import { ChickenCageRacksModule } from './chicken-cage-racks';
+import { ChickenCagesModule } from './chicken-cages';
+import { ChickensModule } from './chickens';
+import { CitiesModule } from './cities';
+import { DistrictsModule } from './districts';
+import { DocumentInvestmentsModule } from './document-investments';
+import { InvestorsModule } from './investors';
+import { ProvincesModule } from './provinces';
+import { SubDistrictsModule } from './subdistricts';
 
 @ApiTags('App Spec')
 @Controller()
@@ -38,6 +47,15 @@ class AppController {
     RolesModule,
     SitesModule,
     PositionsModule,
+    ChickenCageRacksModule,
+    ChickenCagesModule,
+    ChickensModule,
+    CitiesModule,
+    DistrictsModule,
+    DocumentInvestmentsModule,
+    InvestorsModule,
+    ProvincesModule,
+    SubDistrictsModule,
   ],
   controllers: [AppController],
   exports: [FilesModule],

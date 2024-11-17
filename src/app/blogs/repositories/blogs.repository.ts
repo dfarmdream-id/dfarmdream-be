@@ -1,6 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import { from, Observable } from 'rxjs';
-import { map, catchError } from 'rxjs/operators';
+import { map, catchError } from 'rxjs';
 import { Prisma } from '@prisma/client';
 import { PaginationQueryDto } from 'src/common/dtos/pagination-query.dto';
 import { PaginatedEntity } from 'src/common/entities/paginated.entity';

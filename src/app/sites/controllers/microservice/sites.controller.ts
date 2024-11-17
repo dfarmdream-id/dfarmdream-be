@@ -5,7 +5,7 @@ import { SitesService } from 'src/app/sites/services';
 import { PaginationQueryDto } from 'src/common/dtos/pagination-query.dto';
 import { ResponseEntity } from 'src/common/entities/response.entity';
 import { CreateSitesDto, UpdateSitesDto } from 'src/app/sites/dtos';
-import { map, catchError } from 'rxjs/operators';
+import { map, catchError } from 'rxjs';
 import { ApiTags } from '@nestjs/swagger';
 import { from } from 'rxjs';
 

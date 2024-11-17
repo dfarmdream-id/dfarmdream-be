@@ -17,7 +17,7 @@ import { ResponseEntity } from 'src/common/entities/response.entity';
 import { CreateBlogsDto, UpdateBlogsDto } from 'src/app/blogs/dtos';
 import { ApiSecurity, ApiTags } from '@nestjs/swagger';
 import { Observable, from } from 'rxjs';
-import { map, catchError } from 'rxjs/operators';
+import { map, catchError } from 'rxjs';
 import { User } from '@src/app/auth/decorators';
 import { User as Auth } from '@prisma/client';
 import { merge } from 'lodash';

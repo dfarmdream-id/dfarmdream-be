@@ -5,7 +5,7 @@ import { {{className}}Service } from 'src/app/{{fileName}}/services';
 import { PaginationQueryDto } from 'src/common/dtos/pagination-query.dto';
 import { ResponseEntity } from 'src/common/entities/response.entity';
 import { Create{{className}}Dto, Update{{className}}Dto } from 'src/app/{{fileName}}/dtos';
-import { map, catchError, from } from 'rxjs/operators';
+import { map, catchError, from } from 'rxjs';
 import { ApiTags } from '@nestjs/swagger';
 
 @ApiTags('{{className}}')

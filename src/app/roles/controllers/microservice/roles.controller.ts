@@ -5,7 +5,7 @@ import { RolesService } from 'src/app/roles/services';
 import { PaginationQueryDto } from 'src/common/dtos/pagination-query.dto';
 import { ResponseEntity } from 'src/common/entities/response.entity';
 import { CreateRolesDto, UpdateRolesDto } from 'src/app/roles/dtos';
-import { map, catchError } from 'rxjs/operators';
+import { map, catchError } from 'rxjs';
 import { ApiTags } from '@nestjs/swagger';
 import { from, Observable } from 'rxjs';
 import { Prisma } from '@prisma/client';

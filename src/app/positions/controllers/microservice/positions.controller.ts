@@ -8,7 +8,7 @@ import { PositionsService } from 'src/app/positions/services';
 import { PaginationQueryDto } from 'src/common/dtos/pagination-query.dto';
 import { ResponseEntity } from 'src/common/entities/response.entity';
 import { CreatePositionsDto, UpdatePositionsDto } from 'src/app/positions/dtos';
-import { map, catchError } from 'rxjs/operators';
+import { map, catchError } from 'rxjs';
 import { ApiTags } from '@nestjs/swagger';
 import { from, Observable } from 'rxjs';
 import { Prisma } from '@prisma/client';

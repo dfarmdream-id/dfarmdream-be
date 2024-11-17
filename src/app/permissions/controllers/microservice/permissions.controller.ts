@@ -11,7 +11,7 @@ import {
   CreatePermissionsDto,
   UpdatePermissionsDto,
 } from 'src/app/permissions/dtos';
-import { map, catchError } from 'rxjs/operators';
+import { map, catchError } from 'rxjs';
 import { ApiTags } from '@nestjs/swagger';
 import { from, Observable } from 'rxjs';
 import { Prisma } from '@prisma/client';
