@@ -3,7 +3,7 @@ import { UsersRepository } from '../repositories';
 import { PaginationQueryDto } from 'src/common/dtos/pagination-query.dto';
 import { CreateUsersDto, UpdateUsersDto } from '../dtos';
 import { hashSync, verifySync } from '@node-rs/bcrypt';
-import { SignInDto } from 'src/app/auth/dtos';
+import { SignInDto, SignUpDto } from 'src/app/auth/dtos';
 import { catchError, from, map, switchMap } from 'rxjs';
 import { Prisma } from '@prisma/client';
 
@@ -151,7 +151,7 @@ export class UsersService {
     }
   }
 
-  public signUp(signUpDto: CreateUsersDto) {
+  public signUp(signUpDto: SignUpDto) {
     return from(
       this.userRepository.any({
         where: {
