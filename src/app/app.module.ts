@@ -19,6 +19,7 @@ import { DocumentInvestmentsModule } from './document-investments';
 import { InvestorsModule } from './investors';
 import { ProvincesModule } from './provinces';
 import { SubDistrictsModule } from './subdistricts';
+import { DashboardsModule } from './dashboards';
 
 @ApiTags('App Spec')
 @Controller()
@@ -56,6 +57,7 @@ class AppController {
     InvestorsModule,
     ProvincesModule,
     SubDistrictsModule,
+    DashboardsModule,
   ],
   controllers: [AppController],
   exports: [FilesModule],
