@@ -26,7 +26,7 @@ import { AuthGuard } from '@src/app/auth';
 @ApiSecurity('JWT')
 @ApiTags('DocumentInvestments')
 @Controller({
-  path: 'documentinvestment',
+  path: 'document-investment',
   version: '1',
 })
 export class DocumentInvestmentsHttpController {
