@@ -10,6 +10,7 @@ type Filter = {
   cursor?: Prisma.UserWhereUniqueInput;
   take?: number;
   skip?: number;
+  include?: Prisma.UserInclude;
 };
 
 @Injectable()

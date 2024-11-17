@@ -5,6 +5,7 @@ import { CreateUsersDto, UpdateUsersDto } from '../dtos';
 import { hashSync, verifySync } from '@node-rs/bcrypt';
 import { SignInDto } from 'src/app/auth/dtos';
 import { catchError, from, map, switchMap } from 'rxjs';
+import { Prisma } from '@prisma/client';
 
 @Injectable()
 export class UsersService {
@@ -14,6 +15,15 @@ export class UsersService {
     return this.userRepository.paginate(paginateDto, {
       where: {
         deletedAt: null,
+      },
+      include: {
+        sites: {
+          include: {
+            site: true,
+          },
+        },
+        roles: true,
+        position: true,
       },
     });
   }
@@ -35,6 +45,7 @@ export class UsersService {
           position: true,
           createdAt: true,
           updatedAt: true,
+          roles: true,
         },
       ),
     ).pipe(
@@ -84,17 +95,40 @@ export class UsersService {
 
   public async update(id: string, updateUsersDto: UpdateUsersDto) {
     try {
-      const payload = {
+      await this.userRepository.update(
+        {
+          id,
+        },
+        {
+          sites: {
+            deleteMany: {},
+          },
+        },
+      );
+
+      const payload: Prisma.UserUpdateInput = {
         address: updateUsersDto.address,
         fullName: updateUsersDto.fullName,
         email: updateUsersDto.email,
         sites: {
-          set: updateUsersDto.sites,
+          createMany: {
+            data:
+              updateUsersDto.sites?.map((v) => {
+                return v;
+              }) || [],
+            skipDuplicates: true,
+          },
         },
         phone: updateUsersDto.phone,
 
         roles: {
-          set: updateUsersDto.roles,
+          createMany: {
+            data:
+              updateUsersDto.roles?.map((v) => {
+                return v;
+              }) || [],
+            skipDuplicates: true,
+          },
         },
       };
 
