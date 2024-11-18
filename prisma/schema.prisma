@@ -35,9 +35,9 @@ model User {
   roles       RoleUser[]
   positionId  String?
   sites       UserSite[]
-  Investor    Investor[]
-  CashFlow    CashFlow[]
-  Transaction Transaction[]
+  investor    Investor[]
+  cashFlow    CashFlow[]
+  transaction Transaction[]
 
   @@index([email, username, identityId])
 }
@@ -254,7 +254,7 @@ model Chicken {
 
 model Investor {
   id          String    @id @unique @default(uuid())
-  fullName    String
+  fullName    String    @default("")
   username    String
   password    String
   identityId  String?
