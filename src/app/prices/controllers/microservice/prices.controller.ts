@@ -1,0 +1,117 @@
+import { Controller, HttpStatus } from '@nestjs/common';
+import { MessagePattern, Payload, RpcException } from '@nestjs/microservices';
+import { PricesRepository, type Filter } from 'src/app/prices/repositories';
+import { PricesService } from 'src/app/prices/services';
+import { PaginationQueryDto } from 'src/common/dtos/pagination-query.dto';
+import { ResponseEntity } from 'src/common/entities/response.entity';
+import { CreatePricesDto, UpdatePricesDto } from 'src/app/prices/dtos';
+import { map, catchError, from } from 'rxjs';
+import { ApiTags } from '@nestjs/swagger';
+
+@ApiTags('Prices')
+@Controller({
+  path: 'price',
+  version: '1',
+})
+export class PricesMicroserviceController {
+  constructor(
+    private readonly priceService: PricesService,
+    private readonly priceRepository: PricesRepository,
+  ) {}
+
+  @MessagePattern('price.create')
+  public create(@Payload() createPricesDto: CreatePricesDto) {
+    return from(this.priceService.create(createPricesDto)).pipe(
+      map(data => new ResponseEntity({
+        data,
+        message: 'success',
+      })),
+      catchError(error => { 
+        throw new RpcException(new ResponseEntity({
+          status: HttpStatus.BAD_REQUEST,
+          message: error.message
+        }));
+      }),
+    );
+  }
+
+  @MessagePattern('price.find')
+  public find(@Payload() filter: Omit<Filter, 'include'>) {
+    return from(this.priceRepository.find(filter)).pipe(
+      catchError(error => {
+        throw new RpcException(new ResponseEntity({
+          status: HttpStatus.BAD_REQUEST,
+          message: error.message
+        }));
+      }),
+    );
+  }
+
+  @MessagePattern('price.paginate')
+  public index(@Payload() paginateDto: PaginationQueryDto) {
+    return from(this.priceService.paginate(paginateDto)).pipe(
+      map(data => new ResponseEntity({
+        data,
+        message: 'success',
+      })),
+      catchError(error => {
+        throw new RpcException(new ResponseEntity({
+          status: HttpStatus.BAD_REQUEST,
+          message: error.message
+        }));
+      }),
+    );
+  }
+
+  @MessagePattern('price.detail')
+  public detail(@Payload('id') id: string) {
+    return from(this.priceService.detail(id)).pipe(
+      map(data => new ResponseEntity({
+        data,
+        message: 'success',
+      })),
+      catchError(error => {
+        throw new RpcException(new ResponseEntity({
+          status: HttpStatus.BAD_REQUEST,
+          message: error.message
+        }));
+      }),
+    );
+  }
+
+  @MessagePattern('price.destroy')
+  public destroy(@Payload('id') id: string) {
+    return from(this.priceService.destroy(id)).pipe(
+      map(data => new ResponseEntity({
+        data,
+        message: 'success',
+      })),
+      catchError(error => {
+        throw new RpcException(new ResponseEntity({
+          status: HttpStatus.BAD_REQUEST,
+          message: error.message
+        }));
+      }),
+    );
+  }
+
+  @MessagePattern(':id')
+  public update(
+    @Payload('id') id: string,
+    @Payload() updatePricesDto: UpdatePricesDto,
+  ) {
+    return from(this.priceService.update(id, updatePricesDto)).pipe(
+      map(data => new ResponseEntity({
+        data,
+        message: 'success',
+      })),
+      catchError(error => {
+        throw new RpcException(new ResponseEntity({
+          status: HttpStatus.BAD_REQUEST,
+          message: error.message
+        }));
+      }),
+    );
+  }
+}
+

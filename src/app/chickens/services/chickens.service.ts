@@ -14,6 +14,13 @@ export class ChickensService {
         where: {
           deletedAt: null,
         },
+        include: {
+          rack: {
+            include: {
+              cage: true,
+            },
+          },
+        },
       }),
     );
   }

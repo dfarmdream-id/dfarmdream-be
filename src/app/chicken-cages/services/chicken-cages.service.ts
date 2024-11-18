@@ -3,20 +3,36 @@ import { ChickenCagesRepository } from '../repositories';
 import { PaginationQueryDto } from 'src/common/dtos/pagination-query.dto';
 import { CreateChickenCagesDto, UpdateChickenCagesDto } from '../dtos';
 import { from } from 'rxjs';
+import { Prisma } from '@prisma/client';
 
 @Injectable()
 export class ChickenCagesService {
   constructor(private readonly chickencageRepository: ChickenCagesRepository) {}
 
   public paginate(paginateDto: PaginationQueryDto) {
+    const where: Prisma.ChickenCageWhereInput = {
+      deletedAt: null,
+    };
+
+    if (paginateDto.q) {
+      Object.assign(where, {
+        OR: [
+          {
+            name: {
+              contains: paginateDto.q,
+              mode: Prisma.QueryMode.insensitive,
+            },
+          },
+        ],
+      } as Prisma.ChickenCageWhereInput);
+    }
+
     return from(
       this.chickencageRepository.paginate(paginateDto, {
         include: {
           site: true,
         },
-        where: {
-          deletedAt: null,
-        },
+        where,
       }),
     );
   }

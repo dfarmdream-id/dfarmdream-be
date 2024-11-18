@@ -3,17 +3,32 @@ import { SitesRepository } from '../repositories';
 import { PaginationQueryDto } from 'src/common/dtos/pagination-query.dto';
 import { CreateSitesDto, UpdateSitesDto } from '../dtos';
 import { from } from 'rxjs';
+import { Prisma } from '@prisma/client';
 
 @Injectable()
 export class SitesService {
   constructor(private readonly siteRepository: SitesRepository) {}
 
   public paginate(paginateDto: PaginationQueryDto) {
+    const where: Prisma.SiteWhereInput = {
+      deletedAt: null,
+    };
+    if (paginateDto.q) {
+      Object.assign(where, {
+        OR: [
+          {
+            name: {
+              contains: paginateDto.q,
+              mode: Prisma.QueryMode.insensitive,
+            },
+          },
+        ],
+      } as Prisma.SiteWhereInput);
+    }
+
     return from(
       this.siteRepository.paginate(paginateDto, {
-        where: {
-          deletedAt: null,
-        },
+        where,
       }),
     );
   }

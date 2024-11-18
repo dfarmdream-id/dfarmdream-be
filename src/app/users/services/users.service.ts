@@ -12,10 +12,37 @@ export class UsersService {
   constructor(private readonly userRepository: UsersRepository) {}
 
   public paginate(paginateDto: PaginationQueryDto) {
+    const where: Prisma.UserWhereInput = {
+      deletedAt: null,
+    };
+
+    if (paginateDto.q) {
+      Object.assign(where, {
+        OR: [
+          {
+            username: {
+              contains: paginateDto.q,
+              mode: Prisma.QueryMode.insensitive,
+            },
+          },
+          {
+            fullName: {
+              contains: paginateDto.q,
+              mode: Prisma.QueryMode.insensitive,
+            },
+          },
+          {
+            identityId: {
+              contains: paginateDto.q,
+              mode: Prisma.QueryMode.insensitive,
+            },
+          },
+        ],
+      } as Prisma.UserWhereInput);
+    }
+
     return this.userRepository.paginate(paginateDto, {
-      where: {
-        deletedAt: null,
-      },
+      where,
       include: {
         sites: {
           include: {

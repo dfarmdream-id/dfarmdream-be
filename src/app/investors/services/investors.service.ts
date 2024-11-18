@@ -3,6 +3,7 @@ import { InvestorsRepository } from '../repositories';
 import { PaginationQueryDto } from 'src/common/dtos/pagination-query.dto';
 import { CreateInvestorsDto, UpdateInvestorsDto } from '../dtos';
 import { from } from 'rxjs';
+import { hashSync } from '@node-rs/bcrypt';
 
 @Injectable()
 export class InvestorsService {
@@ -27,7 +28,12 @@ export class InvestorsService {
   }
 
   public create(createInvestorsDto: CreateInvestorsDto) {
-    return from(this.investorRepository.create(createInvestorsDto));
+    return from(
+      this.investorRepository.create({
+        ...createInvestorsDto,
+        password: hashSync(createInvestorsDto.password),
+      }),
+    );
   }
 
   public update(id: string, updateInvestorsDto: UpdateInvestorsDto) {

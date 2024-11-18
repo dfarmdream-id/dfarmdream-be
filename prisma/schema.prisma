@@ -27,15 +27,17 @@ model User {
   position   Position?   @relation(fields: [positionId], references: [id])
   status     UserStatus? @default(INACTIVE)
 
-  deletedAt  DateTime?
-  createdAt  DateTime   @default(now())
-  updatedAt  DateTime   @updatedAt
-  blog       Blog[]
-  faq        Faq[]
-  roles      RoleUser[]
-  positionId String?
-  sites      UserSite[]
-  Investor   Investor[]
+  deletedAt   DateTime?
+  createdAt   DateTime      @default(now())
+  updatedAt   DateTime      @updatedAt
+  blog        Blog[]
+  faq         Faq[]
+  roles       RoleUser[]
+  positionId  String?
+  sites       UserSite[]
+  Investor    Investor[]
+  CashFlow    CashFlow[]
+  Transaction Transaction[]
 
   @@index([email, username, identityId])
 }
@@ -147,6 +149,8 @@ model Site {
   userSites     UserSite[]
   address       String?
   cages         ChickenCage[]
+  CashFlow      CashFlow[]
+  transaction   Transaction[]
 }
 
 model Position {
@@ -165,7 +169,7 @@ model Province {
   deletedAt DateTime?
   createdAt DateTime  @default(now())
   city      City[]
-  Site      Site[]
+  site      Site[]
 }
 
 model City {
@@ -204,29 +208,32 @@ model SubDistrict {
 }
 
 model ChickenCage {
-  id        String            @id @unique @default(uuid())
-  name      String
-  deletedAt DateTime?
-  createdAt DateTime          @default(now())
-  updatedAt DateTime          @updatedAt
-  siteId    String?
-  site      Site?             @relation(fields: [siteId], references: [id])
-  width     Int               @default(0)
-  height    Int               @default(0)
-  capacity  Int               @default(0)
-  status    String?           @default("ACTIVE")
-  racks     ChickenCageRack[]
+  id          String            @id @unique @default(uuid())
+  name        String
+  deletedAt   DateTime?
+  createdAt   DateTime          @default(now())
+  updatedAt   DateTime          @updatedAt
+  siteId      String?
+  site        Site?             @relation(fields: [siteId], references: [id])
+  width       Int               @default(0)
+  height      Int               @default(0)
+  capacity    Int               @default(0)
+  status      String?           @default("ACTIVE")
+  racks       ChickenCageRack[]
+  cashFlow    CashFlow[]
+  transaction Transaction[]
 }
 
 model ChickenCageRack {
-  id        String       @id @unique @default(uuid())
-  name      String
-  cage      ChickenCage? @relation(fields: [cageId], references: [id])
-  cageId    String?
-  deletedAt DateTime?
-  createdAt DateTime     @default(now())
-  updatedAt DateTime     @updatedAt
-  chickens  Chicken[]
+  id          String        @id @unique @default(uuid())
+  name        String
+  cage        ChickenCage?  @relation(fields: [cageId], references: [id])
+  cageId      String?
+  deletedAt   DateTime?
+  createdAt   DateTime      @default(now())
+  updatedAt   DateTime      @updatedAt
+  chickens    Chicken[]
+  transaction Transaction[]
 }
 
 enum ChickenStatus {
@@ -247,7 +254,7 @@ model Chicken {
 
 model Investor {
   id          String    @id @unique @default(uuid())
-  name        String
+  fullName    String
   username    String
   password    String
   identityId  String?
@@ -257,16 +264,98 @@ model Investor {
   createdBy   User?     @relation(fields: [createdById], references: [id])
   createdById String?
 
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  createdAt          DateTime             @default(now())
+  updatedAt          DateTime             @updatedAt
+  documentInvestment DocumentInvestment[]
 
   @@index([username, identityId])
 }
 
 model DocumentInvestment {
-  id        String    @id @unique @default(uuid())
+  id         String    @id @unique @default(uuid())
+  name       String
+  url        String
+  investor   Investor? @relation(fields: [investorId], references: [id])
+  investorId String?
+  deletedAt  DateTime?
+  createdAt  DateTime  @default(now())
+  updatedAt  DateTime  @updatedAt
+}
+
+enum CashFlowType {
+  INCOME
+  EXPENSE
+}
+
+model CashFlow {
+  id          String       @id @unique @default(uuid())
+  code        String?      @default(cuid())
+  name        String
+  amount      Int
+  type        CashFlowType
+  site        Site         @relation(fields: [siteId], references: [id])
+  siteId      String
+  for         ChickenCage? @relation(fields: [forId], references: [id])
+  forId       String?
+  remark      String?
+  createdBy   User         @relation(fields: [createdById], references: [id])
+  createdById String
+  status      String       @default("PENDING")
+  deletedAt   DateTime?
+  createdAt   DateTime     @default(now())
+  updatedAt   DateTime     @updatedAt
+}
+
+model CashFlowCategory {
+  id        String    @id @default(uuid())
+  code      String?   @default(cuid())
   name      String
-  url       String
+  deletedAt DateTime?
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+}
+
+enum PriceType {
+  CHICKEN
+  EGG
+}
+
+enum PriceStatus {
+  ACTIVE
+  INACTIVE
+}
+
+model Price {
+  id     String       @id @default(uuid())
+  name   String
+  type   PriceType
+  status PriceStatus? @default(ACTIVE)
+
+  deletedAt DateTime?
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+}
+
+enum TransactionType {
+  EGG
+  CHICKEN
+}
+
+model Transaction {
+  id     String          @id @default(uuid())
+  site   Site            @relation(fields: [siteId], references: [id])
+  siteId String
+  rack   ChickenCageRack @relation(fields: [rackId], references: [id])
+  rackId String
+  cage   ChickenCage     @relation(fields: [cageId], references: [id])
+  cageId String
+  code   String          @default(cuid())
+  qty    Int             @default(0)
+  type   TransactionType
+
+  createdBy   User   @relation(fields: [createdById], references: [id])
+  createdById String
+
   deletedAt DateTime?
   createdAt DateTime  @default(now())
   updatedAt DateTime  @updatedAt

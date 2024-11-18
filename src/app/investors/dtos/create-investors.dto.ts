@@ -4,7 +4,7 @@ import { IsString } from 'class-validator';
 export class CreateInvestorsDto {
   @ApiProperty()
   @IsString()
-  name: string;
+  fullName: string;
 
   @ApiProperty()
   @IsString()
@@ -13,4 +13,13 @@ export class CreateInvestorsDto {
   @ApiProperty()
   @IsString()
   password: string;
+
+  @ApiProperty()
+  address?: string;
+
+  @ApiProperty()
+  phone?: string;
+
+  @ApiProperty()
+  identityId?: string;
 }
