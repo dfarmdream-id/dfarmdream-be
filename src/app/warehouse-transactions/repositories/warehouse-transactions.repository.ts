@@ -7,15 +7,16 @@ import { PaginatedEntity } from 'src/common/entities/paginated.entity';
 import { PrismaService } from 'src/platform/database/services/prisma.service';
 
 export type Filter = {
-  where?: Prisma.PriceWhereInput;
-  orderBy?: Prisma.PriceOrderByWithRelationInput;
-  cursor?: Prisma.PriceWhereUniqueInput;
+  where?: Prisma.WarehouseTransactionWhereInput;
+  orderBy?: Prisma.WarehouseTransactionOrderByWithRelationInput;
+  cursor?: Prisma.WarehouseTransactionWhereUniqueInput;
   take?: number;
   skip?: number;
+  include?: Prisma.WarehouseTransactionInclude;
 };
 
 @Injectable()
-export class PricesRepository {
+export class WarehouseTransactionsRepository {
   constructor(private readonly prismaService: PrismaService) {}
 
   public paginate(paginateDto: PaginationQueryDto, filter?: Filter) {
@@ -23,14 +24,15 @@ export class PricesRepository {
 
     return from(
       this.prismaService.$transaction([
-        this.prismaService.price.findMany({
+        this.prismaService.warehouseTransaction.findMany({
           skip: (+page - 1) * +limit,
           take: +limit,
           where: filter?.where,
           orderBy: filter?.orderBy,
           cursor: filter?.cursor,
+          include: filter?.include,
         }),
-        this.prismaService.price.count({
+        this.prismaService.warehouseTransaction.count({
           where: filter?.where,
         }),
       ]),
@@ -49,8 +51,8 @@ export class PricesRepository {
     );
   }
 
-  public create(data: Prisma.PriceCreateInput) {
-    return from(this.prismaService.price.create({ data })).pipe(
+  public create(data: Prisma.WarehouseTransactionCreateInput) {
+    return from(this.prismaService.warehouseTransaction.create({ data })).pipe(
       catchError((error) => {
         throw error;
       }),
@@ -58,27 +60,21 @@ export class PricesRepository {
   }
 
   public update(
-    where: Prisma.PriceWhereUniqueInput,
-    data: Prisma.PriceUpdateInput,
+    where: Prisma.WarehouseTransactionWhereUniqueInput,
+    data: Prisma.WarehouseTransactionUpdateInput,
   ) {
-    return from(this.prismaService.price.update({ where, data })).pipe(
-      catchError((error) => {
-        throw error;
-      }),
-    );
-  }
-
-  updateMany(where: Prisma.PriceWhereInput, data: Prisma.PriceUpdateInput) {
-    return from(this.prismaService.price.updateMany({ where, data })).pipe(
-      catchError((error) => {
-        throw error;
-      }),
-    );
-  }
-
-  public delete(where: Prisma.PriceWhereUniqueInput) {
     return from(
-      this.prismaService.price.update({
+      this.prismaService.warehouseTransaction.update({ where, data }),
+    ).pipe(
+      catchError((error) => {
+        throw error;
+      }),
+    );
+  }
+
+  public delete(where: Prisma.WarehouseTransactionWhereUniqueInput) {
+    return from(
+      this.prismaService.warehouseTransaction.update({
         where,
         data: { deletedAt: new Date() },
       }),
@@ -90,10 +86,12 @@ export class PricesRepository {
   }
 
   public first(
-    where: Prisma.PriceWhereUniqueInput,
-    select?: Prisma.PriceSelect,
+    where: Prisma.WarehouseTransactionWhereUniqueInput,
+    select?: Prisma.WarehouseTransactionSelect,
   ) {
-    return from(this.prismaService.price.findUnique({ where, select })).pipe(
+    return from(
+      this.prismaService.warehouseTransaction.findUnique({ where, select }),
+    ).pipe(
       catchError((error) => {
         throw error;
       }),
@@ -101,10 +99,12 @@ export class PricesRepository {
   }
 
   public firstOrThrow(
-    where: Prisma.PriceWhereUniqueInput,
-    select?: Prisma.PriceSelect,
+    where: Prisma.WarehouseTransactionWhereUniqueInput,
+    select?: Prisma.WarehouseTransactionSelect,
   ) {
-    return from(this.prismaService.price.findUnique({ where, select })).pipe(
+    return from(
+      this.prismaService.warehouseTransaction.findUnique({ where, select }),
+    ).pipe(
       catchError((error) => {
         throw error;
       }),
@@ -112,7 +112,7 @@ export class PricesRepository {
   }
 
   public find(filter: Filter) {
-    return from(this.prismaService.price.findMany(filter)).pipe(
+    return from(this.prismaService.warehouseTransaction.findMany(filter)).pipe(
       catchError((error) => {
         throw error;
       }),
@@ -120,7 +120,7 @@ export class PricesRepository {
   }
 
   public count(filter: Omit<Filter, 'include'>) {
-    return from(this.prismaService.price.count(filter)).pipe(
+    return from(this.prismaService.warehouseTransaction.count(filter)).pipe(
       catchError((error) => {
         throw error;
       }),

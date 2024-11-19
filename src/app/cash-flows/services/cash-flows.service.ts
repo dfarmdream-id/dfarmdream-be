@@ -9,7 +9,19 @@ export class CashFlowsService {
   constructor(private readonly cashflowRepository: CashFlowsRepository) {}
 
   public paginate(paginateDto: PaginationQueryDto) {
-    return from(this.cashflowRepository.paginate(paginateDto));
+    return from(
+      this.cashflowRepository.paginate(paginateDto, {
+        where: {
+          deletedAt: null,
+        },
+        include: {
+          category: true,
+          cage: true,
+          createdBy: true,
+          site: true,
+        },
+      }),
+    );
   }
 
   public detail(id: string) {
@@ -38,9 +50,19 @@ export class CashFlowsService {
             id: siteId,
           },
         },
+        cage: {
+          connect: {
+            id: createCashFlowsDto.cageId,
+          },
+        },
         name: createCashFlowsDto.name,
         type: createCashFlowsDto.type,
         remark: createCashFlowsDto.remark,
+        category: {
+          connect: {
+            id: createCashFlowsDto.categoryId,
+          },
+        },
       }),
     );
   }

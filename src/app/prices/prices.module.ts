@@ -1,5 +1,8 @@
 import { Module } from '@nestjs/common';
-import { PricesHttpController, PricesMicroserviceController } from './controllers';
+import {
+  PricesHttpController,
+  PricesMicroserviceController,
+} from './controllers';
 import { PricesService } from './services';
 import { PricesRepository } from './repositories';
 

@@ -1,5 +1,5 @@
 import { Injectable } from '@nestjs/common';
-import { ChickenCageRacksRepository } from '../repositories';
+import { CageRacksRepository } from '../repositories';
 import { PaginationQueryDto } from 'src/common/dtos/pagination-query.dto';
 import { CreateChickenCageRacksDto, UpdateChickenCageRacksDto } from '../dtos';
 import { from } from 'rxjs';
@@ -7,7 +7,7 @@ import { from } from 'rxjs';
 @Injectable()
 export class ChickenCageRacksService {
   constructor(
-    private readonly chickencagerackRepository: ChickenCageRacksRepository,
+    private readonly chickencagerackRepository: CageRacksRepository,
   ) {}
 
   public paginate(paginateDto: PaginationQueryDto) {
@@ -37,7 +37,14 @@ export class ChickenCageRacksService {
 
   public create(createChickenCageRacksDto: CreateChickenCageRacksDto) {
     return from(
-      this.chickencagerackRepository.create(createChickenCageRacksDto),
+      this.chickencagerackRepository.create({
+        name: createChickenCageRacksDto.name,
+        cage: {
+          connect: {
+            id: createChickenCageRacksDto.cageId,
+          },
+        },
+      }),
     );
   }
 

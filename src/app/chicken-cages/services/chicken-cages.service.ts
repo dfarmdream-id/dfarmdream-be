@@ -1,5 +1,5 @@
 import { Injectable } from '@nestjs/common';
-import { ChickenCagesRepository } from '../repositories';
+import { CagesRepository } from '../repositories';
 import { PaginationQueryDto } from 'src/common/dtos/pagination-query.dto';
 import { CreateChickenCagesDto, UpdateChickenCagesDto } from '../dtos';
 import { from } from 'rxjs';
@@ -7,10 +7,10 @@ import { Prisma } from '@prisma/client';
 
 @Injectable()
 export class ChickenCagesService {
-  constructor(private readonly chickencageRepository: ChickenCagesRepository) {}
+  constructor(private readonly chickencageRepository: CagesRepository) {}
 
   public paginate(paginateDto: PaginationQueryDto) {
-    const where: Prisma.ChickenCageWhereInput = {
+    const where: Prisma.CageWhereInput = {
       deletedAt: null,
     };
 
@@ -24,7 +24,7 @@ export class ChickenCagesService {
             },
           },
         ],
-      } as Prisma.ChickenCageWhereInput);
+      } as Prisma.CageWhereInput);
     }
 
     return from(

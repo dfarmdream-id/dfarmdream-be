@@ -22,6 +22,9 @@ import { SubDistrictsModule } from './subdistricts';
 import { DashboardsModule } from './dashboards';
 import { CashFlowCategoriesModule } from './cash-flow-categories';
 import { CashFlowsModule } from './cash-flows';
+import { PricesModule } from './prices';
+import { TransactionsModule } from './transactions';
+import { WarehouseTransactionsModule } from './warehouse-transactions';
 
 @ApiTags('App Spec')
 @Controller()
@@ -62,6 +65,9 @@ class AppController {
     DashboardsModule,
     CashFlowCategoriesModule,
     CashFlowsModule,
+    PricesModule,
+    TransactionsModule,
+    WarehouseTransactionsModule,
   ],
   controllers: [AppController],
   exports: [FilesModule],

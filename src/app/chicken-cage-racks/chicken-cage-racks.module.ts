@@ -1,10 +1,16 @@
 import { Module } from '@nestjs/common';
-import { ChickenCageRacksHttpController, ChickenCageRacksMicroserviceController } from './controllers';
+import {
+  ChickenCageRacksHttpController,
+  ChickenCageRacksMicroserviceController,
+} from './controllers';
 import { ChickenCageRacksService } from './services';
-import { ChickenCageRacksRepository } from './repositories';
+import { CageRacksRepository } from './repositories';
 
 @Module({
-  controllers: [ChickenCageRacksHttpController, ChickenCageRacksMicroserviceController],
-  providers: [ChickenCageRacksService, ChickenCageRacksRepository],
+  controllers: [
+    ChickenCageRacksHttpController,
+    ChickenCageRacksMicroserviceController,
+  ],
+  providers: [ChickenCageRacksService, CageRacksRepository],
 })
 export class ChickenCageRacksModule {}

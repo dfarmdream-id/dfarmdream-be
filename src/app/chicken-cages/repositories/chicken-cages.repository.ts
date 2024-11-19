@@ -7,16 +7,16 @@ import { PaginatedEntity } from 'src/common/entities/paginated.entity';
 import { PrismaService } from 'src/platform/database/services/prisma.service';
 
 export type Filter = {
-  where?: Prisma.ChickenCageWhereInput;
-  orderBy?: Prisma.ChickenCageOrderByWithRelationInput;
-  cursor?: Prisma.ChickenCageWhereUniqueInput;
+  where?: Prisma.CageWhereInput;
+  orderBy?: Prisma.CageOrderByWithRelationInput;
+  cursor?: Prisma.CageWhereUniqueInput;
   take?: number;
   skip?: number;
-  include?: Prisma.ChickenCageInclude;
+  include?: Prisma.CageInclude;
 };
 
 @Injectable()
-export class ChickenCagesRepository {
+export class CagesRepository {
   constructor(private readonly prismaService: PrismaService) {}
 
   public paginate(paginateDto: PaginationQueryDto, filter?: Filter) {
@@ -24,7 +24,7 @@ export class ChickenCagesRepository {
 
     return from(
       this.prismaService.$transaction([
-        this.prismaService.chickenCage.findMany({
+        this.prismaService.cage.findMany({
           skip: (+page - 1) * +limit,
           take: +limit,
           where: filter?.where,
@@ -32,7 +32,7 @@ export class ChickenCagesRepository {
           cursor: filter?.cursor,
           include: filter?.include,
         }),
-        this.prismaService.chickenCage.count({
+        this.prismaService.cage.count({
           where: filter?.where,
         }),
       ]),
@@ -51,8 +51,8 @@ export class ChickenCagesRepository {
     );
   }
 
-  public create(data: Prisma.ChickenCageCreateInput) {
-    return from(this.prismaService.chickenCage.create({ data })).pipe(
+  public create(data: Prisma.CageCreateInput) {
+    return from(this.prismaService.cage.create({ data })).pipe(
       catchError((error) => {
         throw error;
       }),
@@ -60,19 +60,19 @@ export class ChickenCagesRepository {
   }
 
   public update(
-    where: Prisma.ChickenCageWhereUniqueInput,
-    data: Prisma.ChickenCageUpdateInput,
+    where: Prisma.CageWhereUniqueInput,
+    data: Prisma.CageUpdateInput,
   ) {
-    return from(this.prismaService.chickenCage.update({ where, data })).pipe(
+    return from(this.prismaService.cage.update({ where, data })).pipe(
       catchError((error) => {
         throw error;
       }),
     );
   }
 
-  public delete(where: Prisma.ChickenCageWhereUniqueInput) {
+  public delete(where: Prisma.CageWhereUniqueInput) {
     return from(
-      this.prismaService.chickenCage.update({
+      this.prismaService.cage.update({
         where,
         data: { deletedAt: new Date() },
       }),
@@ -83,13 +83,8 @@ export class ChickenCagesRepository {
     );
   }
 
-  public first(
-    where: Prisma.ChickenCageWhereUniqueInput,
-    select?: Prisma.ChickenCageSelect,
-  ) {
-    return from(
-      this.prismaService.chickenCage.findUnique({ where, select }),
-    ).pipe(
+  public first(where: Prisma.CageWhereUniqueInput, select?: Prisma.CageSelect) {
+    return from(this.prismaService.cage.findUnique({ where, select })).pipe(
       catchError((error) => {
         throw error;
       }),
@@ -97,12 +92,10 @@ export class ChickenCagesRepository {
   }
 
   public firstOrThrow(
-    where: Prisma.ChickenCageWhereUniqueInput,
-    select?: Prisma.ChickenCageSelect,
+    where: Prisma.CageWhereUniqueInput,
+    select?: Prisma.CageSelect,
   ) {
-    return from(
-      this.prismaService.chickenCage.findUnique({ where, select }),
-    ).pipe(
+    return from(this.prismaService.cage.findUnique({ where, select })).pipe(
       catchError((error) => {
         throw error;
       }),
@@ -110,7 +103,7 @@ export class ChickenCagesRepository {
   }
 
   public find(filter: Filter) {
-    return from(this.prismaService.chickenCage.findMany(filter)).pipe(
+    return from(this.prismaService.cage.findMany(filter)).pipe(
       catchError((error) => {
         throw error;
       }),
@@ -118,7 +111,7 @@ export class ChickenCagesRepository {
   }
 
   public count(filter: Omit<Filter, 'include'>) {
-    return from(this.prismaService.chickenCage.count(filter)).pipe(
+    return from(this.prismaService.cage.count(filter)).pipe(
       catchError((error) => {
         throw error;
       }),

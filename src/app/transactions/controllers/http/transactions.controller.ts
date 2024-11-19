@@ -9,40 +9,50 @@ import {
   Post,
   Put,
   Query,
+  UseGuards,
 } from '@nestjs/common';
-import { PricesService } from 'src/app/prices/services';
+import { TransactionsService } from 'src/app/transactions/services';
 import { PaginationQueryDto } from 'src/common/dtos/pagination-query.dto';
 import { ResponseEntity } from 'src/common/entities/response.entity';
-import { CreatePricesDto, UpdatePricesDto } from 'src/app/prices/dtos';
+import {
+  CreateTransactionsDto,
+  UpdateTransactionsDto,
+} from 'src/app/transactions/dtos';
 import { ApiTags } from '@nestjs/swagger';
 import { catchError, map } from 'rxjs';
 import { Observable } from 'rxjs';
+import { AuthGuard } from '@src/app/auth';
+import { User } from '@src/app/auth/decorators';
 
-@ApiTags('Prices')
+@ApiTags('Transactions')
 @Controller({
-  path: 'price',
+  path: 'transaction',
   version: '1',
 })
-export class PricesHttpController {
-  constructor(private readonly priceService: PricesService) {}
+export class TransactionsHttpController {
+  constructor(private readonly transactionService: TransactionsService) {}
 
+  @UseGuards(AuthGuard)
   @Post()
   public create(
-    @Body() createPricesDto: CreatePricesDto,
+    @Body() createTransactionsDto: CreateTransactionsDto,
+    @User() user: { id: string; siteId: string },
   ): Observable<ResponseEntity> {
-    return this.priceService.create(createPricesDto).pipe(
-      map((data) => new ResponseEntity({ data, message: 'success' })),
-      catchError((error) => {
-        throw new HttpException(error.message, HttpStatus.BAD_REQUEST);
-      }),
-    );
+    return this.transactionService
+      .create(createTransactionsDto, user.id, user.siteId)
+      .pipe(
+        map((data) => new ResponseEntity({ data, message: 'success' })),
+        catchError((error) => {
+          throw new HttpException(error.message, HttpStatus.BAD_REQUEST);
+        }),
+      );
   }
 
   @Get()
   public index(
     @Query() paginateDto: PaginationQueryDto,
   ): Observable<ResponseEntity> {
-    return this.priceService.paginate(paginateDto).pipe(
+    return this.transactionService.paginate(paginateDto).pipe(
       map((data) => new ResponseEntity({ data, message: 'success' })),
       catchError((error) => {
         throw new HttpException(error.message, HttpStatus.NOT_FOUND);
@@ -52,7 +62,7 @@ export class PricesHttpController {
 
   @Get(':id')
   public detail(@Param('id') id: string): Observable<ResponseEntity> {
-    return this.priceService.detail(id).pipe(
+    return this.transactionService.detail(id).pipe(
       map((data) => new ResponseEntity({ data, message: 'success' })),
       catchError((error) => {
         throw new HttpException(error.message, HttpStatus.NOT_FOUND);
@@ -62,7 +72,7 @@ export class PricesHttpController {
 
   @Delete(':id')
   public destroy(@Param('id') id: string): Observable<ResponseEntity> {
-    return this.priceService.destroy(id).pipe(
+    return this.transactionService.destroy(id).pipe(
       map((data) => new ResponseEntity({ data, message: 'success' })),
       catchError((error) => {
         throw new HttpException(error.message, HttpStatus.BAD_REQUEST);
@@ -73,9 +83,9 @@ export class PricesHttpController {
   @Put(':id')
   public update(
     @Param('id') id: string,
-    @Body() updatePricesDto: UpdatePricesDto,
+    @Body() updateTransactionsDto: UpdateTransactionsDto,
   ): Observable<ResponseEntity> {
-    return this.priceService.update(id, updatePricesDto).pipe(
+    return this.transactionService.update(id, updateTransactionsDto).pipe(
       map((data) => new ResponseEntity({ data, message: 'success' })),
       catchError((error) => {
         throw new HttpException(error.message, HttpStatus.BAD_REQUEST);

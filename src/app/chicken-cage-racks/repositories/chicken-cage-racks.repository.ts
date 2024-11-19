@@ -7,16 +7,16 @@ import { PaginatedEntity } from 'src/common/entities/paginated.entity';
 import { PrismaService } from 'src/platform/database/services/prisma.service';
 
 export type Filter = {
-  where?: Prisma.ChickenCageRackWhereInput;
-  orderBy?: Prisma.ChickenCageRackOrderByWithRelationInput;
-  cursor?: Prisma.ChickenCageRackWhereUniqueInput;
+  where?: Prisma.CageRackWhereInput;
+  orderBy?: Prisma.CageRackOrderByWithRelationInput;
+  cursor?: Prisma.CageRackWhereUniqueInput;
   take?: number;
   skip?: number;
-  include?: Prisma.ChickenCageRackInclude;
+  include?: Prisma.CageRackInclude;
 };
 
 @Injectable()
-export class ChickenCageRacksRepository {
+export class CageRacksRepository {
   constructor(private readonly prismaService: PrismaService) {}
 
   public paginate(paginateDto: PaginationQueryDto, filter?: Filter) {
@@ -24,7 +24,7 @@ export class ChickenCageRacksRepository {
 
     return from(
       this.prismaService.$transaction([
-        this.prismaService.chickenCageRack.findMany({
+        this.prismaService.cageRack.findMany({
           skip: (+page - 1) * +limit,
           take: +limit,
           where: filter?.where,
@@ -32,7 +32,7 @@ export class ChickenCageRacksRepository {
           cursor: filter?.cursor,
           include: filter?.include,
         }),
-        this.prismaService.chickenCageRack.count({
+        this.prismaService.cageRack.count({
           where: filter?.where,
         }),
       ]),
@@ -51,8 +51,8 @@ export class ChickenCageRacksRepository {
     );
   }
 
-  public create(data: Prisma.ChickenCageRackCreateInput) {
-    return from(this.prismaService.chickenCageRack.create({ data })).pipe(
+  public create(data: Prisma.CageRackCreateInput) {
+    return from(this.prismaService.cageRack.create({ data })).pipe(
       catchError((error) => {
         throw error;
       }),
@@ -60,21 +60,19 @@ export class ChickenCageRacksRepository {
   }
 
   public update(
-    where: Prisma.ChickenCageRackWhereUniqueInput,
-    data: Prisma.ChickenCageRackUpdateInput,
+    where: Prisma.CageRackWhereUniqueInput,
+    data: Prisma.CageRackUpdateInput,
   ) {
-    return from(
-      this.prismaService.chickenCageRack.update({ where, data }),
-    ).pipe(
+    return from(this.prismaService.cageRack.update({ where, data })).pipe(
       catchError((error) => {
         throw error;
       }),
     );
   }
 
-  public delete(where: Prisma.ChickenCageRackWhereUniqueInput) {
+  public delete(where: Prisma.CageRackWhereUniqueInput) {
     return from(
-      this.prismaService.chickenCageRack.update({
+      this.prismaService.cageRack.update({
         where,
         data: { deletedAt: new Date() },
       }),
@@ -86,12 +84,10 @@ export class ChickenCageRacksRepository {
   }
 
   public first(
-    where: Prisma.ChickenCageRackWhereUniqueInput,
-    select?: Prisma.ChickenCageRackSelect,
+    where: Prisma.CageRackWhereUniqueInput,
+    select?: Prisma.CageRackSelect,
   ) {
-    return from(
-      this.prismaService.chickenCageRack.findUnique({ where, select }),
-    ).pipe(
+    return from(this.prismaService.cageRack.findUnique({ where, select })).pipe(
       catchError((error) => {
         throw error;
       }),
@@ -99,12 +95,10 @@ export class ChickenCageRacksRepository {
   }
 
   public firstOrThrow(
-    where: Prisma.ChickenCageRackWhereUniqueInput,
-    select?: Prisma.ChickenCageRackSelect,
+    where: Prisma.CageRackWhereUniqueInput,
+    select?: Prisma.CageRackSelect,
   ) {
-    return from(
-      this.prismaService.chickenCageRack.findUnique({ where, select }),
-    ).pipe(
+    return from(this.prismaService.cageRack.findUnique({ where, select })).pipe(
       catchError((error) => {
         throw error;
       }),
@@ -112,7 +106,7 @@ export class ChickenCageRacksRepository {
   }
 
   public find(filter: Filter) {
-    return from(this.prismaService.chickenCageRack.findMany(filter)).pipe(
+    return from(this.prismaService.cageRack.findMany(filter)).pipe(
       catchError((error) => {
         throw error;
       }),
@@ -120,7 +114,7 @@ export class ChickenCageRacksRepository {
   }
 
   public count(filter: Omit<Filter, 'include'>) {
-    return from(this.prismaService.chickenCageRack.count(filter)).pipe(
+    return from(this.prismaService.cageRack.count(filter)).pipe(
       catchError((error) => {
         throw error;
       }),

@@ -7,14 +7,27 @@ async function main(): Promise<void> {
   const user = {
     id: 'fafeeb2e-4783-424f-b220-321954cefb66',
     email: 'admin@admin.com',
-    password: await hash('123456'),
     username: 'admin',
+    password: await hash('admin'),
     fullName: 'admin',
   };
 
   if ((await prisma.user.count({ where: { id: user.id } })) == 0) {
-    await prisma.user.create({
+    const u = await prisma.user.create({
       data: user,
+    });
+    const site = await prisma.site.create({
+      data: {
+        name: 'Majalengka',
+        address: 'Majalengka, Jawa Barat',
+      },
+    });
+
+    await prisma.userSite.create({
+      data: {
+        userId: u.id,
+        siteId: site.id,
+      },
     });
   }
 

@@ -1,7 +1,7 @@
 import { Controller, HttpStatus } from '@nestjs/common';
 import { MessagePattern, Payload, RpcException } from '@nestjs/microservices';
 import {
-  ChickenCageRacksRepository,
+  CageRacksRepository,
   type Filter,
 } from 'src/app/chicken-cage-racks/repositories';
 import { ChickenCageRacksService } from 'src/app/chicken-cage-racks/services';
@@ -23,7 +23,7 @@ import { from } from 'rxjs';
 export class ChickenCageRacksMicroserviceController {
   constructor(
     private readonly chickencagerackService: ChickenCageRacksService,
-    private readonly chickencagerackRepository: ChickenCageRacksRepository,
+    private readonly chickencagerackRepository: CageRacksRepository,
   ) {}
 
   @MessagePattern('chickencagerack.create')

@@ -1,5 +1,5 @@
 import { Injectable } from '@nestjs/common';
-import { ChickenCagesRepository } from '@src/app/chicken-cages/repositories';
+import { CagesRepository } from '@src/app/chicken-cages/repositories';
 import { ChickensRepository } from '@src/app/chickens/repositories';
 import { InvestorsRepository } from '@src/app/investors/repositories';
 import { UsersRepository } from '@src/app/users/repositories';
@@ -9,7 +9,7 @@ import { firstValueFrom, forkJoin, of, switchMap } from 'rxjs';
 export class DashboardsService {
   constructor(
     private readonly userRepository: UsersRepository,
-    private readonly chickenCageRepository: ChickenCagesRepository,
+    private readonly chickenCageRepository: CagesRepository,
     private readonly investorRepository: InvestorsRepository,
     private readonly chickendRepository: ChickensRepository,
   ) {}

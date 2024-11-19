@@ -4,11 +4,11 @@ import {
   ChickenCagesMicroserviceController,
 } from './controllers';
 import { ChickenCagesService } from './services';
-import { ChickenCagesRepository } from './repositories';
+import { CagesRepository } from './repositories';
 
 @Module({
   controllers: [ChickenCagesHttpController, ChickenCagesMicroserviceController],
-  providers: [ChickenCagesService, ChickenCagesRepository],
-  exports: [ChickenCagesRepository],
+  providers: [ChickenCagesService, CagesRepository],
+  exports: [CagesRepository],
 })
 export class ChickenCagesModule {}

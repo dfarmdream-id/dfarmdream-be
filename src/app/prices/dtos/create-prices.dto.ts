@@ -1,17 +1,25 @@
 import { ApiProperty } from '@nestjs/swagger';
-import { $Enums, PriceStatus, PriceType, Prisma } from '@prisma/client';
-import { IsEnum, IsString } from 'class-validator';
+import { PriceStatus, PriceType } from '@prisma/client';
+import { IsEnum, IsNumber, IsString } from 'class-validator';
 
-export class CreatePricesDto implements Prisma.PriceCreateInput {
+export class CreatePricesDto {
   @ApiProperty()
   @IsString()
   name: string;
 
-  @ApiProperty()
+  @ApiProperty({
+    enum: PriceStatus,
+  })
   @IsEnum(PriceStatus)
-  status?: $Enums.PriceStatus | null | undefined;
+  status?: 'ACTIVE' | 'INACTIVE';
+
+  @ApiProperty({
+    enum: PriceType,
+  })
+  @IsEnum(PriceType)
+  type: 'EGG' | 'CHICKEN';
 
   @ApiProperty()
-  @IsEnum(PriceType)
-  type: $Enums.PriceType;
+  @IsNumber()
+  value: number;
 }
