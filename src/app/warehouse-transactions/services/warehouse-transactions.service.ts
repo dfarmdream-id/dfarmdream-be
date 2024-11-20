@@ -14,7 +14,16 @@ export class WarehouseTransactionsService {
   ) {}
 
   public paginate(paginateDto: PaginationQueryDto) {
-    return from(this.warehousetransactionRepository.paginate(paginateDto));
+    return from(
+      this.warehousetransactionRepository.paginate(paginateDto, {
+        include: {
+          cage: true,
+          rack: true,
+          site: true,
+          createdBy: true,
+        },
+      }),
+    );
   }
 
   public detail(id: string) {
