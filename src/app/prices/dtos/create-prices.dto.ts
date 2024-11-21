@@ -1,6 +1,6 @@
 import { ApiProperty } from '@nestjs/swagger';
 import { PriceStatus, PriceType } from '@prisma/client';
-import { IsEnum, IsNumber, IsString } from 'class-validator';
+import { IsEnum, IsNumber, IsString, IsUUID } from 'class-validator';
 
 export class CreatePricesDto {
   @ApiProperty()
@@ -22,4 +22,8 @@ export class CreatePricesDto {
   @ApiProperty()
   @IsNumber()
   value: number;
+
+  @ApiProperty()
+  @IsUUID()
+  siteId?: string;
 }

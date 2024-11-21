@@ -153,6 +153,7 @@ model Site {
   cashFlow             CashFlow[]
   transaction          Transaction[]
   WarehouseTransaction WarehouseTransaction[]
+  Price                Price[]
 }
 
 model Position {
@@ -339,6 +340,8 @@ model Price {
   type   PriceType
   status PriceStatus? @default(ACTIVE)
   value  Int          @default(0)
+  site   Site?        @relation(fields: [siteId], references: [id])
+  siteId String?
 
   deletedAt DateTime?
   createdAt DateTime  @default(now())

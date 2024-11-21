@@ -12,6 +12,7 @@ export type Filter = {
   cursor?: Prisma.PriceWhereUniqueInput;
   take?: number;
   skip?: number;
+  include?: Prisma.PriceInclude;
 };
 
 @Injectable()
@@ -29,6 +30,7 @@ export class PricesRepository {
           where: filter?.where,
           orderBy: filter?.orderBy,
           cursor: filter?.cursor,
+          include: filter?.include,
         }),
         this.prismaService.price.count({
           where: filter?.where,
