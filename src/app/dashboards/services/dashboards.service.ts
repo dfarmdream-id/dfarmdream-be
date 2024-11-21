@@ -3,7 +3,8 @@ import { CagesRepository } from '@src/app/chicken-cages/repositories';
 import { ChickensRepository } from '@src/app/chickens/repositories';
 import { InvestorsRepository } from '@src/app/investors/repositories';
 import { UsersRepository } from '@src/app/users/repositories';
-import { firstValueFrom, forkJoin, of, switchMap } from 'rxjs';
+import { WarehouseTransactionsRepository } from '@src/app/warehouse-transactions/repositories';
+import { firstValueFrom, forkJoin, map, of, switchMap } from 'rxjs';
 
 @Injectable()
 export class DashboardsService {
@@ -12,6 +13,7 @@ export class DashboardsService {
     private readonly chickenCageRepository: CagesRepository,
     private readonly investorRepository: InvestorsRepository,
     private readonly chickendRepository: ChickensRepository,
+    private readonly warehouseTransactionRepository: WarehouseTransactionsRepository,
   ) {}
 
   public summary() {
@@ -32,11 +34,28 @@ export class DashboardsService {
             },
           }),
         );
+        const weightTotal = await firstValueFrom(
+          this.warehouseTransactionRepository
+            .sum('weight', {
+              type: 'IN',
+            })
+            .pipe(map((qty) => qty._sum.weight)),
+        );
+
+        const qtyTotal = await firstValueFrom(
+          this.warehouseTransactionRepository
+            .sum('qty', {
+              type: 'IN',
+            })
+            .pipe(map((qty) => qty._sum.qty)),
+        );
 
         return {
           user,
           cage,
           investor,
+          weightTotal,
+          qtyTotal,
         };
       }),
     );

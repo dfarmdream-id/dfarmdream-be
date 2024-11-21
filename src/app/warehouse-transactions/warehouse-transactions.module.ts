@@ -12,5 +12,6 @@ import { WarehouseTransactionsRepository } from './repositories';
     WarehouseTransactionsMicroserviceController,
   ],
   providers: [WarehouseTransactionsService, WarehouseTransactionsRepository],
+  exports: [WarehouseTransactionsRepository],
 })
 export class WarehouseTransactionsModule {}

@@ -135,4 +135,17 @@ export class WarehouseTransactionsRepository {
       }),
     );
   }
+
+  public sum(field: string, where: Prisma.WarehouseTransactionWhereInput) {
+    return from(
+      this.prismaService.warehouseTransaction.aggregate({
+        _sum: { [field]: true },
+        where,
+      }),
+    ).pipe(
+      catchError((error) => {
+        throw error;
+      }),
+    );
+  }
 }
