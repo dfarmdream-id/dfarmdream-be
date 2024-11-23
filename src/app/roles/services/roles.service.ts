@@ -26,7 +26,14 @@ export class RolesService {
   }
 
   public detail(id: string) {
-    return from(this.roleRepository.firstOrThrow({ id }));
+    return from(
+      this.roleRepository.firstOrThrow(
+        { id },
+        {
+          permissions: true,
+        },
+      ),
+    );
   }
 
   public destroy(id: string) {
@@ -52,7 +59,11 @@ export class RolesService {
         { id },
         {
           permissions: {
-            set: updateRolesDto.permissions,
+            deleteMany: {},
+            createMany: {
+              data: updateRolesDto.permissions || [],
+              skipDuplicates: true,
+            },
           },
         },
       ),

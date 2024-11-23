@@ -57,9 +57,26 @@ export class UsersService {
 
   public detail(id: string) {
     return from(
-      this.userRepository.firstOrThrow({
-        id,
-      }),
+      this.userRepository.firstOrThrow(
+        {
+          id,
+        },
+        {
+          roles: {
+            include: {
+              role: {
+                include: {
+                  permissions: {
+                    include: {
+                      permission: true,
+                    },
+                  },
+                },
+              },
+            },
+          },
+        },
+      ),
     ).pipe(
       catchError((error) => {
         throw new Error(error);
