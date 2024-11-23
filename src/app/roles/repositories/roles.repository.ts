@@ -93,9 +93,11 @@ export class RolesRepository {
 
   public firstOrThrow(
     where: Prisma.RoleWhereUniqueInput,
-    select?: Prisma.RoleSelect,
+    select?: Prisma.RoleInclude,
   ) {
-    return from(this.prismaService.role.findUnique({ where, select })).pipe(
+    return from(
+      this.prismaService.role.findUnique({ where, include: select }),
+    ).pipe(
       catchError((error) => {
         throw error;
       }),

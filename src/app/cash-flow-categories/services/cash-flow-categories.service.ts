@@ -1,15 +1,26 @@
 import { Injectable } from '@nestjs/common';
 import { CashFlowCategoriesRepository } from '../repositories';
 import { PaginationQueryDto } from 'src/common/dtos/pagination-query.dto';
-import { CreateCashFlowCategoriesDto, UpdateCashFlowCategoriesDto } from '../dtos';
-import { from, Observable } from 'rxjs';
+import {
+  CreateCashFlowCategoriesDto,
+  UpdateCashFlowCategoriesDto,
+} from '../dtos';
+import { from } from 'rxjs';
 
 @Injectable()
 export class CashFlowCategoriesService {
-  constructor(private readonly cashflowcategoryRepository: CashFlowCategoriesRepository) {}
+  constructor(
+    private readonly cashflowcategoryRepository: CashFlowCategoriesRepository,
+  ) {}
 
   public paginate(paginateDto: PaginationQueryDto) {
-    return from(this.cashflowcategoryRepository.paginate(paginateDto));
+    return from(
+      this.cashflowcategoryRepository.paginate(paginateDto, {
+        where: {
+          deletedAt: null,
+        },
+      }),
+    );
   }
 
   public detail(id: string) {
@@ -21,11 +32,20 @@ export class CashFlowCategoriesService {
   }
 
   public create(createCashFlowCategoriesDto: CreateCashFlowCategoriesDto) {
-    return from(this.cashflowcategoryRepository.create(createCashFlowCategoriesDto));
+    return from(
+      this.cashflowcategoryRepository.create(createCashFlowCategoriesDto),
+    );
   }
 
-  public update(id: string, updateCashFlowCategoriesDto: UpdateCashFlowCategoriesDto) {
-    return from(this.cashflowcategoryRepository.update({ id }, updateCashFlowCategoriesDto));
+  public update(
+    id: string,
+    updateCashFlowCategoriesDto: UpdateCashFlowCategoriesDto,
+  ) {
+    return from(
+      this.cashflowcategoryRepository.update(
+        { id },
+        updateCashFlowCategoriesDto,
+      ),
+    );
   }
 }
-

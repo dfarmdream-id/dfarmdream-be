@@ -101,6 +101,7 @@ model Role {
   createdAt   DateTime         @default(now())
   updatedAt   DateTime         @updatedAt
   permissions RolePermission[]
+  RoleUser    RoleUser[]
 }
 
 model RolePermission {
@@ -119,6 +120,7 @@ model RoleUser {
   userId    String
   user      User      @relation(fields: [userId], references: [id])
   roleId    String
+  role      Role      @relation(fields: [roleId], references: [id])
   deletedAt DateTime?
   createdAt DateTime  @default(now())
   updatedAt DateTime  @updatedAt

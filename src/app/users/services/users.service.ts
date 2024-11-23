@@ -57,9 +57,26 @@ export class UsersService {
 
   public detail(id: string) {
     return from(
-      this.userRepository.firstOrThrow({
-        id,
-      }),
+      this.userRepository.firstOrThrow(
+        {
+          id,
+        },
+        {
+          roles: {
+            include: {
+              role: {
+                include: {
+                  permissions: {
+                    include: {
+                      permission: true,
+                    },
+                  },
+                },
+              },
+            },
+          },
+        },
+      ),
     ).pipe(
       catchError((error) => {
         throw new Error(error);
@@ -107,22 +124,12 @@ export class UsersService {
 
   public async update(id: string, updateUsersDto: UpdateUsersDto) {
     try {
-      await this.userRepository.update(
-        {
-          id,
-        },
-        {
-          sites: {
-            deleteMany: {},
-          },
-        },
-      );
-
       const payload: Prisma.UserUpdateInput = {
         address: updateUsersDto.address,
         fullName: updateUsersDto.fullName,
         email: updateUsersDto.email,
         sites: {
+          deleteMany: {},
           createMany: {
             data:
               updateUsersDto.sites?.map((v) => {
@@ -136,6 +143,7 @@ export class UsersService {
           ? hashSync(updateUsersDto.password)
           : undefined,
         roles: {
+          deleteMany: {},
           createMany: {
             data:
               updateUsersDto.roles?.map((v) => {
