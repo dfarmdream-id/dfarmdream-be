@@ -228,6 +228,8 @@ model Cage {
   cashFlow             CashFlow[]
   transaction          Transaction[]
   WarehouseTransaction WarehouseTransaction[]
+  IotSensor            IotSensor[]
+  CctvCamera           CctvCamera[]
 }
 
 model CageRack {
@@ -397,4 +399,44 @@ model WarehouseTransaction {
   deletedAt   DateTime?
   createdAt   DateTime                 @default(now())
   updatedAt   DateTime                 @updatedAt
+}
+
+model IotSensor {
+  id                String      @id @unique @default(uuid())
+  code              String
+  cage              Cage?       @relation(fields: [cageId], references: [id])
+  cageId            String?
+  tempThreshold     Float
+  humidityThreshold Float
+  amoniaThreshold   Float
+  logs              SensorLog[]
+  deletedAt         DateTime?
+  createdAt         DateTime    @default(now())
+  updatedAt         DateTime    @updatedAt
+}
+
+model SensorLog {
+  id          String     @id @unique @default(uuid())
+  sensorId    String?
+  sensor      IotSensor? @relation(fields: [sensorId], references: [id])
+  temperature Float
+  humidity    Float
+  airQuality  Float
+  amonia      Float
+  ldrValue    Int
+  epoch       BigInt 
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+}
+
+model CctvCamera {
+  id          String    @id @unique @default(uuid())
+  cage        Cage?     @relation(fields: [cageId], references: [id])
+  cageId      String?
+  name        String
+  ipAddress   String
+  description String?
+  deletedAt   DateTime?
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
 }

@@ -29,6 +29,26 @@ async function main(): Promise<void> {
         siteId: site.id,
       },
     });
+
+    const cage = await prisma.cage.create({
+      data:{
+        name:'Kandang 1',
+        capacity: 100,
+        siteId: site.id,
+        height: 100,
+        width:100
+      }
+    })
+
+    const sensorDevice = await prisma.iotSensor.create({
+      data:{
+        code:'dGFmExsFUIDop3t3vDEc',
+        amoniaThreshold: 60,
+        humidityThreshold: 50,
+        tempThreshold: 26,
+        cageId: cage.id
+      }
+    })
   }
 
   await prisma.$disconnect();
