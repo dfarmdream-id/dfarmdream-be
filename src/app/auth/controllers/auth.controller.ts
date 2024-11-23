@@ -13,10 +13,10 @@ import { SignInChoose, SignInDto } from '../dtos/sign-in.dto';
 import { ResponseEntity } from '@src/common/entities/response.entity';
 import { AuthGuard } from '../guards';
 import { User } from '../decorators';
-import { User as Auth } from '@prisma/client';
 import { SignUpDto } from '../dtos';
-import { catchError, map } from 'rxjs';
+import { catchError, from, map } from 'rxjs';
 import { pick } from 'lodash';
+import { PrismaService } from '@src/platform/database/services/prisma.service';
 
 @ApiTags('Auth')
 @Controller({
@@ -24,7 +24,10 @@ import { pick } from 'lodash';
   version: '1',
 })
 export class AuthController {
-  constructor(private readonly authService: AuthService) {}
+  constructor(
+    private readonly authService: AuthService,
+    private readonly prisma: PrismaService,
+  ) {}
 
   @Post('sign-in')
   signInSite(@Body() createAuthDto: SignInDto) {
@@ -67,7 +70,53 @@ export class AuthController {
   @ApiSecurity('JWT')
   @UseGuards(AuthGuard)
   @Get('profile')
-  profile(@User() user: Auth & { siteId: string }) {
+  profile(
+    @User() user: { as: 'user' | 'investor'; id: string } & { siteId: string },
+  ) {
+    if (user.as === 'investor') {
+      return from(
+        this.prisma.investor.findUniqueOrThrow({
+          where: {
+            id: user.id,
+          },
+          include: {
+            roles: {
+              include: {
+                role: {
+                  include: {
+                    permissions: {
+                      include: {
+                        permission: {
+                          include: {
+                            rolePermission: {
+                              include: {
+                                permission: true,
+                              },
+                            },
+                          },
+                        },
+                      },
+                    },
+                  },
+                },
+              },
+            },
+          },
+        }),
+      ).pipe(
+        map(
+          (data) =>
+            new ResponseEntity({
+              message: 'success',
+              data: data,
+            }),
+        ),
+        catchError((error) => {
+          throw new HttpException(error.message, HttpStatus.UNAUTHORIZED);
+        }),
+      );
+    }
+
     return this.authService.profile(user).pipe(
       map(
         (data) =>
@@ -75,10 +124,10 @@ export class AuthController {
             message: 'success',
             data: data,
           }),
-        catchError((error) => {
-          throw new HttpException(error.message, HttpStatus.UNAUTHORIZED);
-        }),
       ),
+      catchError((error) => {
+        throw new HttpException(error.message, HttpStatus.UNAUTHORIZED);
+      }),
     );
   }
 }

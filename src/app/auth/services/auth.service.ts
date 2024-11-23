@@ -2,7 +2,6 @@ import { Injectable } from '@nestjs/common';
 import { UsersService } from 'src/app/users/services';
 import { SignInChoose, SignInDto } from '../dtos/sign-in.dto';
 import { JwtService } from '@nestjs/jwt';
-import { User } from '@prisma/client';
 import { SignUpDto } from '../dtos';
 import { forkJoin, from, map } from 'rxjs';
 import { pick } from 'lodash';
@@ -53,8 +52,7 @@ export class AuthService {
     );
   }
 
-  profile(user: User & { siteId: string }) {
-    console.log(user.siteId);
+  profile(user: { as: 'user' | 'investor'; id: string } & { siteId: string }) {
     const u = this.userService.detail(user.id);
     const site = from(
       this.prisma.site.findUnique({

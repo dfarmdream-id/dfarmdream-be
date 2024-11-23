@@ -97,11 +97,12 @@ model Role {
   id   String @id @unique @default(uuid())
   name String
 
-  deletedAt   DateTime?
-  createdAt   DateTime         @default(now())
-  updatedAt   DateTime         @updatedAt
-  permissions RolePermission[]
-  RoleUser    RoleUser[]
+  deletedAt    DateTime?
+  createdAt    DateTime         @default(now())
+  updatedAt    DateTime         @updatedAt
+  permissions  RolePermission[]
+  roleUser     RoleUser[]
+  investorRole InvestorRole[]
 }
 
 model RolePermission {
@@ -277,8 +278,20 @@ model Investor {
   createdAt          DateTime             @default(now())
   updatedAt          DateTime             @updatedAt
   documentInvestment DocumentInvestment[]
+  roles              InvestorRole[]
 
   @@index([username, identityId])
+}
+
+model InvestorRole {
+  id         String    @id @unique @default(uuid())
+  investor   Investor  @relation(fields: [investorId], references: [id])
+  investorId String
+  role       Role      @relation(fields: [roleId], references: [id])
+  roleId     String
+  deletedAt  DateTime?
+  createdAt  DateTime  @default(now())
+  updatedAt  DateTime  @updatedAt
 }
 
 model DocumentInvestment {
@@ -424,9 +437,9 @@ model SensorLog {
   airQuality  Float
   amonia      Float
   ldrValue    Int
-  epoch       BigInt 
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
+  epoch       BigInt
+  createdAt   DateTime   @default(now())
+  updatedAt   DateTime   @updatedAt
 }
 
 model CctvCamera {
