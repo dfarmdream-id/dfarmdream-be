@@ -30,8 +30,11 @@ export class CctvCameraRepository {
           where: filter?.where,
           orderBy: filter?.orderBy,
           cursor: filter?.cursor,
-          include: filter?.include,
-        }),
+          // include: filter?.include,
+          include: {
+            cage:true
+          },
+        }), 
         this.prismaService.cctvCamera.count({
           where: filter?.where,
         }),
@@ -89,6 +92,18 @@ export class CctvCameraRepository {
   ) {
     return from(
       this.prismaService.cctvCamera.findUnique({ where, select }),
+    ).pipe(
+      catchError((error) => {
+        throw error;
+      }),
+    );
+  }
+
+  public getByCage(cageId:string) {
+    return from(
+      this.prismaService.cctvCamera.findMany({ where:{
+        cageId:cageId
+      } }),
     ).pipe(
       catchError((error) => {
         throw error;

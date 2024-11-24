@@ -16,6 +16,8 @@ import { User } from '../decorators';
 import { SignUpDto } from '../dtos';
 import { catchError, from, map } from 'rxjs';
 import { pick } from 'lodash';
+import { UpdateProfileDTO } from '../dtos/update-profile.dto';
+import { UpdatePasswordDTO } from '../dtos/update-password.dto';
 import { PrismaService } from '@src/platform/database/services/prisma.service';
 
 @ApiTags('Auth')
@@ -129,5 +131,20 @@ export class AuthController {
         throw new HttpException(error.message, HttpStatus.UNAUTHORIZED);
       }),
     );
+  }
+
+  @ApiSecurity('JWT')
+  @UseGuards(AuthGuard)
+  @Post('update-profile')
+  updateProfile(@Body() payload:UpdateProfileDTO,@User() user: { as: 'user' | 'investor'; id: string } & { siteId: string }) {
+    return this.authService.updateProfile(user,payload)
+  }
+
+  @ApiSecurity('JWT')
+  @UseGuards(AuthGuard)
+  @Post('update-password')
+  updatePassword(@Body() payload:UpdatePasswordDTO, @User() user: { as: 'user' | 'investor'; id: string } & { siteId: string }) {
+    return this.authService.updatePassword(user, payload)
+    
   }
 }

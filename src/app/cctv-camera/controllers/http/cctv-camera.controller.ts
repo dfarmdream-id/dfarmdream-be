@@ -17,13 +17,13 @@ import {
   import { catchError, map } from 'rxjs';
   import { Observable } from 'rxjs';
   import { AuthGuard } from '@src/app/auth';
-import { CctvCameraService } from '../../services';
-import { CreateCameraDTO, UpdateCameraDTO } from '../../dtos';
+  import { CctvCameraService } from '../../services';
+  import { CreateCameraDTO, UpdateCameraDTO } from '../../dtos';
   
   @ApiSecurity('JWT')
   @ApiTags('CCTV Camera')
   @Controller({
-    path: 'cctv-camera',
+    path: 'cctv',
     version: '1',
   })
   export class CctvCameraController {
@@ -59,6 +59,17 @@ import { CreateCameraDTO, UpdateCameraDTO } from '../../dtos';
     @Get(':id')
     public detail(@Param('id') id: string): Observable<ResponseEntity> {
       return this.cameraService.detail(id).pipe(
+        map((data) => new ResponseEntity({ data, message: 'success' })),
+        catchError((error) => {
+          throw new HttpException(error.message, HttpStatus.NOT_FOUND);
+        }),
+      );
+    }
+
+    // @UseGuards(AuthGuard)
+    @Get(':id/cage')
+    public getCCtvByCage(@Param('id') id: string): Observable<ResponseEntity> {
+      return this.cameraService.getByCageId(id).pipe(
         map((data) => new ResponseEntity({ data, message: 'success' })),
         catchError((error) => {
           throw new HttpException(error.message, HttpStatus.NOT_FOUND);

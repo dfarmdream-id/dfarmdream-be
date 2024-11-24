@@ -5,6 +5,7 @@ import { Prisma } from '@prisma/client';
 import { PaginationQueryDto } from 'src/common/dtos/pagination-query.dto';
 import { PaginatedEntity } from 'src/common/entities/paginated.entity';
 import { PrismaService } from 'src/platform/database/services/prisma.service';
+import { CageFilterDTO } from '../dtos/cage-filter.dto';
 
 export type Filter = {
   where?: Prisma.CageWhereInput;
@@ -19,15 +20,21 @@ export type Filter = {
 export class CagesRepository {
   constructor(private readonly prismaService: PrismaService) {}
 
-  public paginate(paginateDto: PaginationQueryDto, filter?: Filter) {
-    const { limit = 10, page = 1 } = paginateDto;
-
+  public paginate(paginateDto: CageFilterDTO, filter?: Filter) {
+    const { limit = 10, page = 1, siteId } = paginateDto;
+    console.log("filter : ", siteId)
+    const siteArray = siteId?siteId.split(","):[]
     return from(
       this.prismaService.$transaction([
         this.prismaService.cage.findMany({
           skip: (+page - 1) * +limit,
           take: +limit,
-          where: filter?.where,
+          where: {
+            ...filter?.where,
+            siteId:{
+              in:siteArray
+            }
+          },
           orderBy: filter?.orderBy,
           cursor: filter?.cursor,
           include: filter?.include,

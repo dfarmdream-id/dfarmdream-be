@@ -49,6 +49,11 @@ export class UsersService {
             site: true,
           },
         },
+        cages:{
+          include:{
+            cage:true
+          }
+        },
         roles: true,
         position: true,
       },
@@ -75,6 +80,17 @@ export class UsersService {
               },
             },
           },
+          sites: {
+            include: {
+              site: true,
+            },
+          },
+          cages:{
+            include:{
+              cage:true
+            }
+          },
+          position:true
         },
       ),
     ).pipe(
@@ -111,6 +127,12 @@ export class UsersService {
             skipDuplicates: true,
           },
         },
+        cages:{
+          createMany:{
+            data: createUsersDto.cages,
+            skipDuplicates: true
+          }
+        },
         position: {
           connect: {
             id: createUsersDto.positionId,
@@ -133,6 +155,16 @@ export class UsersService {
           createMany: {
             data:
               updateUsersDto.sites?.map((v) => {
+                return v;
+              }) || [],
+            skipDuplicates: true,
+          },
+        },
+        cages: {
+          deleteMany: {},
+          createMany: {
+            data:
+              updateUsersDto.cages?.map((v) => {
                 return v;
               }) || [],
             skipDuplicates: true,
