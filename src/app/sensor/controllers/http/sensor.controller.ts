@@ -21,6 +21,7 @@ import {
   import { CreateSensorDTO, UpdateSensorDTO } from '../../dtos';
   import { MqttClient, connect } from 'mqtt';
 import { SensorLogDTO } from '../../dtos/sensor-log.dto';
+import { ChartFilterDTO } from '../../dtos/chart-filter.dto';
 
   @ApiSecurity('JWT')
   @ApiTags('IOT Sensors')
@@ -103,6 +104,21 @@ import { SensorLogDTO } from '../../dtos/sensor-log.dto';
         }),
       );
     }
+
+    @Get('/temperature')
+    getTemperatureData(@Query() filter:ChartFilterDTO){
+      return this.sensorService.getTemperatureChartDaily(filter);
+    }
+
+    @Get('/amonia')
+    getAmoniaData(@Query() filter:ChartFilterDTO){
+      return this.sensorService.getAmoniaChartDaily(filter);
+    }
+
+    @Get('/humidity')
+    getHumidityData(@Query() filter:ChartFilterDTO){
+      return this.sensorService.getHumidityDaily(filter);
+    }
   
     @UseGuards(AuthGuard)
     @Get(':id')
@@ -140,5 +156,7 @@ import { SensorLogDTO } from '../../dtos/sensor-log.dto';
         }),
       );
     }
+
+  
   }
   
