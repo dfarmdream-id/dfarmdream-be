@@ -17,6 +17,8 @@ import { User as Auth } from '@prisma/client';
 import { SignUpDto } from '../dtos';
 import { catchError, map } from 'rxjs';
 import { pick } from 'lodash';
+import { UpdateProfileDTO } from '../dtos/update-profile.dto';
+import { UpdatePasswordDTO } from '../dtos/update-password.dto';
 
 @ApiTags('Auth')
 @Controller({
@@ -80,5 +82,20 @@ export class AuthController {
         }),
       ),
     );
+  }
+
+  @ApiSecurity('JWT')
+  @UseGuards(AuthGuard)
+  @Post('update-profile')
+  updateProfile(@Body() payload:UpdateProfileDTO,@User() user: Auth & { siteId: string }) {
+    return this.authService.updateProfile(user,payload)
+  }
+
+  @ApiSecurity('JWT')
+  @UseGuards(AuthGuard)
+  @Post('update-password')
+  updatePassword(@Body() payload:UpdatePasswordDTO, @User() user: Auth & { siteId: string }) {
+    return this.authService.updatePassword(user, payload)
+    
   }
 }

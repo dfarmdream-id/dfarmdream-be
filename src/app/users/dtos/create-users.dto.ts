@@ -1,5 +1,5 @@
 import { ApiProperty } from '@nestjs/swagger';
-import { UserStatus } from '@prisma/client';
+import { Cage, UserStatus } from '@prisma/client';
 import {
   IsArray,
   IsEmail,
@@ -29,6 +29,16 @@ class Sites {
   @ApiProperty()
   @IsUUID()
   siteId: string;
+}
+
+class Cages {
+  @ApiProperty()
+  @IsOptional()
+  id: string;
+
+  @ApiProperty()
+  @IsUUID()
+  cageId: string;
 }
 
 export class CreateUsersDto {
@@ -79,6 +89,12 @@ export class CreateUsersDto {
   })
   @IsArray()
   sites: Sites[];
+
+  @ApiProperty({
+    example: [Cages],
+  })
+  @IsArray()
+  cages: Cages[];
 
   @ApiProperty()
   @IsString()

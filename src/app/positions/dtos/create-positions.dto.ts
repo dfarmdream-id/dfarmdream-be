@@ -5,4 +5,12 @@ export class CreatePositionsDto {
   @ApiProperty()
   @IsString()
   name: string;
+
+  @ApiProperty()
+  @IsString()
+  checkinTime: string;
+
+  @ApiProperty()
+  @IsString()
+  checkoutTime: string;
 }

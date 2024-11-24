@@ -16,6 +16,10 @@ export class CctvCameraService {
     return from(this.cameraRepository.firstOrThrow({ id }));
   }
 
+  getByCageId(id: string) {
+    return from(this.cameraRepository.getByCage(id));
+  }
+
   update(id: string, updateCameraDTO: UpdateCameraDTO) {
     return from(this.cameraRepository.update({id}, updateCameraDTO))
   }

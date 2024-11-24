@@ -60,6 +60,7 @@ import { SensorLogDTO } from '../../dtos/sensor-log.dto';
           try{
             msgJson = msg ? JSON.parse(msg):null
           }catch(e){
+            console.log("Message : ", msg)
             console.log("Failed to parse json data")
           }
           if(msgJson){
@@ -67,7 +68,8 @@ import { SensorLogDTO } from '../../dtos/sensor-log.dto';
             payload.temperature = msgJson.temperature
             payload.ldrValue = msgJson.ldr_value
             payload.humidity = msgJson.humidity
-            payload.amonia = msgJson.amonia
+            payload.amonia = msgJson.ammonia
+            payload.airQuality = msgJson.air_quality
             this.sensorService.saveLogData(payload).catch((e)=>console.log("Failed to save log data : ",e.message))
           }
           // this.sensorService.saveLogData(message.toString())

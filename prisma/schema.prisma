@@ -15,6 +15,7 @@ enum UserStatus {
   INACTIVE
 }
 
+
 model User {
   id         String      @id @default(uuid())
   email      String?
@@ -24,9 +25,10 @@ model User {
   identityId String?
   phone      String?
   address    String?
+  photoProfile String?
   position   Position?   @relation(fields: [positionId], references: [id])
   status     UserStatus? @default(INACTIVE)
-
+  
   deletedAt            DateTime?
   createdAt            DateTime               @default(now())
   updatedAt            DateTime               @updatedAt
@@ -35,11 +37,12 @@ model User {
   roles                RoleUser[]
   positionId           String?
   sites                UserSite[]
+  cages                UserCage[]
   investor             Investor[]
   cashFlow             CashFlow[]
   transaction          Transaction[]
   WarehouseTransaction WarehouseTransaction[]
-
+  attendance Attendance[]
   @@index([email, username, identityId])
 }
 
@@ -50,6 +53,17 @@ model UserSite {
   deletedAt DateTime?
   user      User      @relation(fields: [userId], references: [id])
   site      Site      @relation(fields: [siteId], references: [id])
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+}
+
+model UserCage {
+  id        String    @id @unique @default(uuid())
+  userId    String
+  cageId    String
+  deletedAt DateTime?
+  user      User      @relation(fields: [userId], references: [id])
+  cage      Cage      @relation(fields: [cageId], references: [id])
   createdAt DateTime  @default(now())
   updatedAt DateTime  @updatedAt
 }
@@ -161,6 +175,8 @@ model Site {
 model Position {
   id        String    @id @unique @default(uuid())
   name      String
+  checkinTime DateTime? @db.Time()
+  checkoutTime DateTime? @db.Time()
   deletedAt DateTime?
   createdAt DateTime  @default(now())
   updatedAt DateTime  @updatedAt
@@ -224,6 +240,7 @@ model Cage {
   height               Int                    @default(0)
   capacity             Int                    @default(0)
   status               String?                @default("ACTIVE")
+  userCages            UserCage[]
   racks                CageRack[]
   cashFlow             CashFlow[]
   transaction          Transaction[]
@@ -408,7 +425,12 @@ model IotSensor {
   cageId            String?
   tempThreshold     Float
   humidityThreshold Float
-  amoniaThreshold   Float
+  amoniaThreshold   Float?
+  currentTemperature  Float?
+  currentHumidty    Float?
+  currentAmonia     Float?
+  currentAirQuality Float?
+  lampStatus        Float?
   logs              SensorLog[]
   deletedAt         DateTime?
   createdAt         DateTime    @default(now())
@@ -424,9 +446,9 @@ model SensorLog {
   airQuality  Float
   amonia      Float
   ldrValue    Int
-  epoch       BigInt 
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
+  epoch       BigInt
+  createdAt   DateTime   @default(now())
+  updatedAt   DateTime   @updatedAt
 }
 
 model CctvCamera {
@@ -439,4 +461,46 @@ model CctvCamera {
   deletedAt   DateTime?
   createdAt   DateTime  @default(now())
   updatedAt   DateTime  @updatedAt
+}
+
+model Attendance{
+  id String @id @unique @default(uuid())
+  userId String
+  name String
+  tanggal DateTime? @db.Date
+  jamMasuk DateTime? @db.Time()
+  jamKeluar DateTime? @db.Time()
+  timestampMasuk DateTime? @db.Timestamp()
+  timestampKeluar DateTime? @db.Timestamp()
+  user  User? @relation(fields: [userId], references: [id])
+  status Int? @default(0)
+}
+// COA
+model akuncoa {
+  kodeakun String @id @unique
+  namaakun String
+  kodegroup Int
+  level Int
+  isneraca Int
+  islabatahan Int
+  status Int
+}
+
+model biaya{
+  kodekategoribiaya String @id
+  kodebiaya String 
+  biaya Decimal @db.Money
+  tanggal DateTime @db.Timestamp()
+  idlokasi String 
+  idkandang String 
+  idkaryawan String 
+  keterangan String 
+  status Int
+}
+
+model groupakun{
+  kodegroup Int @id @unique
+  namagroup String
+  statusgroup Int
+  status Int
 }

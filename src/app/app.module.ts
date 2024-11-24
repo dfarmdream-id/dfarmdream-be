@@ -27,6 +27,7 @@ import { TransactionsModule } from './transactions';
 import { WarehouseTransactionsModule } from './warehouse-transactions';
 import { SensorModule } from './sensor/sensor.module';
 import { CctvCameraModule } from './cctv-camera';
+import { AbsenModule } from './absen';
 
 @ApiTags('App Spec')
 @Controller()
@@ -72,6 +73,7 @@ class AppController {
     WarehouseTransactionsModule,
     CctvCameraModule,
     SensorModule,
+    AbsenModule
   ],
   controllers: [AppController],
   exports: [FilesModule],

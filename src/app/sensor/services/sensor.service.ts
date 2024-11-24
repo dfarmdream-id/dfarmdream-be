@@ -53,6 +53,17 @@ export class SensorService {
             updatedAt: new Date()
           }
         })
+        await this.prismaService.iotSensor.update({
+          where: {
+            id: sensor.id,
+          },
+          data: {
+            currentAirQuality: payload.airQuality ?? 0,
+            currentAmonia: payload.amonia ?? 0,
+            currentTemperature:payload.temperature ?? 0,
+            currentHumidty:payload.humidity ?? 0,
+          },
+        })
       }
       return true
     }catch(e){
