@@ -130,6 +130,7 @@ model RoleUser {
 model Permission {
   id             String           @id @unique @default(uuid())
   name           String
+  code           String           @default("")
   deletedAt      DateTime?
   createdAt      DateTime         @default(now())
   updatedAt      DateTime         @updatedAt

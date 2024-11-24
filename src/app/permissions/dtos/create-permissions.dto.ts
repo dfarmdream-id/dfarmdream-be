@@ -5,4 +5,8 @@ export class CreatePermissionsDto {
   @ApiProperty()
   @IsString()
   name: string;
+
+  @ApiProperty()
+  @IsString()
+  code: string;
 }

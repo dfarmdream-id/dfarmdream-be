@@ -31,7 +31,7 @@ export class BlogsService {
         if (!data.image) return of({ id: undefined });
         return this.fileService.create({
           name: data.title,
-          file: Buffer.from(data.image.split(',')[1], 'base64'),
+          file: data.image.split(',')[1],
           mimeType: 'image/png',
           public: true,
         });
