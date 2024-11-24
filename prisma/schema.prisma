@@ -111,11 +111,12 @@ model Role {
   id   String @id @unique @default(uuid())
   name String
 
-  deletedAt   DateTime?
-  createdAt   DateTime         @default(now())
-  updatedAt   DateTime         @updatedAt
-  permissions RolePermission[]
-  RoleUser    RoleUser[]
+  deletedAt    DateTime?
+  createdAt    DateTime         @default(now())
+  updatedAt    DateTime         @updatedAt
+  permissions  RolePermission[]
+  roleUser     RoleUser[]
+  investorRole InvestorRole[]
 }
 
 model RolePermission {
@@ -143,6 +144,7 @@ model RoleUser {
 model Permission {
   id             String           @id @unique @default(uuid())
   name           String
+  code           String           @default("")
   deletedAt      DateTime?
   createdAt      DateTime         @default(now())
   updatedAt      DateTime         @updatedAt
@@ -294,8 +296,20 @@ model Investor {
   createdAt          DateTime             @default(now())
   updatedAt          DateTime             @updatedAt
   documentInvestment DocumentInvestment[]
+  roles              InvestorRole[]
 
   @@index([username, identityId])
+}
+
+model InvestorRole {
+  id         String    @id @unique @default(uuid())
+  investor   Investor  @relation(fields: [investorId], references: [id])
+  investorId String
+  role       Role      @relation(fields: [roleId], references: [id])
+  roleId     String
+  deletedAt  DateTime?
+  createdAt  DateTime  @default(now())
+  updatedAt  DateTime  @updatedAt
 }
 
 model DocumentInvestment {

@@ -1,5 +1,15 @@
 import { ApiProperty } from '@nestjs/swagger';
-import { IsString } from 'class-validator';
+import { IsArray, IsString } from 'class-validator';
+
+class UserRole {
+  @ApiProperty({
+    example: 'provide id if update',
+  })
+  id: string;
+
+  @ApiProperty()
+  roleId: string;
+}
 
 export class CreateInvestorsDto {
   @ApiProperty()
@@ -22,4 +32,10 @@ export class CreateInvestorsDto {
 
   @ApiProperty()
   identityId?: string;
+
+  @ApiProperty({
+    type: [UserRole],
+  })
+  @IsArray()
+  roles: UserRole[];
 }

@@ -2,7 +2,6 @@ import { HttpException, HttpStatus, Injectable } from '@nestjs/common';
 import { UsersService } from 'src/app/users/services';
 import { SignInChoose, SignInDto } from '../dtos/sign-in.dto';
 import { JwtService } from '@nestjs/jwt';
-import { User } from '@prisma/client';
 import { SignUpDto } from '../dtos';
 import { forkJoin, from, map } from 'rxjs';
 import { pick } from 'lodash';
@@ -57,8 +56,7 @@ export class AuthService {
     );
   }
 
-  profile(user: User & { siteId: string }) {
-    console.log(user.siteId);
+  profile(user: { as: 'user' | 'investor'; id: string } & { siteId: string }) {
     const u = this.userService.detail(user.id);
     const site = from(
       this.prisma.site.findUnique({
@@ -80,7 +78,7 @@ export class AuthService {
     );
   }
 
-  async updatePassword(user: User & { siteId: string }, payload:UpdatePasswordDTO) {
+  async updatePassword(user: { as: 'user' | 'investor'; id: string } & { siteId: string }, payload:UpdatePasswordDTO) {
     const userModel = await this.prisma.user.findFirstOrThrow({where:{id:user.id}})
     console.log(userModel.password)
     
@@ -105,7 +103,7 @@ export class AuthService {
     }
   }
 
-  async updateProfile(user: User & { siteId: string }, payload:UpdateProfileDTO) {
+  async updateProfile(user: { as: 'user' | 'investor'; id: string } & { siteId: string }, payload:UpdateProfileDTO) {
     const cekUsername = await this.prisma.user.findFirst({
       where: {
         username: payload.username,

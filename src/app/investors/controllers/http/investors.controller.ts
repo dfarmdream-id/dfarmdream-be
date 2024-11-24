@@ -19,6 +19,7 @@ import { ApiSecurity, ApiTags } from '@nestjs/swagger';
 import { catchError, map } from 'rxjs';
 import { Observable } from 'rxjs';
 import { AuthGuard } from '@src/app/auth';
+import { SignInDto } from '@src/app/auth/dtos';
 
 @ApiSecurity('JWT')
 @ApiTags('Investors')
@@ -28,6 +29,16 @@ import { AuthGuard } from '@src/app/auth';
 })
 export class InvestorsHttpController {
   constructor(private readonly investorService: InvestorsService) {}
+
+  @Post('sign-in')
+  public signIn(@Body() signInDto: SignInDto): Observable<ResponseEntity> {
+    return this.investorService.signIn(signInDto).pipe(
+      map((data) => new ResponseEntity({ data, message: 'success' })),
+      catchError((error) => {
+        throw new HttpException(error.message, HttpStatus.BAD_REQUEST);
+      }),
+    );
+  }
 
   @UseGuards(AuthGuard)
   @Post()

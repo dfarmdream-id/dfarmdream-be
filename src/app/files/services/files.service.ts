@@ -4,6 +4,7 @@ import { PaginationQueryDto } from 'src/common/dtos/pagination-query.dto';
 import { CreateFilesDto, UpdateFilesDto } from '../dtos';
 import { catchError, from, map, mergeMap, of } from 'rxjs';
 import { StorageService } from '@src/platform/storage/service/storage.service';
+import { ENV } from '@src/config/env';
 
 @Injectable()
 export class FilesService {
@@ -29,7 +30,7 @@ export class FilesService {
       mergeMap((data) =>
         this.storageService
           .upload({
-            file: data.file,
+            file: Buffer.from(data.file, 'base64'),
             fileName: data.name,
             mimeType: data.mimeType,
           })
@@ -44,7 +45,7 @@ export class FilesService {
       map((data) => ({
         size: data.file.length,
         name: data.name,
-        url: data.url,
+        url: `${ENV.S3.ENDPOINT}/${ENV.S3.BUCKET_NAME}/${data.name}`,
         public: data.public,
         mime: data.mimeType,
       })),

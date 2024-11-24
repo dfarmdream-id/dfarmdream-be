@@ -1,18 +1,23 @@
 import { ApiProperty } from '@nestjs/swagger';
+import { IsString } from 'class-validator';
 
 export class CreateFilesDto {
   @ApiProperty()
-  url?: string | null | undefined;
+  public?: boolean;
 
   @ApiProperty()
-  public?: boolean | undefined;
-
-  @ApiProperty()
+  @IsString()
   name: string;
 
-  @ApiProperty()
-  file: Buffer;
+  @ApiProperty({
+    default:
+      'iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAACPmIcAAAAE0lEQVR42mP8/x8AAwMCAO+ip1sAAAAASUVORK5CYII=',
+  })
+  @IsString()
+  file: string;
 
-  @ApiProperty()
+  @ApiProperty({
+    example: 'image/png',
+  })
   mimeType: string;
 }
