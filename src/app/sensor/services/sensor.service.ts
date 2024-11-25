@@ -66,6 +66,7 @@ export class SensorService {
             currentAmonia: payload.amonia ?? 0,
             currentTemperature: payload.temperature ?? 0,
             currentHumidty: payload.humidity ?? 0,
+            lampStatus: payload.ldrValue ?? 0
           },
         });
       }

@@ -22,18 +22,23 @@ export class CagesRepository {
 
   public paginate(paginateDto: CageFilterDTO, filter?: Filter) {
     const { limit = 10, page = 1, siteId } = paginateDto;
-    console.log("filter : ", siteId)
     const siteArray = siteId?siteId.split(","):[]
+    let filters = {...filter?.where}
+    if(siteArray&&siteArray.length>0){
+      filters = {
+        ...filters,
+        siteId:{
+          in: siteArray
+        }
+      }
+    }
     return from(
       this.prismaService.$transaction([
         this.prismaService.cage.findMany({
           skip: (+page - 1) * +limit,
           take: +limit,
           where: {
-            ...filter?.where,
-            siteId:{
-              in:siteArray
-            }
+            ...filters
           },
           orderBy: filter?.orderBy,
           cursor: filter?.cursor,
