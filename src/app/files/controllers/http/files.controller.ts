@@ -5,19 +5,24 @@ import {
   Get,
   HttpException,
   HttpStatus,
+  MaxFileSizeValidator,
   Param,
+  ParseFilePipe,
   Post,
   Put,
   Query,
+  UploadedFile,
+  UseInterceptors,
 } from '@nestjs/common';
 import { FilesService } from 'src/app/files/services';
 import { PaginationQueryDto } from 'src/common/dtos/pagination-query.dto';
 import { ResponseEntity } from 'src/common/entities/response.entity';
 import { CreateFilesDto, UpdateFilesDto } from 'src/app/files/dtos';
-import { ApiTags } from '@nestjs/swagger';
+import { ApiBody, ApiConsumes, ApiTags } from '@nestjs/swagger';
 import { Observable, from } from 'rxjs';
 import { map, catchError } from 'rxjs';
-
+import { FileInterceptor } from '@nestjs/platform-express';
+import {Express} from 'express'
 @ApiTags('Files')
 @Controller({
   path: 'file',
@@ -26,6 +31,32 @@ import { map, catchError } from 'rxjs';
 export class FilesHttpController {
   constructor(private readonly fileService: FilesService) {}
 
+  @Post('/upload')
+  // @Roles('Admin')
+  @UseInterceptors(FileInterceptor('file'))
+  @ApiConsumes('multipart/form-data')
+  @ApiBody({
+    schema: {
+      type: 'object',
+      properties: {
+        file: {
+          type: 'string',
+          format: 'binary',
+        },
+      },
+    },
+  })
+  uploadFile(@UploadedFile(new ParseFilePipe({
+    validators:[new MaxFileSizeValidator({
+        maxSize:10 * 1024 * 1024, //10MB
+        message:"File is too large. Max file size is 10MB"
+      }),
+    ],
+    fileIsRequired:true
+  })) file:Express.Multer.File){
+    return this.fileService.uploadFile(file)
+  }
+  
   @Post()
   public create(
     @Body() createFilesDto: CreateFilesDto,

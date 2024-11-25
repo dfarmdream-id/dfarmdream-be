@@ -18,6 +18,10 @@ export type Filter = {
 @Injectable()
 export class FilesRepository {
   constructor(private readonly prismaService: PrismaService) {}
+  
+  async createAsync(data: Prisma.FileCreateInput) {
+    return await this.prismaService.file.create({data})
+  }
 
   public paginate(paginateDto: PaginationQueryDto, filter?: Filter) {
     const { limit = 10, page = 1 } = paginateDto;
