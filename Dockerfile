@@ -26,7 +26,7 @@ FROM base AS deploy
 WORKDIR /app
 COPY --from=build /app/dist/ ./dist/
 COPY --from=build /app/node_modules ./node_modules
-COPY --from=build /prisma/generated ./prisma/generated
+COPY --from=build /app/prisma/generated ./prisma/generated
 COPY package.json pnpm-lock.yaml ./
 COPY prisma ./prisma
 COPY scripts/cmd/entrypoint.sh /entrypoint.sh
