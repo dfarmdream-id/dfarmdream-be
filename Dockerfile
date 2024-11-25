@@ -28,6 +28,7 @@ COPY --from=build /app/dist/ ./dist/
 COPY --from=build /app/node_modules ./node_modules
 COPY package.json pnpm-lock.yaml ./
 COPY prisma ./prisma
+COPY /prisma/generated ./prisma/generated
 COPY scripts/cmd/entrypoint.sh /entrypoint.sh
 RUN chmod +x /entrypoint.sh
 
