@@ -38,6 +38,7 @@ export class DashboardsService {
           this.warehouseTransactionRepository
             .sum('weight', {
               type: 'IN',
+              deletedAt: null,
             })
             .pipe(map((qty) => qty._sum.weight)),
         );
@@ -46,6 +47,7 @@ export class DashboardsService {
           this.warehouseTransactionRepository
             .sum('qty', {
               type: 'IN',
+              deletedAt: null,
             })
             .pipe(map((qty) => qty._sum.qty)),
         );
@@ -65,11 +67,13 @@ export class DashboardsService {
     const alive = this.chickendRepository.count({
       where: {
         status: 'ALIVE',
+        deletedAt: null,
       },
     });
     const dead = this.chickendRepository.count({
       where: {
         status: 'DEAD',
+        deletedAt: null,
       },
     });
 
