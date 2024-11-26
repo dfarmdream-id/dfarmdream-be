@@ -49,4 +49,17 @@ export class StorageService implements OnModuleInit {
       }),
     );
   }
+
+  async uploadAsync(uploadFileDto: UploadFileDto) {
+    const command = new PutObjectCommand({
+      Bucket: this.bucketName,
+      Key: uploadFileDto.fileName,
+      Body: uploadFileDto.file,
+      ContentType: uploadFileDto.mimeType,
+      ACL: 'public-read',
+    })
+
+    return await this.s3Client.send(command)
+
+  }
 }
