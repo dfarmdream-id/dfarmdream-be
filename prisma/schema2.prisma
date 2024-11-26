@@ -83,3 +83,10 @@ model pers_personnallist_person {
     personnallist_id String?
     position_name String?
 }
+
+model pers_person {
+  id String @id @unique
+  name String
+  number_pin Int?
+  pin String?
+}

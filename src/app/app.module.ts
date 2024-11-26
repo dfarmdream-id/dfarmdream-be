@@ -28,6 +28,7 @@ import { WarehouseTransactionsModule } from './warehouse-transactions';
 import { SensorModule } from './sensor/sensor.module';
 import { CctvCameraModule } from './cctv-camera';
 import { AbsenModule } from './absen';
+import { TaskModule } from './task/task.module';
 
 @ApiTags('App Spec')
 @Controller()
@@ -73,7 +74,8 @@ class AppController {
     WarehouseTransactionsModule,
     CctvCameraModule,
     SensorModule,
-    AbsenModule
+    AbsenModule,
+    TaskModule
   ],
   controllers: [AppController],
   exports: [FilesModule],

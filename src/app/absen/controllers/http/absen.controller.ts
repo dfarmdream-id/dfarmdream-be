@@ -26,4 +26,9 @@ export class AbsenHttpController {
   syncDataAbsen(){
     return this.absenService.syncDataAbsen()
   }
+
+  @Get('/generate-absen')
+  generateAbsen(){
+    return this.absenService.generateDataAbsen()
+  }
 }

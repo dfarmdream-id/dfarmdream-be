@@ -17,6 +17,7 @@ enum UserStatus {
 
 model User {
   id           String      @id @default(uuid())
+  nip          String?
   email        String?
   username     String
   fullName     String?
@@ -503,6 +504,8 @@ model Attendance {
   timestampKeluar DateTime? @db.Timestamp()
   user            User?     @relation(fields: [userId], references: [id])
   status          Int?      @default(0)
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt @default(now())
 }
 
 // COA
