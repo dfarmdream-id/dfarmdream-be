@@ -1,8 +1,8 @@
 import { Injectable } from '@nestjs/common';
 import { CageRacksRepository } from '../repositories';
-import { PaginationQueryDto } from 'src/common/dtos/pagination-query.dto';
 import { CreateChickenCageRacksDto, UpdateChickenCageRacksDto } from '../dtos';
 import { from } from 'rxjs';
+import { GetCageRackDto } from '../dtos/get-cage-rack.dto';
 
 @Injectable()
 export class ChickenCageRacksService {
@@ -10,11 +10,20 @@ export class ChickenCageRacksService {
     private readonly chickencagerackRepository: CageRacksRepository,
   ) {}
 
-  public paginate(paginateDto: PaginationQueryDto) {
+  public paginate(paginateDto: GetCageRackDto) {
+    const w = {};
+
+    if (paginateDto.cageId) {
+      Object.assign(w, {
+        cageId: paginateDto.cageId,
+      });
+    }
+
     return from(
       this.chickencagerackRepository.paginate(paginateDto, {
         where: {
           deletedAt: null,
+          ...w,
         },
         include: {
           cage: {

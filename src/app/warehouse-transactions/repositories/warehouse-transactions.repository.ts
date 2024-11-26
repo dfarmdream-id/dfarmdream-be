@@ -100,10 +100,10 @@ export class WarehouseTransactionsRepository {
 
   public firstOrThrow(
     where: Prisma.WarehouseTransactionWhereUniqueInput,
-    select?: Prisma.WarehouseTransactionSelect,
+    include?: Prisma.WarehouseTransactionInclude,
   ) {
     return from(
-      this.prismaService.warehouseTransaction.findUnique({ where, select }),
+      this.prismaService.warehouseTransaction.findUnique({ where, include }),
     ).pipe(
       catchError((error) => {
         throw error;

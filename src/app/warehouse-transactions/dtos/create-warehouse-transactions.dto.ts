@@ -1,6 +1,18 @@
 import { ApiProperty } from '@nestjs/swagger';
 import { WarehouseTransactionType } from '@prisma/client';
-import { IsEnum, IsInt, IsString, IsUUID } from 'class-validator';
+import { IsArray, IsEnum, IsInt, IsString, IsUUID } from 'class-validator';
+
+export class HaverstDto {
+  @ApiProperty()
+  @IsString()
+  @IsUUID()
+  rackId: string;
+
+  @ApiProperty()
+  @IsString()
+  @IsInt()
+  qty: number;
+}
 
 export class CreateWarehouseTransactionsDto {
   @ApiProperty()
@@ -26,4 +38,10 @@ export class CreateWarehouseTransactionsDto {
   @ApiProperty()
   @IsInt()
   qty?: number;
+
+  @ApiProperty({
+    example: [HaverstDto],
+  })
+  @IsArray()
+  haversts: HaverstDto[];
 }

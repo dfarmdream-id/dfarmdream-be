@@ -52,6 +52,7 @@ export class WarehouseTransactionsHttpController {
       );
   }
 
+  @UseGuards(AuthGuard)
   @Get()
   public index(
     @Query() paginateDto: PaginationQueryDto,
@@ -64,6 +65,7 @@ export class WarehouseTransactionsHttpController {
     );
   }
 
+  @UseGuards(AuthGuard)
   @Get(':id')
   public detail(@Param('id') id: string): Observable<ResponseEntity> {
     return this.warehousetransactionService.detail(id).pipe(
@@ -74,6 +76,7 @@ export class WarehouseTransactionsHttpController {
     );
   }
 
+  @UseGuards(AuthGuard)
   @Delete(':id')
   public destroy(@Param('id') id: string): Observable<ResponseEntity> {
     return this.warehousetransactionService.destroy(id).pipe(
@@ -84,13 +87,15 @@ export class WarehouseTransactionsHttpController {
     );
   }
 
+  @UseGuards(AuthGuard)
   @Put(':id')
   public update(
     @Param('id') id: string,
     @Body() updateWarehouseTransactionsDto: UpdateWarehouseTransactionsDto,
+    @User() user: { id: string; siteId: string },
   ): Observable<ResponseEntity> {
     return this.warehousetransactionService
-      .update(id, updateWarehouseTransactionsDto)
+      .update(id, updateWarehouseTransactionsDto, user.id)
       .pipe(
         map((data) => new ResponseEntity({ data, message: 'success' })),
         catchError((error) => {

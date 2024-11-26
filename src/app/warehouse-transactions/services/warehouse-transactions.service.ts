@@ -6,6 +6,7 @@ import {
   UpdateWarehouseTransactionsDto,
 } from '../dtos';
 import { catchError, from } from 'rxjs';
+import { DateTime } from 'luxon';
 
 @Injectable()
 export class WarehouseTransactionsService {
@@ -18,7 +19,6 @@ export class WarehouseTransactionsService {
       this.warehousetransactionRepository.paginate(paginateDto, {
         include: {
           cage: true,
-          rack: true,
           site: true,
           createdBy: true,
         },
@@ -27,7 +27,16 @@ export class WarehouseTransactionsService {
   }
 
   public detail(id: string) {
-    return from(this.warehousetransactionRepository.firstOrThrow({ id }));
+    return from(
+      this.warehousetransactionRepository.firstOrThrow(
+        { id },
+        {
+          cage: true,
+          site: true,
+          createdBy: true,
+        },
+      ),
+    );
   }
 
   public destroy(id: string) {
@@ -46,11 +55,6 @@ export class WarehouseTransactionsService {
             id: createWarehouseTransactionsDto.cageId,
           },
         },
-        rack: {
-          connect: {
-            id: createWarehouseTransactionsDto.rackId,
-          },
-        },
         createdBy: {
           connect: {
             id: userId,
@@ -64,6 +68,19 @@ export class WarehouseTransactionsService {
         qty: createWarehouseTransactionsDto.qty || 0,
         type: createWarehouseTransactionsDto.type,
         weight: createWarehouseTransactionsDto.weight || 0,
+        code: `${DateTime.now().toFormat('ddMMyyyy')}-${Math.random()}`,
+        items: {
+          createMany: {
+            data: createWarehouseTransactionsDto.haversts.map((item) => {
+              return {
+                createdById: userId,
+                rackId: item.rackId,
+                qty: item.qty,
+              };
+            }),
+            skipDuplicates: true,
+          },
+        },
       }),
     ).pipe(
       catchError((error) => {
@@ -76,11 +93,41 @@ export class WarehouseTransactionsService {
   public update(
     id: string,
     updateWarehouseTransactionsDto: UpdateWarehouseTransactionsDto,
+    userId: string,
   ) {
     return from(
       this.warehousetransactionRepository.update(
         { id },
-        updateWarehouseTransactionsDto,
+        {
+          cage: {
+            connect: {
+              id: updateWarehouseTransactionsDto.cageId,
+            },
+          },
+          createdBy: {
+            connect: {
+              id: userId,
+            },
+          },
+          qty: updateWarehouseTransactionsDto.qty || 0,
+          type: updateWarehouseTransactionsDto.type,
+          weight: updateWarehouseTransactionsDto.weight || 0,
+          code: `${DateTime.now().toFormat('ddMMyyyy')}-${Math.random()}`,
+          items: {
+            deleteMany: {},
+            createMany: {
+              data:
+                updateWarehouseTransactionsDto.haversts?.map((item) => {
+                  return {
+                    createdById: userId,
+                    rackId: item.rackId,
+                    qty: item.qty,
+                  };
+                }) || [],
+              skipDuplicates: true,
+            },
+          },
+        },
       ),
     );
   }

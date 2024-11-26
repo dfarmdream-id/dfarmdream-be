@@ -12,7 +12,6 @@ import {
   UseGuards,
 } from '@nestjs/common';
 import { ChickenCageRacksService } from 'src/app/chicken-cage-racks/services';
-import { PaginationQueryDto } from 'src/common/dtos/pagination-query.dto';
 import { ResponseEntity } from 'src/common/entities/response.entity';
 import {
   CreateChickenCageRacksDto,
@@ -22,6 +21,7 @@ import { ApiSecurity, ApiTags } from '@nestjs/swagger';
 import { catchError, map } from 'rxjs';
 import { Observable } from 'rxjs';
 import { AuthGuard } from '@src/app/auth';
+import { GetCageRackDto } from '../../dtos/get-cage-rack.dto';
 
 @ApiSecurity('JWT')
 @ApiTags('ChickenCageRacks')
@@ -50,7 +50,7 @@ export class ChickenCageRacksHttpController {
   @UseGuards(AuthGuard)
   @Get()
   public index(
-    @Query() paginateDto: PaginationQueryDto,
+    @Query() paginateDto: GetCageRackDto,
   ): Observable<ResponseEntity> {
     return this.chickencagerackService.paginate(paginateDto).pipe(
       map((data) => new ResponseEntity({ data, message: 'success' })),

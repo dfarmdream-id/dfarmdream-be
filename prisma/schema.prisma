@@ -15,34 +15,35 @@ enum UserStatus {
   INACTIVE
 }
 
-
 model User {
-  id         String      @id @default(uuid())
-  email      String?
-  username   String
-  fullName   String?
-  password   String
-  identityId String?
-  phone      String?
-  address    String?
+  id           String      @id @default(uuid())
+  email        String?
+  username     String
+  fullName     String?
+  password     String
+  identityId   String?
+  phone        String?
+  address      String?
   photoProfile String?
-  position   Position?   @relation(fields: [positionId], references: [id])
-  status     UserStatus? @default(INACTIVE)
-  
-  deletedAt            DateTime?
-  createdAt            DateTime               @default(now())
-  updatedAt            DateTime               @updatedAt
-  blog                 Blog[]
-  faq                  Faq[]
-  roles                RoleUser[]
-  positionId           String?
-  sites                UserSite[]
-  cages                UserCage[]
-  investor             Investor[]
-  cashFlow             CashFlow[]
-  transaction          Transaction[]
-  WarehouseTransaction WarehouseTransaction[]
-  attendance Attendance[]
+  position     Position?   @relation(fields: [positionId], references: [id])
+  status       UserStatus? @default(INACTIVE)
+
+  deletedAt                 DateTime?
+  createdAt                 DateTime                    @default(now())
+  updatedAt                 DateTime                    @updatedAt
+  blog                      Blog[]
+  faq                       Faq[]
+  roles                     RoleUser[]
+  positionId                String?
+  sites                     UserSite[]
+  cages                     UserCage[]
+  investor                  Investor[]
+  cashFlow                  CashFlow[]
+  transaction               Transaction[]
+  WarehouseTransaction      WarehouseTransaction[]
+  attendance                Attendance[]
+  WarehouseTransactionItems WarehouseTransactionItems[]
+
   @@index([email, username, identityId])
 }
 
@@ -175,14 +176,14 @@ model Site {
 }
 
 model Position {
-  id        String    @id @unique @default(uuid())
-  name      String
-  checkinTime DateTime? @db.Time()
+  id           String    @id @unique @default(uuid())
+  name         String
+  checkinTime  DateTime? @db.Time()
   checkoutTime DateTime? @db.Time()
-  deletedAt DateTime?
-  createdAt DateTime  @default(now())
-  updatedAt DateTime  @updatedAt
-  user      User[]
+  deletedAt    DateTime?
+  createdAt    DateTime  @default(now())
+  updatedAt    DateTime  @updatedAt
+  user         User[]
 }
 
 model Province {
@@ -246,22 +247,22 @@ model Cage {
   racks                CageRack[]
   cashFlow             CashFlow[]
   transaction          Transaction[]
-  WarehouseTransaction WarehouseTransaction[]
+  warehouseTransaction WarehouseTransaction[]
   IotSensor            IotSensor[]
   CctvCamera           CctvCamera[]
 }
 
 model CageRack {
-  id                   String                 @id @unique @default(uuid())
-  name                 String
-  cage                 Cage?                  @relation(fields: [cageId], references: [id])
-  cageId               String?
-  deletedAt            DateTime?
-  createdAt            DateTime               @default(now())
-  updatedAt            DateTime               @updatedAt
-  chickens             Chicken[]
-  transaction          Transaction[]
-  WarehouseTransaction WarehouseTransaction[]
+  id                        String                      @id @unique @default(uuid())
+  name                      String
+  cage                      Cage?                       @relation(fields: [cageId], references: [id])
+  cageId                    String?
+  deletedAt                 DateTime?
+  createdAt                 DateTime                    @default(now())
+  updatedAt                 DateTime                    @updatedAt
+  chickens                  Chicken[]
+  transaction               Transaction[]
+  warehouseTransactionItems WarehouseTransactionItems[]
 }
 
 enum ChickenStatus {
@@ -388,6 +389,21 @@ enum TransactionType {
   CHICKEN
 }
 
+model WarehouseTransactionItems {
+  id                     String               @id @default(uuid())
+  code                   String               @default(cuid())
+  qty                    Int                  @default(0)
+  warehouseTransaction   WarehouseTransaction @relation(fields: [warehouseTransactionId], references: [id])
+  rackId                 String
+  rack                   CageRack             @relation(fields: [rackId], references: [id])
+  createdBy              User                 @relation(fields: [createdById], references: [id])
+  createdById            String
+  deletedAt              DateTime?
+  createdAt              DateTime             @default(now())
+  updatedAt              DateTime             @updatedAt
+  warehouseTransactionId String
+}
+
 model Transaction {
   id     String          @id @default(uuid())
   site   Site            @relation(fields: [siteId], references: [id])
@@ -414,41 +430,40 @@ enum WarehouseTransactionType {
 }
 
 model WarehouseTransaction {
-  id          String                   @id @unique @default(uuid())
-  site        Site?                    @relation(fields: [siteId], references: [id])
+  id          String                      @id @unique @default(uuid())
+  site        Site?                       @relation(fields: [siteId], references: [id])
   siteId      String
-  code        String                   @default(cuid())
-  cage        Cage                     @relation(fields: [cageId], references: [id])
+  code        String                      @default(cuid())
+  cage        Cage                        @relation(fields: [cageId], references: [id])
   cageId      String
-  rack        CageRack                 @relation(fields: [rackId], references: [id])
-  rackId      String
   qty         Int
   weight      Int
-  type        WarehouseTransactionType @default(IN)
-  createdBy   User                     @relation(fields: [createdById], references: [id])
+  type        WarehouseTransactionType    @default(IN)
+  createdBy   User                        @relation(fields: [createdById], references: [id])
   createdById String
   deletedAt   DateTime?
-  createdAt   DateTime                 @default(now())
-  updatedAt   DateTime                 @updatedAt
+  createdAt   DateTime                    @default(now())
+  updatedAt   DateTime                    @updatedAt
+  items       WarehouseTransactionItems[]
 }
 
 model IotSensor {
-  id                String      @id @unique @default(uuid())
-  code              String
-  cage              Cage?       @relation(fields: [cageId], references: [id])
-  cageId            String?
-  tempThreshold     Float
-  humidityThreshold Float
-  amoniaThreshold   Float?
-  currentTemperature  Float?
-  currentHumidty    Float?
-  currentAmonia     Float?
-  currentAirQuality Float?
-  lampStatus        Float?
-  logs              SensorLog[]
-  deletedAt         DateTime?
-  createdAt         DateTime    @default(now())
-  updatedAt         DateTime    @updatedAt
+  id                 String      @id @unique @default(uuid())
+  code               String
+  cage               Cage?       @relation(fields: [cageId], references: [id])
+  cageId             String?
+  tempThreshold      Float
+  humidityThreshold  Float
+  amoniaThreshold    Float?
+  currentTemperature Float?
+  currentHumidty     Float?
+  currentAmonia      Float?
+  currentAirQuality  Float?
+  lampStatus         Float?
+  logs               SensorLog[]
+  deletedAt          DateTime?
+  createdAt          DateTime    @default(now())
+  updatedAt          DateTime    @updatedAt
 }
 
 model SensorLog {
@@ -477,44 +492,45 @@ model CctvCamera {
   updatedAt   DateTime  @updatedAt
 }
 
-model Attendance{
-  id String @id @unique @default(uuid())
-  userId String
-  name String
-  tanggal DateTime? @db.Date
-  jamMasuk DateTime? @db.Time()
-  jamKeluar DateTime? @db.Time()
-  timestampMasuk DateTime? @db.Timestamp()
+model Attendance {
+  id              String    @id @unique @default(uuid())
+  userId          String
+  name            String
+  tanggal         DateTime? @db.Date
+  jamMasuk        DateTime? @db.Time()
+  jamKeluar       DateTime? @db.Time()
+  timestampMasuk  DateTime? @db.Timestamp()
   timestampKeluar DateTime? @db.Timestamp()
-  user  User? @relation(fields: [userId], references: [id])
-  status Int? @default(0)
+  user            User?     @relation(fields: [userId], references: [id])
+  status          Int?      @default(0)
 }
+
 // COA
 model akuncoa {
-  kodeakun String @id @unique
-  namaakun String
-  kodegroup Int
-  level Int
-  isneraca Int
+  kodeakun    String @id @unique
+  namaakun    String
+  kodegroup   Int
+  level       Int
+  isneraca    Int
   islabatahan Int
-  status Int
+  status      Int
 }
 
-model biaya{
-  kodekategoribiaya String @id
-  kodebiaya String 
-  biaya Decimal @db.Money
-  tanggal DateTime @db.Timestamp()
-  idlokasi String 
-  idkandang String 
-  idkaryawan String 
-  keterangan String 
-  status Int
+model biaya {
+  kodekategoribiaya String   @id
+  kodebiaya         String
+  biaya             Decimal  @db.Money
+  tanggal           DateTime @db.Timestamp()
+  idlokasi          String
+  idkandang         String
+  idkaryawan        String
+  keterangan        String
+  status            Int
 }
 
-model groupakun{
-  kodegroup Int @id @unique
-  namagroup String
+model groupakun {
+  kodegroup   Int    @id @unique
+  namagroup   String
   statusgroup Int
-  status Int
+  status      Int
 }
