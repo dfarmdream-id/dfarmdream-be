@@ -57,7 +57,7 @@ export class WarehouseTransactionsService {
     const price = this.priceRepository.find({
       where: {
         siteId,
-        type: 'CHICKEN',
+        type: createWarehouseTransactionsDto.category,
         status: 'ACTIVE',
       },
       orderBy: {
