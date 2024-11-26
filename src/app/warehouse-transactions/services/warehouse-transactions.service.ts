@@ -65,7 +65,10 @@ export class WarehouseTransactionsService {
             id: siteId,
           },
         },
-        qty: createWarehouseTransactionsDto.qty || 0,
+        qty: createWarehouseTransactionsDto.haversts.reduce(
+          (a, b) => a + b.qty,
+          0,
+        ),
         type: createWarehouseTransactionsDto.type,
         weight: createWarehouseTransactionsDto.weight || 0,
         code: `${DateTime.now().toFormat('ddMMyyyy')}-${Math.random()}`,
@@ -109,7 +112,10 @@ export class WarehouseTransactionsService {
               id: userId,
             },
           },
-          qty: updateWarehouseTransactionsDto.qty || 0,
+          qty: updateWarehouseTransactionsDto.haversts?.reduce(
+            (acc, item) => acc + item.qty,
+            0,
+          ),
           type: updateWarehouseTransactionsDto.type,
           weight: updateWarehouseTransactionsDto.weight || 0,
           code: `${DateTime.now().toFormat('ddMMyyyy')}-${Math.random()}`,

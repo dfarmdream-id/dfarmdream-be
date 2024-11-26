@@ -20,11 +20,6 @@ export class CreateWarehouseTransactionsDto {
   @IsUUID()
   cageId: string;
 
-  @ApiProperty()
-  @IsString()
-  @IsUUID()
-  rackId: string;
-
   @ApiProperty({
     enum: WarehouseTransactionType,
   })
@@ -34,10 +29,6 @@ export class CreateWarehouseTransactionsDto {
   @ApiProperty()
   @IsInt()
   weight?: number;
-
-  @ApiProperty()
-  @IsInt()
-  qty?: number;
 
   @ApiProperty({
     example: [HaverstDto],

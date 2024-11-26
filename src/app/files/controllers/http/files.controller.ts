@@ -22,7 +22,7 @@ import { ApiBody, ApiConsumes, ApiTags } from '@nestjs/swagger';
 import { Observable, from } from 'rxjs';
 import { map, catchError } from 'rxjs';
 import { FileInterceptor } from '@nestjs/platform-express';
-import {Express} from 'express'
+import { Express } from 'express';
 @ApiTags('Files')
 @Controller({
   path: 'file',
@@ -46,17 +46,23 @@ export class FilesHttpController {
       },
     },
   })
-  uploadFile(@UploadedFile(new ParseFilePipe({
-    validators:[new MaxFileSizeValidator({
-        maxSize:10 * 1024 * 1024, //10MB
-        message:"File is too large. Max file size is 10MB"
+  uploadFile(
+    @UploadedFile(
+      new ParseFilePipe({
+        validators: [
+          new MaxFileSizeValidator({
+            maxSize: 10 * 1024 * 1024, //10MB
+            message: 'File is too large. Max file size is 10MB',
+          }),
+        ],
+        fileIsRequired: true,
       }),
-    ],
-    fileIsRequired:true
-  })) file:Express.Multer.File){
-    return this.fileService.uploadFile(file)
+    )
+    file: Express.Multer.File,
+  ) {
+    return this.fileService.uploadFile(file);
   }
-  
+
   @Post()
   public create(
     @Body() createFilesDto: CreateFilesDto,
