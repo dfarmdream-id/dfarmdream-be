@@ -5,13 +5,15 @@ import {
   CreateWarehouseTransactionsDto,
   UpdateWarehouseTransactionsDto,
 } from '../dtos';
-import { catchError, from } from 'rxjs';
+import { catchError, concatMap, from, map } from 'rxjs';
 import { DateTime } from 'luxon';
+import { PricesRepository } from '@src/app/prices/repositories';
 
 @Injectable()
 export class WarehouseTransactionsService {
   constructor(
     private readonly warehousetransactionRepository: WarehouseTransactionsRepository,
+    private readonly priceRepository: PricesRepository,
   ) {}
 
   public paginate(paginateDto: PaginationQueryDto) {
@@ -21,6 +23,8 @@ export class WarehouseTransactionsService {
           cage: true,
           site: true,
           createdBy: true,
+          items: true,
+          price: true,
         },
       }),
     );
@@ -34,6 +38,8 @@ export class WarehouseTransactionsService {
           cage: true,
           site: true,
           createdBy: true,
+          items: true,
+          price: true,
         },
       ),
     );
@@ -48,47 +54,69 @@ export class WarehouseTransactionsService {
     userId: string,
     siteId: string,
   ) {
-    return from(
-      this.warehousetransactionRepository.create({
-        cage: {
-          connect: {
-            id: createWarehouseTransactionsDto.cageId,
-          },
-        },
-        createdBy: {
-          connect: {
-            id: userId,
-          },
-        },
-        site: {
-          connect: {
-            id: siteId,
-          },
-        },
-        qty: createWarehouseTransactionsDto.haversts.reduce(
-          (a, b) => a + b.qty,
-          0,
-        ),
-        type: createWarehouseTransactionsDto.type,
-        weight: createWarehouseTransactionsDto.weight || 0,
-        code: `${DateTime.now().toFormat('ddMMyyyy')}-${Math.random()}`,
-        items: {
-          createMany: {
-            data: createWarehouseTransactionsDto.haversts.map((item) => {
-              return {
-                createdById: userId,
-                rackId: item.rackId,
-                qty: item.qty,
-              };
-            }),
-            skipDuplicates: true,
-          },
-        },
+    const price = this.priceRepository.find({
+      where: {
+        siteId,
+        type: 'CHICKEN',
+        status: 'ACTIVE',
+      },
+      orderBy: {
+        createdAt: 'desc',
+      },
+    });
+
+    return price.pipe(
+      map((data) => data[0]),
+      concatMap((priceData) => {
+        // Now that you have the price, proceed with creating the warehouse transaction
+        return from(
+          this.warehousetransactionRepository.create({
+            category: createWarehouseTransactionsDto.category,
+            cage: {
+              connect: {
+                id: createWarehouseTransactionsDto.cageId,
+              },
+            },
+            createdBy: {
+              connect: {
+                id: userId,
+              },
+            },
+            site: {
+              connect: {
+                id: siteId,
+              },
+            },
+            qty: createWarehouseTransactionsDto.haversts.reduce(
+              (a, b) => a + b.qty,
+              0,
+            ),
+            type: createWarehouseTransactionsDto.type,
+            price: {
+              connect: {
+                id: priceData.id,
+              },
+            },
+            weight: createWarehouseTransactionsDto.weight || 0,
+            code: `${DateTime.now().toFormat('ddMMyyyy')}-${Math.random() * 1000}`,
+            items: {
+              createMany: {
+                data: createWarehouseTransactionsDto.haversts.map((item) => {
+                  return {
+                    createdById: userId,
+                    rackId: item.rackId,
+                    qty: item.qty,
+                  };
+                }),
+                skipDuplicates: true,
+              },
+            },
+          }),
+        );
       }),
-    ).pipe(
       catchError((error) => {
         console.log(error);
-        throw new Error(error.message);
+        throw new Error(error.message); // Handle the error properly here
       }),
     );
   }
