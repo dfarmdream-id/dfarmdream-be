@@ -37,7 +37,7 @@ export class AbsenService {
         : undefined;
       where = {
         ...where,
-        tanggal: {
+        createdAt: {
           gte: startOfDay,
           lte: endOfDay,
         },
