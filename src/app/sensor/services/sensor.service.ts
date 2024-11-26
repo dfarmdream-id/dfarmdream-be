@@ -66,7 +66,7 @@ export class SensorService {
             currentAmonia: payload.amonia ?? 0,
             currentTemperature: payload.temperature ?? 0,
             currentHumidty: payload.humidity ?? 0,
-            lampStatus: payload.ldrValue ?? 0
+            lampStatus: payload.ldrValue ?? 0,
           },
         });
       }
@@ -80,16 +80,42 @@ export class SensorService {
   async getTemperatureChartDaily(filter: ChartFilterDTO) {
     let filterTanggal = filter.tanggal ? new Date(filter.tanggal) : new Date();
     const startOfDay = filterTanggal.setHours(0, 0, 0, 0);
+    let cageIds: any = [];
+    let where = {};
 
-    // Query untuk mendapatkan rata-rata suhu per jam
+    if (filter.siteId && filter.siteId != '') {
+      const cages = await this.prismaService.cage.findMany({
+        where: {
+          siteId: filter.siteId,
+        },
+      });
+      cageIds = cages.map((x) => x.id);
+      where = {
+        ...where,
+        cageId: {
+          in: cageIds,
+        },
+      };
+    }
+
+    if (filter.cageId && filter.cageId != '') {
+      cageIds = [filter.cageId];
+      where = {
+        ...where,
+        cageId: filter.cageId,
+      };
+    }
+
     const data: any = await this.prismaService.$queryRaw`
-      SELECT 
-        DATE_TRUNC('hour', "createdAt") as hour,
-        AVG(temperature) as average_temperature
-      FROM "SensorLog"
-      WHERE  "epoch" >= ${startOfDay}
-      GROUP BY DATE_TRUNC('hour', "createdAt")
-      ORDER BY hour ASC`;
+    SELECT 
+      DATE_TRUNC('hour', "SensorLog"."createdAt") as hour,
+      AVG(temperature) as average_temperature
+    FROM "SensorLog" 
+    LEFT JOIN "IotSensor" on "IotSensor"."id" = "SensorLog"."sensorId"
+    WHERE "epoch" >= ${startOfDay}
+    ${cageIds.length > 0 ? Prisma.sql`AND "IotSensor"."cageId" IN (${Prisma.join(cageIds)})` : Prisma.empty}
+    GROUP BY DATE_TRUNC('hour', "SensorLog"."createdAt")
+    ORDER BY hour ASC`;
 
     // Format data untuk ApexCharts
     const formattedData = data.map((item) => {
@@ -102,7 +128,9 @@ export class SensorService {
       };
     });
 
-    const sensors = await this.prismaService.iotSensor.findMany();
+    const sensors = await this.prismaService.iotSensor.findMany({
+      where,
+    });
     return {
       status: HttpStatus.OK,
       message: 'Success get data',
@@ -116,16 +144,42 @@ export class SensorService {
   async getAmoniaChartDaily(filter: ChartFilterDTO) {
     let filterTanggal = filter.tanggal ? new Date(filter.tanggal) : new Date();
     const startOfDay = filterTanggal.setHours(0, 0, 0, 0);
+    let cageIds: any = [];
+    let where = {};
 
-    // Query untuk mendapatkan rata-rata suhu per jam
+    if (filter.siteId && filter.siteId != '') {
+      const cages = await this.prismaService.cage.findMany({
+        where: {
+          siteId: filter.siteId,
+        },
+      });
+      cageIds = cages.map((x) => x.id);
+      where = {
+        ...where,
+        cageId: {
+          in: cageIds,
+        },
+      };
+    }
+
+    if (filter.cageId && filter.cageId != '') {
+      cageIds = [filter.cageId];
+      where = {
+        ...where,
+        cageId: filter.cageId,
+      };
+    }
+
     const data: any = await this.prismaService.$queryRaw`
-      SELECT 
-        DATE_TRUNC('hour', "createdAt") as hour,
-        AVG(amonia) as average_amonia
-      FROM "SensorLog"
-      WHERE  "epoch" >= ${startOfDay}
-      GROUP BY DATE_TRUNC('hour', "createdAt")
-      ORDER BY hour ASC`;
+    SELECT 
+      DATE_TRUNC('hour', "SensorLog"."createdAt") as hour,
+      AVG(temperature) as average_amonia
+    FROM "SensorLog" 
+    LEFT JOIN "IotSensor" on "IotSensor"."id" = "SensorLog"."sensorId"
+    WHERE "epoch" >= ${startOfDay}
+    ${cageIds.length > 0 ? Prisma.sql`AND "IotSensor"."cageId" IN (${Prisma.join(cageIds)})` : Prisma.empty}
+    GROUP BY DATE_TRUNC('hour', "SensorLog"."createdAt")
+    ORDER BY hour ASC`;
 
     // Format data untuk ApexCharts
     const formattedData = data.map((item) => {
@@ -137,7 +191,7 @@ export class SensorService {
         y: Number(item.average_amonia.toFixed(2)),
       };
     });
-    const sensors = await this.prismaService.iotSensor.findMany();
+    const sensors = await this.prismaService.iotSensor.findMany({where});
     return {
       status: HttpStatus.OK,
       message: 'Success get data',
@@ -151,15 +205,43 @@ export class SensorService {
   async getHumidityDaily(filter: ChartFilterDTO) {
     let filterTanggal = filter.tanggal ? new Date(filter.tanggal) : new Date();
     const startOfDay = filterTanggal.setHours(0, 0, 0, 0);
-    // Query untuk mendapatkan rata-rata suhu per jam
+
+    let cageIds: any = [];
+    let where = {};
+
+    if (filter.siteId && filter.siteId != '') {
+      const cages = await this.prismaService.cage.findMany({
+        where: {
+          siteId: filter.siteId,
+        },
+      });
+      cageIds = cages.map((x) => x.id);
+      where = {
+        ...where,
+        cageId: {
+          in: cageIds,
+        },
+      };
+    }
+
+    if (filter.cageId && filter.cageId != '') {
+      cageIds = [filter.cageId];
+      where = {
+        ...where,
+        cageId: filter.cageId,
+      };
+    }
+
     const data: any = await this.prismaService.$queryRaw`
-      SELECT 
-        DATE_TRUNC('hour', "createdAt") as hour,
-        AVG(humidity) as average_humidity
-      FROM "SensorLog"
-      WHERE  "epoch" >= ${startOfDay}
-      GROUP BY DATE_TRUNC('hour', "createdAt")
-      ORDER BY hour ASC`;
+    SELECT 
+      DATE_TRUNC('hour', "SensorLog"."createdAt") as hour,
+      AVG(temperature) as average_humidity
+    FROM "SensorLog" 
+    LEFT JOIN "IotSensor" on "IotSensor"."id" = "SensorLog"."sensorId"
+    WHERE "epoch" >= ${startOfDay}
+    ${cageIds.length > 0 ? Prisma.sql`AND "IotSensor"."cageId" IN (${Prisma.join(cageIds)})` : Prisma.empty}
+    GROUP BY DATE_TRUNC('hour', "SensorLog"."createdAt")
+    ORDER BY hour ASC`;
 
     // Format data untuk ApexCharts
     const formattedData = data.map((item) => {
@@ -171,7 +253,7 @@ export class SensorService {
         y: Number(item.average_humidity.toFixed(2)),
       };
     });
-    const sensors = await this.prismaService.iotSensor.findMany();
+    const sensors = await this.prismaService.iotSensor.findMany({where});
 
     return {
       status: HttpStatus.OK,
