@@ -75,7 +75,8 @@ class AppController {
     CctvCameraModule,
     SensorModule,
     AbsenModule,
-    TaskModule
+    TaskModule,
+    DocumentInvestmentsModule,
   ],
   controllers: [AppController],
   exports: [FilesModule],

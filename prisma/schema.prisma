@@ -85,17 +85,18 @@ model Blog {
 }
 
 model File {
-  id        String    @id @unique @default(uuid())
-  name      String
-  size      Int
-  url       String?
-  public    Boolean   @default(false)
-  deletedAt DateTime?
-  createdAt DateTime  @default(now())
-  updatedAt DateTime  @updatedAt
-  mime      String
-  provider  String    @default("S3")
-  Blog      Blog[]
+  id                 String               @id @unique @default(uuid())
+  name               String
+  size               Int
+  url                String?
+  public             Boolean              @default(false)
+  deletedAt          DateTime?
+  createdAt          DateTime             @default(now())
+  updatedAt          DateTime             @updatedAt
+  mime               String
+  provider           String               @default("S3")
+  Blog               Blog[]
+  DocumentInvestment DocumentInvestment[]
 }
 
 model Faq {
@@ -174,6 +175,7 @@ model Site {
   transaction          Transaction[]
   WarehouseTransaction WarehouseTransaction[]
   Price                Price[]
+  DocumentInvestment   DocumentInvestment[]
 }
 
 model Position {
@@ -251,6 +253,7 @@ model Cage {
   warehouseTransaction WarehouseTransaction[]
   IotSensor            IotSensor[]
   CctvCamera           CctvCamera[]
+  DocumentInvestment   DocumentInvestment[]
 }
 
 model CageRack {
@@ -317,12 +320,18 @@ model InvestorRole {
 model DocumentInvestment {
   id         String    @id @unique @default(uuid())
   name       String
-  url        String
+  file       File?     @relation(fields: [fileId], references: [id])
   investor   Investor? @relation(fields: [investorId], references: [id])
   investorId String?
+  site       Site?     @relation(fields: [siteId], references: [id])
+  siteId     String?
+  cage       Cage?     @relation(fields: [cageId], references: [id])
+  cageId     String?
+  amount     Int?      @default(0)
   deletedAt  DateTime?
   createdAt  DateTime  @default(now())
   updatedAt  DateTime  @updatedAt
+  fileId     String?
 }
 
 enum CashFlowType {
@@ -513,8 +522,8 @@ model Attendance {
   timestampKeluar DateTime? @db.Timestamp()
   user            User?     @relation(fields: [userId], references: [id])
   status          Int?      @default(0)
-  createdAt   DateTime  @default(now())
-  updatedAt   DateTime  @updatedAt @default(now())
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @default(now()) @updatedAt
 }
 
 // COA

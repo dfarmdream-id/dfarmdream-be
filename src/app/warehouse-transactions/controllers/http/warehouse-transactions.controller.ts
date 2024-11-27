@@ -104,3 +104,24 @@ export class WarehouseTransactionsHttpController {
       );
   }
 }
+
+@ApiTags('WarehouseTransactions')
+@Controller({
+  path: 'public/warehouse-transaction',
+  version: '1',
+})
+export class WarehouseTransactionsPublicHttpController {
+  constructor(
+    private readonly warehousetransactionService: WarehouseTransactionsService,
+  ) {}
+  @UseGuards(AuthGuard)
+  @Get(':id')
+  public detail(@Param('id') id: string): Observable<ResponseEntity> {
+    return this.warehousetransactionService.detail(id).pipe(
+      map((data) => new ResponseEntity({ data, message: 'success' })),
+      catchError((error) => {
+        throw new HttpException(error.message, HttpStatus.NOT_FOUND);
+      }),
+    );
+  }
+}

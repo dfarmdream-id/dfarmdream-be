@@ -9,21 +9,18 @@ import {
   Post,
   Put,
   Query,
-  UseGuards,
 } from '@nestjs/common';
 import { DocumentInvestmentsService } from 'src/app/document-investments/services';
-import { PaginationQueryDto } from 'src/common/dtos/pagination-query.dto';
 import { ResponseEntity } from 'src/common/entities/response.entity';
 import {
   CreateDocumentInvestmentsDto,
   UpdateDocumentInvestmentsDto,
 } from 'src/app/document-investments/dtos';
-import { ApiSecurity, ApiTags } from '@nestjs/swagger';
+import { ApiTags } from '@nestjs/swagger';
 import { catchError, map } from 'rxjs';
 import { Observable } from 'rxjs';
-import { AuthGuard } from '@src/app/auth';
+import { GetDocumentInvestmentDto } from '../../dtos/get-document-investment.dto';
 
-@ApiSecurity('JWT')
 @ApiTags('DocumentInvestments')
 @Controller({
   path: 'document-investment',
@@ -34,7 +31,6 @@ export class DocumentInvestmentsHttpController {
     private readonly documentinvestmentService: DocumentInvestmentsService,
   ) {}
 
-  @UseGuards(AuthGuard)
   @Post()
   public create(
     @Body() createDocumentInvestmentsDto: CreateDocumentInvestmentsDto,
@@ -49,10 +45,9 @@ export class DocumentInvestmentsHttpController {
       );
   }
 
-  @UseGuards(AuthGuard)
   @Get()
   public index(
-    @Query() paginateDto: PaginationQueryDto,
+    @Query() paginateDto: GetDocumentInvestmentDto,
   ): Observable<ResponseEntity> {
     return this.documentinvestmentService.paginate(paginateDto).pipe(
       map((data) => new ResponseEntity({ data, message: 'success' })),
@@ -62,7 +57,6 @@ export class DocumentInvestmentsHttpController {
     );
   }
 
-  @UseGuards(AuthGuard)
   @Get(':id')
   public detail(@Param('id') id: string): Observable<ResponseEntity> {
     return this.documentinvestmentService.detail(id).pipe(
@@ -73,7 +67,6 @@ export class DocumentInvestmentsHttpController {
     );
   }
 
-  @UseGuards(AuthGuard)
   @Delete(':id')
   public destroy(@Param('id') id: string): Observable<ResponseEntity> {
     return this.documentinvestmentService.destroy(id).pipe(
@@ -84,7 +77,6 @@ export class DocumentInvestmentsHttpController {
     );
   }
 
-  @UseGuards(AuthGuard)
   @Put(':id')
   public update(
     @Param('id') id: string,

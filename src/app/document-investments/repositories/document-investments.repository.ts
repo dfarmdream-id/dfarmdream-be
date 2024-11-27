@@ -12,7 +12,7 @@ export type Filter = {
   cursor?: Prisma.DocumentInvestmentWhereUniqueInput;
   take?: number;
   skip?: number;
-  // include?: Prisma.DocumentInvestmentInclude;
+  include?: Prisma.DocumentInvestmentInclude;
 };
 
 @Injectable()
@@ -30,6 +30,7 @@ export class DocumentInvestmentsRepository {
           where: filter?.where,
           orderBy: filter?.orderBy,
           cursor: filter?.cursor,
+          include: filter?.include,
         }),
         this.prismaService.documentInvestment.count({
           where: filter?.where,
