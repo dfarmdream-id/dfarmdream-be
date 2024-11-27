@@ -44,6 +44,7 @@ export class SensorService {
         },
       });
       if (sensor) {
+        // console.log(JSON.stringify(payload))
         await this.prismaService.sensorLog.create({
           data: {
             airQuality: payload.airQuality ?? 0,

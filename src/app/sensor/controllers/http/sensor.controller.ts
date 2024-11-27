@@ -65,11 +65,17 @@ import { ChartFilterDTO } from '../../dtos/chart-filter.dto';
             console.log("Failed to parse json data")
           }
           if(msgJson){
+            let amonia:number = msgJson.ammonia
+            if(amonia && amonia>100){
+              // console.log("here ",amonia)
+              amonia = 0
+            }
+            // console.log(msgJson.ammonia)
             const payload = new SensorLogDTO()
             payload.temperature = msgJson.temperature
             payload.ldrValue = msgJson.ldr_value
             payload.humidity = msgJson.humidity
-            payload.amonia = msgJson.ammonia
+            payload.amonia = amonia
             payload.airQuality = msgJson.air_quality
             this.sensorService.saveLogData(payload).catch((e)=>console.log("Failed to save log data : ",e.message))
           }
