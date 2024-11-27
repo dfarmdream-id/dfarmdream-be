@@ -16,15 +16,15 @@ export class DashboardsService {
     private readonly warehouseTransactionRepository: WarehouseTransactionsRepository,
   ) {}
 
-  public summary() {
+  public summary(siteId?: string) {
     return of({}).pipe(
       switchMap(async () => {
         const user = await this.userRepository.count({
-          where: { deletedAt: null },
+          where: { deletedAt: null, sites: { some: { id: siteId } } },
         });
         const cage = await firstValueFrom(
           this.chickenCageRepository.count({
-            where: { deletedAt: null },
+            where: { deletedAt: null, siteId },
           }),
         );
         const investor = await firstValueFrom(
@@ -63,17 +63,27 @@ export class DashboardsService {
     );
   }
 
-  public chart() {
+  public chart(siteId: string) {
     const alive = this.chickendRepository.count({
       where: {
         status: 'ALIVE',
         deletedAt: null,
+        rack: {
+          cage: {
+            siteId: siteId,
+          },
+        },
       },
     });
     const dead = this.chickendRepository.count({
       where: {
         status: 'DEAD',
         deletedAt: null,
+        rack: {
+          cage: {
+            siteId: siteId,
+          },
+        },
       },
     });
 
