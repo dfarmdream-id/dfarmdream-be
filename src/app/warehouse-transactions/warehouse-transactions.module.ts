@@ -5,8 +5,10 @@ import {
 } from './controllers';
 import { WarehouseTransactionsService } from './services';
 import { WarehouseTransactionsRepository } from './repositories';
+import { PricesModule } from '../prices';
 
 @Module({
+  imports: [PricesModule],
   controllers: [
     WarehouseTransactionsHttpController,
     WarehouseTransactionsMicroserviceController,

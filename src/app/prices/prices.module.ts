@@ -9,5 +9,6 @@ import { PricesRepository } from './repositories';
 @Module({
   controllers: [PricesHttpController, PricesMicroserviceController],
   providers: [PricesService, PricesRepository],
+  exports: [PricesRepository],
 })
 export class PricesModule {}

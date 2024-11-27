@@ -380,12 +380,18 @@ model Price {
   site   Site?        @relation(fields: [siteId], references: [id])
   siteId String?
 
-  deletedAt DateTime?
-  createdAt DateTime  @default(now())
-  updatedAt DateTime  @updatedAt
+  deletedAt            DateTime?
+  createdAt            DateTime               @default(now())
+  updatedAt            DateTime               @updatedAt
+  WarehouseTransaction WarehouseTransaction[]
 }
 
 enum TransactionType {
+  EGG
+  CHICKEN
+}
+
+enum WarehouseTransactionCategoryEnum {
   EGG
   CHICKEN
 }
@@ -431,21 +437,24 @@ enum WarehouseTransactionType {
 }
 
 model WarehouseTransaction {
-  id          String                      @id @unique @default(uuid())
-  site        Site?                       @relation(fields: [siteId], references: [id])
+  id          String                            @id @unique @default(uuid())
+  site        Site?                             @relation(fields: [siteId], references: [id])
   siteId      String
-  code        String                      @default(cuid())
-  cage        Cage                        @relation(fields: [cageId], references: [id])
+  code        String                            @default(cuid())
+  cage        Cage                              @relation(fields: [cageId], references: [id])
   cageId      String
   qty         Int
   weight      Int
-  type        WarehouseTransactionType    @default(IN)
-  createdBy   User                        @relation(fields: [createdById], references: [id])
+  type        WarehouseTransactionType          @default(IN)
+  createdBy   User                              @relation(fields: [createdById], references: [id])
   createdById String
   deletedAt   DateTime?
-  createdAt   DateTime                    @default(now())
-  updatedAt   DateTime                    @updatedAt
+  createdAt   DateTime                          @default(now())
+  updatedAt   DateTime                          @updatedAt
   items       WarehouseTransactionItems[]
+  category    WarehouseTransactionCategoryEnum? @default(EGG)
+  price       Price?                            @relation(fields: [priceId], references: [id])
+  priceId     String?
 }
 
 model IotSensor {
