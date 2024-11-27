@@ -6,6 +6,7 @@ import {
   UpdateDocumentInvestmentsDto,
 } from '../dtos';
 import { from } from 'rxjs';
+import { FilterDokumenDTO } from '../dtos/filter-dokumen.dto';
 
 @Injectable()
 export class DocumentInvestmentsService {
@@ -13,11 +14,18 @@ export class DocumentInvestmentsService {
     private readonly documentinvestmentRepository: DocumentInvestmentsRepository,
   ) {}
 
-  public paginate(paginateDto: PaginationQueryDto) {
+  public paginate(paginateDto: FilterDokumenDTO) {
+    let where:any = {deletedAt:null}
+    if(paginateDto.investorId){
+      where = {
+        ...where,
+        investorId:paginateDto.investorId
+      }
+    }
     return from(
       this.documentinvestmentRepository.paginate(paginateDto, {
         where: {
-          deletedAt: null,
+         ...where
         },
       }),
     );
@@ -28,6 +36,7 @@ export class DocumentInvestmentsService {
   }
 
   public destroy(id: string) {
+    console.log("Id : ", id)
     return from(this.documentinvestmentRepository.delete({ id }));
   }
 

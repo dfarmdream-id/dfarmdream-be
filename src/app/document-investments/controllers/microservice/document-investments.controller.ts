@@ -13,6 +13,7 @@ import {
 } from 'src/app/document-investments/dtos';
 import { map, catchError, from } from 'rxjs';
 import { ApiTags } from '@nestjs/swagger';
+import { FilterDokumenDTO } from '../../dtos/filter-dokumen.dto';
 
 @ApiTags('DocumentInvestments')
 @Controller({
@@ -65,7 +66,7 @@ export class DocumentInvestmentsMicroserviceController {
   }
 
   @MessagePattern('documentinvestment.paginate')
-  public index(@Payload() paginateDto: PaginationQueryDto) {
+  public index(@Payload() paginateDto: FilterDokumenDTO) {
     return from(this.documentinvestmentService.paginate(paginateDto)).pipe(
       map(
         (data) =>
@@ -108,6 +109,7 @@ export class DocumentInvestmentsMicroserviceController {
 
   @MessagePattern('documentinvestment.destroy')
   public destroy(@Payload('id') id: string) {
+    console.log("ID : ", id)
     return from(this.documentinvestmentService.destroy(id)).pipe(
       map(
         (data) =>

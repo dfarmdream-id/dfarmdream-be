@@ -1,5 +1,5 @@
 import { ApiProperty } from '@nestjs/swagger';
-import { IsString } from 'class-validator';
+import { IsOptional, IsString } from 'class-validator';
 
 export class CreateDocumentInvestmentsDto {
   @ApiProperty()
@@ -7,5 +7,15 @@ export class CreateDocumentInvestmentsDto {
   name: string;
 
   @ApiProperty()
+  @IsOptional()
   url: string;
+
+  @ApiProperty()
+  investorId:string;
+  
+  @ApiProperty()
+  fileId:string;
+
+  @ApiProperty()
+  cageId:string;
 }

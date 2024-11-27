@@ -96,6 +96,7 @@ model File {
   mime      String
   provider  String    @default("S3")
   Blog      Blog[]
+  Dokumen DocumentInvestment[]
 }
 
 model Faq {
@@ -248,6 +249,7 @@ model Cage {
   racks                CageRack[]
   cashFlow             CashFlow[]
   transaction          Transaction[]
+  dokumen              DocumentInvestment[]
   warehouseTransaction WarehouseTransaction[]
   IotSensor            IotSensor[]
   CctvCamera           CctvCamera[]
@@ -317,7 +319,11 @@ model InvestorRole {
 model DocumentInvestment {
   id         String    @id @unique @default(uuid())
   name       String
-  url        String
+  url        String?
+  fileId String?
+  cageId String?
+  cage Cage? @relation(fields: [cageId], references: [id])
+  file File? @relation(fields: [fileId], references: [id])
   investor   Investor? @relation(fields: [investorId], references: [id])
   investorId String?
   deletedAt  DateTime?
