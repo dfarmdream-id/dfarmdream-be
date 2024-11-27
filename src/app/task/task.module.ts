@@ -5,7 +5,7 @@ import { ScheduleModule } from '@nestjs/schedule';
 import { AbsenModule } from '../absen';
 
 @Module({
-  imports:[ScheduleModule.forRoot(), AbsenModule],
+  imports:[AbsenModule],
   controllers: [TaskController],
   providers: [TaskService],
 

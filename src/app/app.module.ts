@@ -29,6 +29,7 @@ import { SensorModule } from './sensor/sensor.module';
 import { CctvCameraModule } from './cctv-camera';
 import { AbsenModule } from './absen';
 import { TaskModule } from './task/task.module';
+import { ScheduleModule } from '@nestjs/schedule';
 
 @ApiTags('App Spec')
 @Controller()
@@ -75,7 +76,8 @@ class AppController {
     CctvCameraModule,
     SensorModule,
     AbsenModule,
-    TaskModule
+    TaskModule,
+    ScheduleModule.forRoot()
   ],
   controllers: [AppController],
   exports: [FilesModule],

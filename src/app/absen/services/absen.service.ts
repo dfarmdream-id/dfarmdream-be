@@ -122,10 +122,10 @@ export class AbsenService {
     const today = DateTime.now().toFormat("yyyy-MM-dd")
     const transaction = await this.absenClient.acc_transaction.findMany({
       where: {
-        // pin: {
-        //   not: '',
-        // },
-        pin:"123",
+        pin: {
+          not: '',
+        },
+        // pin:"123",
         event_time: {
           gte: new Date(`${today}T00:00:00.000Z`), // Start of the day
           lt: new Date(`${today}T23:59:59.999Z`), // Start of the next day
