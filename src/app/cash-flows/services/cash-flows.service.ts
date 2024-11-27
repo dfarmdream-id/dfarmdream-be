@@ -8,11 +8,12 @@ import { from } from 'rxjs';
 export class CashFlowsService {
   constructor(private readonly cashflowRepository: CashFlowsRepository) {}
 
-  public paginate(paginateDto: PaginationQueryDto) {
+  public paginate(paginateDto: PaginationQueryDto, siteId: string) {
     return from(
       this.cashflowRepository.paginate(paginateDto, {
         where: {
           deletedAt: null,
+          siteId,
         },
         include: {
           category: true,

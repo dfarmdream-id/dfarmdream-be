@@ -22,6 +22,7 @@ import { ApiSecurity, ApiTags } from '@nestjs/swagger';
 import { catchError, map } from 'rxjs';
 import { Observable } from 'rxjs';
 import { AuthGuard } from '@src/app/auth';
+import { User } from '@src/app/auth/decorators';
 
 @ApiSecurity('JWT')
 @ApiTags('ChickenCages')
@@ -49,8 +50,9 @@ export class ChickenCagesHttpController {
   @Get()
   public index(
     @Query() paginateDto: PaginationQueryDto,
+    @User() user: { id: string; siteId: string },
   ): Observable<ResponseEntity> {
-    return this.chickencageService.paginate(paginateDto).pipe(
+    return this.chickencageService.paginate(paginateDto, user.siteId).pipe(
       map((data) => new ResponseEntity({ data, message: 'success' })),
       catchError((error) => {
         throw new HttpException(error.message, HttpStatus.NOT_FOUND);

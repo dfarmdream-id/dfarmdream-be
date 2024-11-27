@@ -1,17 +1,18 @@
 import { Injectable } from '@nestjs/common';
 import { CagesRepository } from '../repositories';
-import { PaginationQueryDto } from 'src/common/dtos/pagination-query.dto';
 import { CreateChickenCagesDto, UpdateChickenCagesDto } from '../dtos';
 import { from } from 'rxjs';
 import { Prisma } from '@prisma/client';
+import { GetCageFilterDto } from '../dtos/get-cage.dto';
 
 @Injectable()
 export class ChickenCagesService {
   constructor(private readonly chickencageRepository: CagesRepository) {}
 
-  public paginate(paginateDto: PaginationQueryDto) {
+  public paginate(paginateDto: GetCageFilterDto, siteId?: string) {
     const where: Prisma.CageWhereInput = {
       deletedAt: null,
+      siteId,
     };
 
     if (paginateDto.q) {
@@ -24,6 +25,14 @@ export class ChickenCagesService {
             },
           },
         ],
+      } as Prisma.CageWhereInput);
+    }
+
+    if (paginateDto.siteId) {
+      Object.assign(where, {
+        siteId: {
+          in: paginateDto.siteId.split(','),
+        },
       } as Prisma.CageWhereInput);
     }
 
