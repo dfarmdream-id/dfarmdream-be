@@ -2,7 +2,7 @@ import { HttpStatus, Injectable } from '@nestjs/common';
 import { PrismaAbsenService } from '@src/platform/database/services/prisma-absen.service';
 import { PrismaService } from '@src/platform/database/services/prisma.service';
 import { FilterAbsenDTO } from '../dtos/filter-absen.dto';
-
+import {DateTime} from 'luxon'
 @Injectable()
 export class AbsenService {
   constructor(
@@ -11,6 +11,7 @@ export class AbsenService {
   ) {}
 
   async getAbsenData(filter: FilterAbsenDTO) {
+    const today = DateTime.now().toFormat("yyyy-MM-dd");
     let where = {};
     if (filter.lokasi && filter.lokasi != '') {
       where = {
@@ -28,19 +29,25 @@ export class AbsenService {
     }
 
     if (filter.tanggal) {
-      const startOfDay = filter.tanggal
-        ? new Date(new Date(filter.tanggal).setHours(0, 0, 0, 0))
-        : undefined;
-      const endOfDay = filter.tanggal
-        ? new Date(new Date(filter.tanggal).setHours(24, 0, 0, 0))
-        : undefined;
+      // const startOfDay = filter.tanggal
+      //   ? new Date(new Date(filter.tanggal).setHours(0, 0, 0, 0))
+      //   : undefined;
+      // const endOfDay = filter.tanggal
+      //   ? new Date(new Date(filter.tanggal).setHours(24, 0, 0, 0))
+      //   : undefined;
       where = {
         ...where,
-        createdAt: {
-          gte: startOfDay,
-          lte: endOfDay,
-        },
+        // createdAt: {
+        //   gte: startOfDay,
+        //   lte: endOfDay,
+        // },
+        tanggal:filter.tanggal
       };
+    }else{
+      where = {
+        ...where,
+        tanggal:today
+      }
     }
 
     const skip: number = ((filter.page ?? 1) - 1) * (filter.limit ?? 10);
@@ -78,7 +85,7 @@ export class AbsenService {
   async generateDataAbsen() {
     const userAbsen = await this.absenClient.pers_person.findMany();
     const userIds: string[] = userAbsen.map((x) => x.pin ?? '');
-    console.log('userids : ', userIds);
+    const today = DateTime.now().toFormat("yyyy-MM-dd");
     const karyawan = await this.prismaService.user.findMany({
       where: {
         nip: {
@@ -90,17 +97,14 @@ export class AbsenService {
     for (let item of karyawan) {
       const cek = await this.prismaService.attendance.findFirst({
         where: {
-          tanggal: {
-            gte: new Date(new Date().setHours(0, 0, 0, 0)), // Start of the day
-            lt: new Date(new Date().setHours(24, 0, 0, 0)), // Start of the next day
-          },
+          tanggal: today,
         },
       });
       if(!cek){
         await this.prismaService.attendance.create({
           data:{
             name:item.fullName??'',
-            tanggal: new Date(),
+            tanggal: today,
             userId: item.id
           }
         })
@@ -115,26 +119,37 @@ export class AbsenService {
   }
 
   async syncDataAbsen() {
+    const today = DateTime.now().toFormat("yyyy-MM-dd")
     const transaction = await this.absenClient.acc_transaction.findMany({
       where: {
-        pin: {
-          not: '',
-        },
+        // pin: {
+        //   not: '',
+        // },
+        pin:"123",
         event_time: {
-          gte: new Date(new Date().setHours(0, 0, 0, 0)), // Start of the day
-          lt: new Date(new Date().setHours(24, 0, 0, 0)), // Start of the next day
+          gte: new Date(`${today}T00:00:00.000Z`), // Start of the day
+          lt: new Date(`${today}T23:59:59.999Z`), // Start of the next day
         },
       },
+      orderBy:{
+        event_time:'desc',
+        // pin:'desc'
+      }
     });
-
+   
+   
     const groupedData = transaction.reduce((acc, transaction) => {
       const { pin, event_time } = transaction;
+
       if (!acc[pin!]) {
         acc[pin!] = { masuk: null, pulang: null };
       }
+
+      // const dateTime = DateTime.fromJSDate(new Date(event_time!),{ zone: "Asia/Jakarta" });
+      const dateTime = new Date(event_time!);
+      console.log("Datetime : ", dateTime)
     
-      const hour = new Date(event_time!).getHours();
-    
+      const hour = event_time!.getUTCHours()    
       if (hour < 12) {
         // Absen Masuk: Ambil waktu terendah
         acc[pin!].masuk = acc[pin!].masuk
@@ -149,6 +164,8 @@ export class AbsenService {
     
       return acc;
     }, {});
+
+    console.log(groupedData)
     if(groupedData){
       const pinIndex = Object.keys(groupedData)
       for(let i of pinIndex){
@@ -159,10 +176,7 @@ export class AbsenService {
         if(user){
           const rows = await this.prismaService.attendance.findFirst({
             where:{
-              createdAt: {
-                gte: new Date(new Date().setHours(0, 0, 0, 0)), // Start of the day
-                lt: new Date(new Date().setHours(23, 59, 59, 999)), // Start of the next day
-              },
+              tanggal:today,
               userId:user.id
             }
           })
@@ -172,9 +186,9 @@ export class AbsenService {
                 id:rows.id
               },
               data:{
-                jamMasuk: jamMasuk?new Date(`1970-01-01T${jamMasuk}:00.000Z`):null,
-                jamKeluar: jamPulang?new Date(`1970-01-01T${jamPulang}:00.000Z`):null,
-                tanggal: new Date(),
+                jamMasuk: jamMasuk,
+                jamKeluar: jamPulang,
+                tanggal :today,
                 timestampMasuk: jamAbsen.masuk,
                 timestampKeluar: jamAbsen.pulang,
                 status: jamMasuk?1:0
@@ -185,9 +199,9 @@ export class AbsenService {
               data:{
                 userId: user.id,
                 name: user.fullName??'',
-                jamMasuk: jamMasuk?new Date(`1970-01-01T${jamMasuk}:00.000Z`):null,
-                jamKeluar: jamPulang?new Date(`1970-01-01T${jamPulang}:00.000Z`):null,
-                tanggal: new Date(),
+                jamMasuk: jamMasuk,
+                jamKeluar: jamPulang,
+                tanggal: today,
                 timestampMasuk: jamAbsen.masuk,
                 timestampKeluar: jamAbsen.pulang,
                 status: jamMasuk?1:0
@@ -205,13 +219,13 @@ export class AbsenService {
   }
 
   formatToHHmm = (utcDate) => {
-    const date = new Date(utcDate);
+    const dt = utcDate.toString()
+    const dateTime = DateTime.fromJSDate(new Date(utcDate!));
     // Tambahkan 7 jam untuk GMT+7
-    // date.setHours(date.getHours() + 7);
   
     // Format ke HH:mm
-    const hours = date.getHours().toString().padStart(2, "0");
-    const minutes = date.getMinutes().toString().padStart(2, "0");
+    const hours = dateTime.toUTC().hour.toString().padStart(2, "0");
+    const minutes = dateTime.toUTC().minute.toString().padStart(2, "0");
     return `${hours}:${minutes}`;
   };
 }

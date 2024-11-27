@@ -73,8 +73,8 @@ export class SensorService {
       }
       return true;
     } catch (e) {
-      console.log('Failed to save log data');
-      throw new Error(e);
+      console.log('Failed to save log data : ', e.message);
+      // throw new Error(e);
     }
   }
 

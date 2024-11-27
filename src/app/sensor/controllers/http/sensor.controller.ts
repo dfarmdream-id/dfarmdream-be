@@ -65,7 +65,7 @@ import { ChartFilterDTO } from '../../dtos/chart-filter.dto';
             console.log("Failed to parse json data")
           }
           if(msgJson){
-            let amonia:number = msgJson.ammonia
+            let amonia:number = parseFloat(msgJson.ammonia)
             if(amonia && amonia>100){
               // console.log("here ",amonia)
               amonia = 0

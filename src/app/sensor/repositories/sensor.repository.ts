@@ -20,13 +20,35 @@ export class SensorRepository {
   constructor(private readonly prismaService: PrismaService) {}
 
   public paginate(paginateDto: PaginationQueryDto, filter?: Filter) {
-    const { limit = 10, page = 1 } = paginateDto;
-
+    const { q,limit = 10, page = 1 } = paginateDto;
+    let where ={}
+    if(q && q!=''){
+      let orFilter:any = []
+      
+      if(q && !isNaN(parseFloat(q))){
+        orFilter = [
+          ...orFilter,
+          { tempThreshold: { equals: parseFloat(q) }},
+          { humidityThreshold: { equals: parseFloat(q) }},
+          { amoniaThreshold: { equals: parseFloat(q) }}
+        ]
+      }
+      where = {
+        ...where,
+        OR:[
+          { code: { contains: q, mode: 'insensitive' } },
+          { cage:{
+            name: { contains: q, mode: 'insensitive' } 
+          }},
+          ...orFilter
+        ]
+      }
+    }
     return from(this.prismaService.$transaction([
       this.prismaService.iotSensor.findMany({
         skip: (+page - 1) * +limit,
         take: +limit,
-        where: filter?.where,
+        where: where,
         orderBy: filter?.orderBy,
         cursor: filter?.cursor,
         include: {

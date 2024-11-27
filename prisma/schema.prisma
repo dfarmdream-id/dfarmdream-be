@@ -506,9 +506,9 @@ model Attendance {
   id              String    @id @unique @default(uuid())
   userId          String
   name            String
-  tanggal         DateTime? @db.Date
-  jamMasuk        DateTime? @db.Time()
-  jamKeluar       DateTime? @db.Time()
+  tanggal         String?
+  jamMasuk        String?
+  jamKeluar       String?
   timestampMasuk  DateTime? @db.Timestamp()
   timestampKeluar DateTime? @db.Timestamp()
   user            User?     @relation(fields: [userId], references: [id])
