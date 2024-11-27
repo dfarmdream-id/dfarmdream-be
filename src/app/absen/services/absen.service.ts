@@ -2,7 +2,6 @@ import { HttpStatus, Injectable } from '@nestjs/common';
 import { PrismaAbsenService } from '@src/platform/database/services/prisma-absen.service';
 import { PrismaService } from '@src/platform/database/services/prisma.service';
 import { FilterAbsenDTO } from '../dtos/filter-absen.dto';
-import { gte, lte } from 'lodash';
 
 @Injectable()
 export class AbsenService {
@@ -177,7 +176,8 @@ export class AbsenService {
                 jamKeluar: jamPulang?new Date(`1970-01-01T${jamPulang}:00.000Z`):null,
                 tanggal: new Date(),
                 timestampMasuk: jamAbsen.masuk,
-                timestampKeluar: jamAbsen.pulang
+                timestampKeluar: jamAbsen.pulang,
+                status: jamMasuk?1:0
               }
             })
           }else{
@@ -189,20 +189,14 @@ export class AbsenService {
                 jamKeluar: jamPulang?new Date(`1970-01-01T${jamPulang}:00.000Z`):null,
                 tanggal: new Date(),
                 timestampMasuk: jamAbsen.masuk,
-                timestampKeluar: jamAbsen.pulang
+                timestampKeluar: jamAbsen.pulang,
+                status: jamMasuk?1:0
               }
             })
           }
         }
       }
     }
-    // for (let item of transaction) {
-    //   const person = await this.absenClient.pers_person.findFirst({
-    //     where: {
-    //       pin: item.pin ?? '',
-    //     },
-    //   });
-    // }
     return {
       status: HttpStatus.OK,
       message: 'Success get absensi data',
