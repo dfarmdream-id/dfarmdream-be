@@ -321,7 +321,6 @@ model DocumentInvestment {
   id         String    @id @unique @default(uuid())
   name       String
   file       File?     @relation(fields: [fileId], references: [id])
-  url        String?
   fileId     String?
   cageId     String?
   cage       Cage?     @relation(fields: [cageId], references: [id])
