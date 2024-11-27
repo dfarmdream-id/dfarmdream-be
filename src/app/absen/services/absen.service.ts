@@ -147,7 +147,6 @@ export class AbsenService {
 
       // const dateTime = DateTime.fromJSDate(new Date(event_time!),{ zone: "Asia/Jakarta" });
       const dateTime = new Date(event_time!);
-      console.log("Datetime : ", dateTime)
     
       const hour = event_time!.getUTCHours()    
       if (hour < 12) {

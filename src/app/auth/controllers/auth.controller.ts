@@ -14,11 +14,12 @@ import { ResponseEntity } from '@src/common/entities/response.entity';
 import { AuthGuard } from '../guards';
 import { User } from '../decorators';
 import { SignUpDto } from '../dtos';
-import { catchError, from, map } from 'rxjs';
+import { catchError, from, map, of, switchMap } from 'rxjs';
 import { pick } from 'lodash';
 import { UpdateProfileDTO } from '../dtos/update-profile.dto';
 import { UpdatePasswordDTO } from '../dtos/update-password.dto';
 import { PrismaService } from '@src/platform/database/services/prisma.service';
+import { FilesService } from '@src/app/files/services';
 
 @ApiTags('Auth')
 @Controller({
@@ -29,6 +30,7 @@ export class AuthController {
   constructor(
     private readonly authService: AuthService,
     private readonly prisma: PrismaService,
+    private readonly fileService:FilesService
   ) {}
 
   @Post('sign-in')
@@ -121,12 +123,29 @@ export class AuthController {
 
     return this.authService.profile(user).pipe(
       map(
-        (data) =>
-          new ResponseEntity({
-            message: 'success',
-            data: data,
-          }),
-      ),
+        (data) =>{
+          if(!data.photoProfile){
+            return new ResponseEntity({
+              message: 'success',
+              data: data,
+            })
+          }
+          return data
+        }),
+        switchMap((data)=>{
+          if(data instanceof ResponseEntity){
+            return of(data)
+          }
+          return this.fileService.detail(data.photoProfile!).pipe(
+            map((fileData)=>{
+              data.photoProfile = fileData?.url ?? null
+              return new ResponseEntity({
+                message:"success",
+                data:data
+              })
+            })
+          )
+        }),
       catchError((error) => {
         throw new HttpException(error.message, HttpStatus.UNAUTHORIZED);
       }),

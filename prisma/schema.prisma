@@ -253,7 +253,7 @@ model Cage {
   warehouseTransaction WarehouseTransaction[]
   IotSensor            IotSensor[]
   CctvCamera           CctvCamera[]
-  DocumentInvestment   DocumentInvestment[]
+  documents            DocumentInvestment[]
 }
 
 model CageRack {
@@ -321,17 +321,18 @@ model DocumentInvestment {
   id         String    @id @unique @default(uuid())
   name       String
   file       File?     @relation(fields: [fileId], references: [id])
+  url        String?
+  fileId     String?
+  cageId     String?
+  cage       Cage?     @relation(fields: [cageId], references: [id])
   investor   Investor? @relation(fields: [investorId], references: [id])
   investorId String?
   site       Site?     @relation(fields: [siteId], references: [id])
   siteId     String?
-  cage       Cage?     @relation(fields: [cageId], references: [id])
-  cageId     String?
   amount     Int?      @default(0)
   deletedAt  DateTime?
   createdAt  DateTime  @default(now())
   updatedAt  DateTime  @updatedAt
-  fileId     String?
 }
 
 enum CashFlowType {

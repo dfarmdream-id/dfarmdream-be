@@ -9,6 +9,7 @@ import { PrismaService } from '@src/platform/database/services/prisma.service';
 import { UpdatePasswordDTO } from '../dtos/update-password.dto';
 import { UpdateProfileDTO } from '../dtos/update-profile.dto';
 import { hashSync, verifySync } from '@node-rs/bcrypt';
+import { Prisma } from '@prisma/client';
 
 @Injectable()
 export class AuthService {
@@ -115,11 +116,11 @@ export class AuthService {
 
   async updateProfile(
     user: { as: 'user' | 'investor'; id: string } & { siteId: string },
-    payload: UpdateProfileDTO,
+    body: UpdateProfileDTO,
   ) {
     const cekUsername = await this.prisma.user.findFirst({
       where: {
-        username: payload.username,
+        username: body.username,
         NOT: {
           id: user.id,
         },
@@ -129,17 +130,27 @@ export class AuthService {
       throw new HttpException('Username already exist', HttpStatus.BAD_REQUEST);
     }
     try {
+      const payload: Prisma.UserUpdateInput = {
+        fullName: body.fullName,
+        address: body.address,
+        email: body.email,
+        phone: body.phone,
+      }
+
+      if(body.imageId){
+        Object.assign(payload,{
+          photoProfile: body?.imageId,
+        })
+      }
       await this.prisma.user.update({
         where: {
           id: user.id,
         },
         data: {
-          fullName: payload.fullName,
-          address: payload.address,
-          email: payload.email,
-          phone: payload.phone,
+          ...payload
         },
       });
+
       return {
         status: HttpStatus.OK,
         message: 'Success update profile',
