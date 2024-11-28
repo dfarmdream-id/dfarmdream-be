@@ -1,4 +1,4 @@
-import { HttpStatus, Injectable } from '@nestjs/common';
+import { HttpException, HttpStatus, Injectable } from '@nestjs/common';
 import { SensorRepository } from '../repositories';
 import { PaginationQueryDto } from '@src/common/dtos/pagination-query.dto';
 import { from } from 'rxjs';
@@ -6,7 +6,10 @@ import { CreateSensorDTO, UpdateSensorDTO } from '../dtos';
 import { PrismaService } from '@src/platform/database/services/prisma.service';
 import { SensorLogDTO } from '../dtos/sensor-log.dto';
 import { Prisma } from '@prisma/client';
-import { ChartFilterDTO } from '../dtos/chart-filter.dto';
+import {
+  ChartFilterDTO,
+  PaginatedChartFilterDTO,
+} from '../dtos/chart-filter.dto';
 
 @Injectable()
 export class SensorService {
@@ -47,8 +50,8 @@ export class SensorService {
         // console.log(JSON.stringify(payload))
         await this.prismaService.sensorLog.create({
           data: {
-            airQuality: payload.airQuality ?? 0,
-            amonia: payload.amonia ?? 0,
+            airQuality: payload.airQuality ? payload.airQuality : 0,
+            amonia: payload.amonia ? payload.amonia : 0,
             ldrValue: payload.ldrValue,
             humidity: payload.humidity,
             temperature: payload.temperature,
@@ -70,7 +73,90 @@ export class SensorService {
             lampStatus: payload.ldrValue ?? 0,
           },
         });
+
+        if (
+          payload.humidity >= sensor.humidityThreshold ||
+          payload.temperature >= sensor.tempThreshold ||
+          payload.amonia >= (sensor.amoniaThreshold ?? 30)
+        ) {
+          const lastStatus = await this.prismaService.relayLog.findFirst({
+            where: { sensorId: sensor.id, relayNumber: 2 },
+            orderBy: { createdAt: 'desc' },
+          });
+
+          if (!lastStatus || lastStatus.status === 0) {
+            await this.prismaService.relayLog.create({
+              data: {
+                sensorId: sensor.id,
+                relayNumber: 2,
+                humidity: payload.humidity,
+                temperature: payload.temperature,
+                amonia: payload.amonia,
+                status: 1,
+                relayDesc: `Kipas Menyala Kondisi Sensor Amonia : ${payload.amonia?payload.amonia:0} PPM, Humidity: ${payload.humidity}, Temperature: ${payload.temperature}`,
+              },
+            });
+          }
+        } else {
+          const lastStatus = await this.prismaService.relayLog.findFirst({
+            where: { sensorId: sensor.id, relayNumber: 2 },
+            orderBy: { createdAt: 'desc' },
+          });
+          if (!lastStatus || lastStatus.status === 1) {
+            await this.prismaService.relayLog.create({
+              data: {
+                sensorId: sensor.id,
+                relayNumber: 2,
+                humidity: payload.humidity,
+                temperature: payload.temperature,
+                amonia: payload.amonia,
+                status: 0,
+                relayDesc: `Kipas Mati Kondisi Sensor Amonia : ${payload.amonia?payload.amonia:0} PPM, Humidity: ${payload.humidity}, Temperature: ${payload.temperature}`,
+              },
+            });
+          }
+        }
+
+        // Save status lampu mati
+        if (payload.ldrValue > 0) {
+          const lastStatus = await this.prismaService.relayLog.findFirst({
+            where: { sensorId: sensor.id, relayNumber: 1 },
+            orderBy: { createdAt: 'desc' },
+          });
+          if (!lastStatus || lastStatus.status === 0) {
+            await this.prismaService.relayLog.create({
+              data: {
+                sensorId: sensor.id,
+                relayNumber: 1,
+                humidity: payload.humidity,
+                temperature: payload.temperature,
+                amonia: payload.amonia,
+                status: 1,
+                relayDesc: `Lampu Menyala`,
+              },
+            });
+          }
+        } else {
+          const lastStatus = await this.prismaService.relayLog.findFirst({
+            where: { sensorId: sensor.id, relayNumber: 1 },
+            orderBy: { createdAt: 'desc' },
+          });
+          if (!lastStatus || lastStatus.status === 1) {
+            await this.prismaService.relayLog.create({
+              data: {
+                sensorId: sensor.id,
+                relayNumber: 1,
+                humidity: payload.humidity,
+                temperature: payload.temperature,
+                amonia: payload.amonia,
+                status: 0,
+                relayDesc: `Lampu Mati`,
+              },
+            });
+          }
+        }
       }
+
       return true;
     } catch (e) {
       console.log('Failed to save log data : ', e.message);
@@ -136,7 +222,7 @@ export class SensorService {
       status: HttpStatus.OK,
       message: 'Success get data',
       data: {
-        chart: formattedData,
+        chart: sensors && sensors.length > 0 ? formattedData : [],
         sensors: sensors,
       },
     };
@@ -192,12 +278,12 @@ export class SensorService {
         y: Number(item.average_amonia.toFixed(2)),
       };
     });
-    const sensors = await this.prismaService.iotSensor.findMany({where});
+    const sensors = await this.prismaService.iotSensor.findMany({ where });
     return {
       status: HttpStatus.OK,
       message: 'Success get data',
       data: {
-        chart: formattedData,
+        chart: sensors && sensors.length > 0 ? formattedData : [],
         sensors: sensors,
       },
     };
@@ -254,15 +340,95 @@ export class SensorService {
         y: Number(item.average_humidity.toFixed(2)),
       };
     });
-    const sensors = await this.prismaService.iotSensor.findMany({where});
+    const sensors = await this.prismaService.iotSensor.findMany({ where });
 
     return {
       status: HttpStatus.OK,
       message: 'Success get data',
       data: {
-        chart: formattedData,
+        chart: sensors && sensors.length > 0 ? formattedData : [],
         sensors: sensors,
       },
     };
+  }
+
+  async getRelayLog(filter: PaginatedChartFilterDTO) {
+    // let filterTanggal = filter.tanggal ? new Date(filter.tanggal) : new Date();
+    // const startOfDay = filterTanggal.setHours(0, 0, 0, 0);
+    let cageIds: any = [];
+    let where = {};
+
+    if (filter.siteId && filter.siteId != '') {
+      const cages = await this.prismaService.cage.findMany({
+        where: {
+          siteId: filter.siteId,
+        },
+      });
+      cageIds = cages.map((x) => x.id);
+      where = {
+        ...where,
+        sensor: {
+          cageId: {
+            in: cageIds,
+          },
+        },
+      };
+    }
+
+    if (filter.cageId && filter.cageId != '') {
+      cageIds = [filter.cageId];
+      where = {
+        ...where,
+        sensor: {
+          cageId: filter.cageId,
+        },
+      };
+    }
+
+    try {
+      const skip: number = ((filter.page ?? 1) - 1) * (filter.limit ?? 10);
+      const take: number = filter.limit ?? 10;
+
+      const models = await this.prismaService.relayLog.findMany({
+        where,
+        include: {
+          sensor: {
+            include: {
+              cage: {
+                include: {
+                  site: true,
+                },
+              },
+            },
+          },
+        },
+        skip: Number(skip),
+        take: Number(take),
+      });
+
+      const totalRecords = await this.prismaService.relayLog.count({
+        where: where,
+      });
+
+      const totalPages = Math.ceil(totalRecords / (filter.limit ?? 10));
+      return {
+        status: HttpStatus.OK,
+        message: 'Success get relay log data',
+        data: {
+          data: models,
+          meta: {
+            totalRecords: totalRecords,
+            currentPage: filter.page,
+            totalPages: totalPages,
+            pageSize: filter.limit,
+          },
+        },
+      };
+    } catch (e) {
+      throw new HttpException(
+        'Failed to get relay status',
+        HttpStatus.BAD_REQUEST,
+      );
+    }
   }
 }

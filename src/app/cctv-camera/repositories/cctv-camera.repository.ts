@@ -20,11 +20,26 @@ export class CctvCameraRepository {
   constructor(private readonly prismaService: PrismaService) {}
 
   public paginate(paginateDto: PaginationQueryDto, filter?: Filter) {
-    const { limit = 10, page = 1 } = paginateDto;
+    const { limit = 10, page = 1, q } = paginateDto;
 
-    let where = {
+    let where:any = {
       deletedAt:null,
       ...filter?.where
+    }
+
+    if(q && q!=''){
+      where = {
+        ...where,
+        OR: [
+          { name: { contains: q, mode: 'insensitive' } },
+          { description: { contains: q, mode: 'insensitive' } },
+          {
+            cage: {
+              name: { contains: q, mode: 'insensitive' },
+            },
+          },
+        ],
+      }
     }
     return from(
       this.prismaService.$transaction([

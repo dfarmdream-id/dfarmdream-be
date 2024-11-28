@@ -56,7 +56,15 @@ export class AbsenService {
     const attendance = await this.prismaService.attendance.findMany({
       where,
       include: {
-        user: true,
+        user: {
+          include:{
+            sites:{
+              include:{
+                site:true
+              }
+            }
+          }
+        }
       },
       skip: Number(skip),
       take: Number(take),
