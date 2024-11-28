@@ -114,7 +114,6 @@ export class WarehouseTransactionsPublicHttpController {
   constructor(
     private readonly warehousetransactionService: WarehouseTransactionsService,
   ) {}
-  @UseGuards(AuthGuard)
   @Get(':id')
   public detail(@Param('id') id: string): Observable<ResponseEntity> {
     return this.warehousetransactionService.detail(id).pipe(
