@@ -20,7 +20,7 @@ export class DashboardsService {
     return of({}).pipe(
       switchMap(async () => {
         const user = await this.userRepository.count({
-          where: { deletedAt: null, sites: { some: { id: siteId } } },
+          where: { deletedAt: null, sites: { some: { siteId: siteId } } },
         });
         const cage = await firstValueFrom(
           this.chickenCageRepository.count({

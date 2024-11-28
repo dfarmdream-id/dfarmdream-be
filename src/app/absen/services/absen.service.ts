@@ -125,7 +125,6 @@ export class AbsenService {
         pin: {
           not: '',
         },
-        // pin:"123",
         event_time: {
           gte: new Date(`${today}T00:00:00.000Z`), // Start of the day
           lt: new Date(`${today}T23:59:59.999Z`), // Start of the next day
@@ -133,7 +132,6 @@ export class AbsenService {
       },
       orderBy:{
         event_time:'desc',
-        // pin:'desc'
       }
     });
    

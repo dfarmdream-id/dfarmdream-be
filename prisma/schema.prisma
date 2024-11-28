@@ -85,18 +85,18 @@ model Blog {
 }
 
 model File {
-  id        String    @id @unique @default(uuid())
-  name      String
-  size      Int
-  url       String?
-  public    Boolean   @default(false)
-  deletedAt DateTime?
-  createdAt DateTime  @default(now())
-  updatedAt DateTime  @updatedAt
-  mime      String
-  provider  String    @default("S3")
-  Blog      Blog[]
-  Dokumen DocumentInvestment[]
+  id                 String               @id @unique @default(uuid())
+  name               String
+  size               Int
+  url                String?
+  public             Boolean              @default(false)
+  deletedAt          DateTime?
+  createdAt          DateTime             @default(now())
+  updatedAt          DateTime             @updatedAt
+  mime               String
+  provider           String               @default("S3")
+  Blog               Blog[]
+  DocumentInvestment DocumentInvestment[]
 }
 
 model Faq {
@@ -175,6 +175,7 @@ model Site {
   transaction          Transaction[]
   WarehouseTransaction WarehouseTransaction[]
   Price                Price[]
+  DocumentInvestment   DocumentInvestment[]
 }
 
 model Position {
@@ -249,10 +250,10 @@ model Cage {
   racks                CageRack[]
   cashFlow             CashFlow[]
   transaction          Transaction[]
-  dokumen              DocumentInvestment[]
   warehouseTransaction WarehouseTransaction[]
   IotSensor            IotSensor[]
   CctvCamera           CctvCamera[]
+  documents            DocumentInvestment[]
 }
 
 model CageRack {
@@ -319,13 +320,15 @@ model InvestorRole {
 model DocumentInvestment {
   id         String    @id @unique @default(uuid())
   name       String
-  url        String?
-  fileId String?
-  cageId String?
-  cage Cage? @relation(fields: [cageId], references: [id])
-  file File? @relation(fields: [fileId], references: [id])
+  file       File?     @relation(fields: [fileId], references: [id])
+  fileId     String?
+  cageId     String?
+  cage       Cage?     @relation(fields: [cageId], references: [id])
   investor   Investor? @relation(fields: [investorId], references: [id])
   investorId String?
+  site       Site?     @relation(fields: [siteId], references: [id])
+  siteId     String?
+  amount     Int?      @default(0)
   deletedAt  DateTime?
   createdAt  DateTime  @default(now())
   updatedAt  DateTime  @updatedAt
@@ -519,8 +522,8 @@ model Attendance {
   timestampKeluar DateTime? @db.Timestamp()
   user            User?     @relation(fields: [userId], references: [id])
   status          Int?      @default(0)
-  createdAt   DateTime  @default(now())
-  updatedAt   DateTime  @updatedAt @default(now())
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @default(now()) @updatedAt
 }
 
 // COA

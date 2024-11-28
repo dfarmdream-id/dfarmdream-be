@@ -6,6 +6,7 @@ import { from, map } from 'rxjs';
 import { hashSync, verifySync } from '@node-rs/bcrypt';
 import { SignInDto } from '@src/app/auth/dtos';
 import { JwtService } from '@nestjs/jwt';
+import { Prisma } from '@prisma/client';
 
 @Injectable()
 export class InvestorsService {
@@ -19,6 +20,26 @@ export class InvestorsService {
       this.investorRepository.paginate(paginateDto, {
         where: {
           deletedAt: null,
+          OR: [
+            {
+              fullName: {
+                contains: paginateDto.q,
+                mode: Prisma.QueryMode.insensitive,
+              },
+            },
+            {
+              identityId: {
+                contains: paginateDto.q,
+                mode: Prisma.QueryMode.insensitive,
+              },
+            },
+            {
+              username: {
+                contains: paginateDto.q,
+                mode: Prisma.QueryMode.insensitive,
+              },
+            },
+          ],
         },
       }),
     );
