@@ -1,7 +1,31 @@
 import { ApiProduces, ApiProperty, ApiPropertyOptional } from "@nestjs/swagger";
-import { IsOptional } from "class-validator";
+import { IsNumberString, IsOptional } from "class-validator";
 
 export class ChartFilterDTO{
+    @ApiPropertyOptional()
+    @IsOptional()
+    tanggal?:string
+
+    @ApiPropertyOptional()
+    @IsOptional()
+    siteId?:string
+
+    @ApiPropertyOptional()
+    @IsOptional()
+    cageId?:string
+}
+
+export class PaginatedChartFilterDTO{
+    @ApiPropertyOptional()
+    @IsNumberString()
+    @IsOptional()
+    page: number;
+  
+    @ApiPropertyOptional()
+    @IsNumberString()
+    @IsOptional()
+    limit: number;
+
     @ApiPropertyOptional()
     @IsOptional()
     tanggal?:string

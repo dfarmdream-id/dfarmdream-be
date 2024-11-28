@@ -21,7 +21,7 @@ import {
   import { CreateSensorDTO, UpdateSensorDTO } from '../../dtos';
   import { MqttClient, connect } from 'mqtt';
 import { SensorLogDTO } from '../../dtos/sensor-log.dto';
-import { ChartFilterDTO } from '../../dtos/chart-filter.dto';
+import { ChartFilterDTO, PaginatedChartFilterDTO } from '../../dtos/chart-filter.dto';
 
   @ApiSecurity('JWT')
   @ApiTags('IOT Sensors')
@@ -124,6 +124,11 @@ import { ChartFilterDTO } from '../../dtos/chart-filter.dto';
     @Get('/humidity')
     getHumidityData(@Query() filter:ChartFilterDTO){
       return this.sensorService.getHumidityDaily(filter);
+    }
+
+    @Get('/relay-log')
+    getRelayLog(@Query() filter:PaginatedChartFilterDTO){
+      return this.sensorService.getRelayLog(filter)
     }
   
     @UseGuards(AuthGuard)

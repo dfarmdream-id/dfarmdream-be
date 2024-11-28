@@ -9,7 +9,7 @@ import { PrismaService } from 'src/platform/database/services/prisma.service';
 export type Filter = {
   where?: Prisma.IotSensorWhereInput;
   orderBy?: Prisma.IotSensorOrderByWithRelationInput;
-  cursor?:Prisma.IotSensorWhereUniqueInput;
+  cursor?: Prisma.IotSensorWhereUniqueInput;
   take?: number;
   skip?: number;
   include?: Prisma.IotSensorInclude;
@@ -20,54 +20,65 @@ export class SensorRepository {
   constructor(private readonly prismaService: PrismaService) {}
 
   public paginate(paginateDto: PaginationQueryDto, filter?: Filter) {
-    const { q,limit = 10, page = 1 } = paginateDto;
-    let where ={}
-    if(q && q!=''){
-      let orFilter:any = []
-      
-      if(q && !isNaN(parseFloat(q))){
+    const { q, limit = 10, page = 1 } = paginateDto;
+    let where = {};
+    if (q && q != '') {
+      let orFilter: any = [];
+
+      if (q && !isNaN(parseFloat(q))) {
         orFilter = [
           ...orFilter,
-          { tempThreshold: { equals: parseFloat(q) }},
-          { humidityThreshold: { equals: parseFloat(q) }},
-          { amoniaThreshold: { equals: parseFloat(q) }}
-        ]
+          { tempThreshold: { equals: parseFloat(q) } },
+          { humidityThreshold: { equals: parseFloat(q) } },
+          { amoniaThreshold: { equals: parseFloat(q) } },
+        ];
       }
       where = {
         ...where,
-        OR:[
+        OR: [
           { code: { contains: q, mode: 'insensitive' } },
-          { cage:{
-            name: { contains: q, mode: 'insensitive' } 
-          }},
-          ...orFilter
-        ]
-      }
+          {
+            cage: {
+              name: { contains: q, mode: 'insensitive' },
+            },
+          },
+          ...orFilter,
+        ],
+      };
     }
-    return from(this.prismaService.$transaction([
-      this.prismaService.iotSensor.findMany({
-        skip: (+page - 1) * +limit,
-        take: +limit,
-        where: where,
-        orderBy: filter?.orderBy,
-        cursor: filter?.cursor,
-        include: {
-          cage:true
-        },
-      }),
-      this.prismaService.iotSensor.count({
-        where: {
-          ...filter?.where,
-          deletedAt:null
-        },
-      }),
-    ])).pipe(
-      map(([data, count]) => new PaginatedEntity(data, {
-        limit,
-        page,
-        totalData: count,
-      })),
-           catchError((error) => {
+    return from(
+      this.prismaService.$transaction([
+        this.prismaService.iotSensor.findMany({
+          skip: (+page - 1) * +limit,
+          take: +limit,
+          where: where,
+          orderBy: filter?.orderBy,
+          cursor: filter?.cursor,
+          include: {
+            cage: {
+              include: {
+                site: true,
+              },
+            },
+          },
+        }),
+        this.prismaService.iotSensor.count({
+          where: {
+            ...filter?.where,
+            deletedAt: null,
+          },
+        }),
+      ]),
+    ).pipe(
+      map(
+        ([data, count]) =>
+          new PaginatedEntity(data, {
+            limit,
+            page,
+            totalData: count,
+          }),
+      ),
+      catchError((error) => {
         throw error;
       }),
     );
@@ -75,7 +86,7 @@ export class SensorRepository {
 
   public create(data: Prisma.IotSensorCreateInput) {
     return from(this.prismaService.iotSensor.create({ data })).pipe(
-           catchError((error) => {
+      catchError((error) => {
         throw error;
       }),
     );
@@ -86,19 +97,19 @@ export class SensorRepository {
     data: Prisma.IotSensorUpdateInput,
   ) {
     return from(this.prismaService.iotSensor.update({ where, data })).pipe(
-           catchError((error) => {
+      catchError((error) => {
         throw error;
       }),
     );
   }
 
-  public delete(
-    where: Prisma.IotSensorWhereUniqueInput,
-  ) {
-    return from(this.prismaService.iotSensor.delete({
-      where
-    })).pipe(
-           catchError((error) => {
+  public delete(where: Prisma.IotSensorWhereUniqueInput) {
+    return from(
+      this.prismaService.iotSensor.delete({
+        where,
+      }),
+    ).pipe(
+      catchError((error) => {
         throw error;
       }),
     );
@@ -108,8 +119,10 @@ export class SensorRepository {
     where: Prisma.IotSensorWhereUniqueInput,
     select?: Prisma.IotSensorSelect,
   ) {
-    return from(this.prismaService.iotSensor.findUnique({ where, select })).pipe(
-           catchError((error) => {
+    return from(
+      this.prismaService.iotSensor.findUnique({ where, select }),
+    ).pipe(
+      catchError((error) => {
         throw error;
       }),
     );
@@ -119,8 +132,10 @@ export class SensorRepository {
     where: Prisma.IotSensorWhereUniqueInput,
     select?: Prisma.IotSensorSelect,
   ) {
-    return from(this.prismaService.iotSensor.findUnique({ where, select })).pipe(
-           catchError((error) => {
+    return from(
+      this.prismaService.iotSensor.findUnique({ where, select }),
+    ).pipe(
+      catchError((error) => {
         throw error;
       }),
     );
@@ -128,7 +143,7 @@ export class SensorRepository {
 
   public find(filter: Filter) {
     return from(this.prismaService.iotSensor.findMany(filter)).pipe(
-           catchError((error) => {
+      catchError((error) => {
         throw error;
       }),
     );
@@ -136,7 +151,7 @@ export class SensorRepository {
 
   public count(filter: Omit<Filter, 'include'>) {
     return from(this.prismaService.iotSensor.count(filter)).pipe(
-           catchError((error) => {
+      catchError((error) => {
         throw error;
       }),
     );
@@ -144,11 +159,10 @@ export class SensorRepository {
 
   public any(filter: Omit<Filter, 'include'>) {
     return this.count(filter).pipe(
-      map(count => count > 0),
-           catchError((error) => {
+      map((count) => count > 0),
+      catchError((error) => {
         throw error;
       }),
     );
   }
 }
-

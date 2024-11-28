@@ -480,6 +480,7 @@ model IotSensor {
   currentAirQuality  Float?
   lampStatus         Float?
   logs               SensorLog[]
+  relayLog           RelayLog[]
   deletedAt          DateTime?
   createdAt          DateTime    @default(now())
   updatedAt          DateTime    @updatedAt
@@ -497,6 +498,21 @@ model SensorLog {
   epoch       BigInt
   createdAt   DateTime   @default(now())
   updatedAt   DateTime   @updatedAt
+}
+
+model RelayLog {
+  id          String    @id @unique @default(uuid())
+  sensorId    String?
+  sensor      IotSensor? @relation(fields: [sensorId], references: [id])
+  relayNumber Int
+  relayDesc   String?
+  status      Int
+  humidity    Float?
+  temperature Float?
+  amonia      Float?
+  ldrValue    Int?
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
 }
 
 model CctvCamera {
