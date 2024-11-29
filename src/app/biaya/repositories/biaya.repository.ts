@@ -63,6 +63,9 @@ export class BiayaRepository {
           // include: filter?.include,
           include: {
             cage: true,
+            kategoriBiaya:true,
+            site: true,
+            user:true
           },
         }),
         this.prismaService.biaya.count({

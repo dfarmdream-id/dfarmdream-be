@@ -16,7 +16,6 @@ export class BiayaService {
     return from(this.biayaRepository.firstOrThrow({ id }));
   }
 
-
   update(id: string, UpdateBiayaDTO: UpdateBiayaDTO) {
     return from(this.biayaRepository.update({id}, UpdateBiayaDTO))
   }
