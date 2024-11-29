@@ -474,6 +474,7 @@ model WarehouseTransaction {
 
 model IotSensor {
   id                 String      @id @unique @default(uuid())
+  name               String? @default("")
   code               String
   cage               Cage?       @relation(fields: [cageId], references: [id])
   cageId             String?
@@ -601,6 +602,7 @@ model Biaya {
   userId        String
   user User @relation(fields: [userId], references: [id])
   keterangan    String?
+  biaya Int
   status        Int
   deletedAt     DateTime?
   createdAt     DateTime      @default(now())

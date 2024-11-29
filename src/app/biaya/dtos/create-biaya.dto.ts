@@ -11,7 +11,7 @@ export class CreateBiayaDTO {
   tanggal: string;
 
   @ApiProperty()
-  @IsString()
+  @IsNotEmpty()
   biaya:number;
 
   @ApiProperty()
