@@ -9,7 +9,13 @@ export class CctvCameraService {
   constructor(private readonly cameraRepository: CctvCameraRepository) {}
 
   paginate(paginateDto: PaginationQueryDto) {
-    return from(this.cameraRepository.paginate(paginateDto));
+    return from(
+      this.cameraRepository.paginate(paginateDto, {
+        orderBy: {
+          createdAt: 'desc',
+        },
+      }),
+    );
   }
 
   detail(id: string) {
@@ -21,7 +27,7 @@ export class CctvCameraService {
   }
 
   update(id: string, updateCameraDTO: UpdateCameraDTO) {
-    return from(this.cameraRepository.update({id}, updateCameraDTO))
+    return from(this.cameraRepository.update({ id }, updateCameraDTO));
   }
 
   destroy(id: string) {

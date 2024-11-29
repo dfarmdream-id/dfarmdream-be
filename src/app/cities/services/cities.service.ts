@@ -14,6 +14,9 @@ export class CitiesService {
         where: {
           deletedAt: null,
         },
+        orderBy: {
+          createdAt: 'desc',
+        },
       }),
     );
   }

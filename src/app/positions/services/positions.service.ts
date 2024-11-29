@@ -30,6 +30,9 @@ export class PositionsService {
     return from(
       this.positionRepository.paginate(paginateDto, {
         where,
+        orderBy: {
+          createdAt: 'desc',
+        },
       }),
     );
   }

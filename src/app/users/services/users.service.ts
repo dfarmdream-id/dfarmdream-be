@@ -49,13 +49,16 @@ export class UsersService {
             site: true,
           },
         },
-        cages:{
-          include:{
-            cage:true
-          }
+        cages: {
+          include: {
+            cage: true,
+          },
         },
         roles: true,
         position: true,
+      },
+      orderBy: {
+        createdAt: 'desc',
       },
     });
   }
@@ -85,12 +88,12 @@ export class UsersService {
               site: true,
             },
           },
-          cages:{
-            include:{
-              cage:true
-            }
+          cages: {
+            include: {
+              cage: true,
+            },
           },
-          position:true
+          position: true,
         },
       ),
     ).pipe(
@@ -127,11 +130,11 @@ export class UsersService {
             skipDuplicates: true,
           },
         },
-        cages:{
-          createMany:{
+        cages: {
+          createMany: {
             data: createUsersDto.cages,
-            skipDuplicates: true
-          }
+            skipDuplicates: true,
+          },
         },
         position: {
           connect: {

@@ -44,6 +44,9 @@ export class DocumentInvestmentsService {
           investor: true,
           site: true,
         },
+        orderBy: {
+          createdAt: 'desc',
+        },
       }),
     );
   }

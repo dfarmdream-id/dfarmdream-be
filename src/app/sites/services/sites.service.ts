@@ -29,6 +29,9 @@ export class SitesService {
     return from(
       this.siteRepository.paginate(paginateDto, {
         where,
+        orderBy: {
+          createdAt: 'desc',
+        },
       }),
     );
   }

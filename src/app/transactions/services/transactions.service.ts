@@ -10,7 +10,13 @@ export class TransactionsService {
   constructor(private readonly transactionRepository: TransactionsRepository) {}
 
   public paginate(paginateDto: PaginationQueryDto) {
-    return from(this.transactionRepository.paginate(paginateDto));
+    return from(
+      this.transactionRepository.paginate(paginateDto, {
+        orderBy: {
+          createdAt: 'desc',
+        },
+      }),
+    );
   }
 
   public detail(id: string) {

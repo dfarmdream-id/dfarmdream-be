@@ -25,6 +25,9 @@ export class PricesService {
             },
           ],
         },
+        orderBy: {
+          createdAt: 'desc',
+        },
       }),
     );
   }

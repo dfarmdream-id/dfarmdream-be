@@ -16,6 +16,6 @@ export class TaskService {
   @Cron('00 01 * * *')
   handleCron2() {
     this.logger.debug('Running Generate absen');
-    this.absenService.generateDataAbsen()
+    this.absenService.generateDataAbsen();
   }
 }

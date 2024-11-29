@@ -15,6 +15,9 @@ export class CashFlowsService {
           deletedAt: null,
           siteId,
         },
+        orderBy: {
+          createdAt: 'desc',
+        },
         include: {
           category: true,
           cage: true,

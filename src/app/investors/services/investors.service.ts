@@ -41,6 +41,9 @@ export class InvestorsService {
             },
           ],
         },
+        orderBy: {
+          createdAt: 'desc',
+        },
       }),
     );
   }

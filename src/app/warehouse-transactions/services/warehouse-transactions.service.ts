@@ -19,6 +19,9 @@ export class WarehouseTransactionsService {
   public paginate(paginateDto: PaginationQueryDto) {
     return from(
       this.warehousetransactionRepository.paginate(paginateDto, {
+        orderBy: {
+          createdAt: 'desc',
+        },
         include: {
           cage: true,
           site: true,

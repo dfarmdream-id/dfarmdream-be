@@ -32,6 +32,9 @@ export class ChickenCageRacksService {
             },
           },
         },
+        orderBy: {
+          createdAt: 'desc',
+        },
       }),
     );
   }
