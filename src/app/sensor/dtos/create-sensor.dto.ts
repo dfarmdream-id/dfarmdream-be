@@ -7,6 +7,10 @@ export class CreateSensorDTO {
   code: string;
 
   @ApiProperty()
+  @IsString()
+  name: string;
+
+  @ApiProperty()
   @IsNotEmpty()
   cageId:number;
 
