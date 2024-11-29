@@ -30,6 +30,9 @@ import { CctvCameraModule } from './cctv-camera';
 import { AbsenModule } from './absen';
 import { TaskModule } from './task/task.module';
 import { ScheduleModule } from '@nestjs/schedule';
+import { KategoriBiayaModule } from './kategori-biaya';
+import { BiayaModule } from './biaya';
+import { PenerimaanModalModule } from './penerimaan-modal/penerimaan-modal.module';
 
 @ApiTags('App Spec')
 @Controller()
@@ -77,7 +80,10 @@ class AppController {
     SensorModule,
     AbsenModule,
     TaskModule,
-    ScheduleModule.forRoot()
+    KategoriBiayaModule,
+    BiayaModule,
+    ScheduleModule.forRoot(),
+    PenerimaanModalModule
   ],
   controllers: [AppController],
   exports: [FilesModule],

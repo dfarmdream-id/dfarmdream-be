@@ -44,6 +44,7 @@ model User {
   WarehouseTransaction      WarehouseTransaction[]
   attendance                Attendance[]
   WarehouseTransactionItems WarehouseTransactionItems[]
+  biaya Biaya[]
 
   @@index([email, username, identityId])
 }
@@ -173,9 +174,11 @@ model Site {
   cages                Cage[]
   cashFlow             CashFlow[]
   transaction          Transaction[]
+  biaya                Biaya[]
   WarehouseTransaction WarehouseTransaction[]
   Price                Price[]
   DocumentInvestment   DocumentInvestment[]
+  PenerimaanModal PenerimaanModal[]
 }
 
 model Position {
@@ -254,6 +257,8 @@ model Cage {
   IotSensor            IotSensor[]
   CctvCamera           CctvCamera[]
   documents            DocumentInvestment[]
+  biaya Biaya[]
+  PenerimaanModal PenerimaanModal[]
 }
 
 model CageRack {
@@ -302,6 +307,7 @@ model Investor {
   updatedAt          DateTime             @updatedAt
   documentInvestment DocumentInvestment[]
   roles              InvestorRole[]
+  PenerimaanModal PenerimaanModal[]
 
   @@index([username, identityId])
 }
@@ -501,7 +507,7 @@ model SensorLog {
 }
 
 model RelayLog {
-  id          String    @id @unique @default(uuid())
+  id          String     @id @unique @default(uuid())
   sensorId    String?
   sensor      IotSensor? @relation(fields: [sensorId], references: [id])
   relayNumber Int
@@ -511,8 +517,8 @@ model RelayLog {
   temperature Float?
   amonia      Float?
   ldrValue    Int?
-  createdAt   DateTime  @default(now())
-  updatedAt   DateTime  @updatedAt
+  createdAt   DateTime   @default(now())
+  updatedAt   DateTime   @updatedAt
 }
 
 model CctvCamera {
@@ -553,21 +559,67 @@ model akuncoa {
   status      Int
 }
 
-model biaya {
-  kodekategoribiaya String   @id
-  kodebiaya         String
-  biaya             Decimal  @db.Money
-  tanggal           DateTime @db.Timestamp()
-  idlokasi          String
-  idkandang         String
-  idkaryawan        String
-  keterangan        String
-  status            Int
-}
+// model biaya {
+//   kodekategoribiaya String   @id
+//   kodebiaya         String
+//   biaya             Decimal  @db.Money
+//   tanggal           DateTime @db.Timestamp()
+//   idlokasi          String
+//   idkandang         String
+//   idkaryawan        String
+//   keterangan        String
+//   status            Int
+// }
 
 model groupakun {
   kodegroup   Int    @id @unique
   namagroup   String
   statusgroup Int
   status      Int
+}
+
+model KategoriBiaya {
+  id           String    @id @unique @default(uuid())
+  namaKategori String
+  kodeAkun     String
+  status       Int
+  biaya        Biaya[]
+  deletedAt    DateTime?
+  createdAt    DateTime  @default(now())
+  updatedAt    DateTime  @updatedAt
+}
+
+model Biaya {
+  id            String        @id @unique @default(uuid())
+  kategoriId    String
+  kategoriBiaya KategoriBiaya @relation(fields: [kategoriId], references: [id])
+  tanggal       String
+  siteId        String
+  site  Site @relation(fields: [siteId], references: [id])
+  cageId        String
+  cage Cage @relation(fields: [cageId], references: [id])
+  userId        String
+  user User @relation(fields: [userId], references: [id])
+  keterangan    String?
+  status        Int
+  deletedAt     DateTime?
+  createdAt     DateTime      @default(now())
+  updatedAt     DateTime      @updatedAt
+}
+
+model PenerimaanModal {
+  id String @id @unique @default(uuid())
+  tanggal String @db.VarChar(100)
+  investorId String
+  nominal Int @default(0)
+  siteId String
+  cageId String
+  status Int @default(1)
+
+  investor Investor @relation(fields: [investorId], references: [id])
+  site Site @relation(fields: [siteId], references: [id])
+  cage Cage @relation(fields: [cageId], references: [id])
+  deletedAt     DateTime?
+  createdAt     DateTime      @default(now())
+  updatedAt     DateTime      @updatedAt
 }
