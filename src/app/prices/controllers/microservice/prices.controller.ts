@@ -2,7 +2,6 @@ import { Controller, HttpStatus } from '@nestjs/common';
 import { MessagePattern, Payload, RpcException } from '@nestjs/microservices';
 import { PricesRepository, type Filter } from 'src/app/prices/repositories';
 import { PricesService } from 'src/app/prices/services';
-import { PaginationQueryDto } from 'src/common/dtos/pagination-query.dto';
 import { ResponseEntity } from 'src/common/entities/response.entity';
 import { CreatePricesDto, UpdatePricesDto } from 'src/app/prices/dtos';
 import { map, catchError, from } from 'rxjs';
