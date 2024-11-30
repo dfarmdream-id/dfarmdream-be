@@ -7,6 +7,7 @@ export const ENV = {
   APP_NAME: process.env.APP_NAME || 'EXAMPLE_NAME',
   APP_PORT: process.env.APP_PORT,
   RMQ_URL: process.env.RMQ_URL,
+  TELEGRAM_TOKEN:process.env.TELEGRAM_TOKEN,
   S3: {
     ENDPOINT: process.env.S3_ENDPOINT,
     REGION: process.env.S3_REGION,

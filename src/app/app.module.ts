@@ -37,6 +37,7 @@ import { KategoriBiayaModule } from './kategori-biaya';
 import { BiayaModule } from './biaya';
 import { PenerimaanModalModule } from './penerimaan-modal/penerimaan-modal.module';
 import { PersediaanBarangModule } from './persediaan-barang';
+import { ENV } from '@src/config/env';
 
 @ApiTags('App Spec')
 @Controller()
@@ -88,7 +89,7 @@ class AppController {
     TelegrafModule.forRootAsync({
       useFactory: async () => {
         return {
-          token: process.env.TELEGRAM_TOKEN??'',
+          token: ENV.TELEGRAM_TOKEN ?? '',
           middlewares: [session()],
           include: [TelegramModule],
         };
