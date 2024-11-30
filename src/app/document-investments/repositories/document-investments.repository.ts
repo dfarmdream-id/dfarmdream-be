@@ -1,11 +1,10 @@
 import { Injectable } from '@nestjs/common';
-import { from, switchMap } from 'rxjs';
+import { from } from 'rxjs';
 import { map, catchError } from 'rxjs';
 import { Prisma } from '@prisma/client';
 import { PaginationQueryDto } from 'src/common/dtos/pagination-query.dto';
 import { PaginatedEntity } from 'src/common/entities/paginated.entity';
 import { PrismaService } from 'src/platform/database/services/prisma.service';
-import { FilesService } from '@src/app/files/services';
 
 export type Filter = {
   where?: Prisma.DocumentInvestmentWhereInput;
@@ -13,12 +12,12 @@ export type Filter = {
   cursor?: Prisma.DocumentInvestmentWhereUniqueInput;
   take?: number;
   skip?: number;
-  // include?: Prisma.DocumentInvestmentInclude;
+  include?: Prisma.DocumentInvestmentInclude;
 };
 
 @Injectable()
 export class DocumentInvestmentsRepository {
-  constructor(private readonly prismaService: PrismaService, private readonly fileService:FilesService) {}
+  constructor(private readonly prismaService: PrismaService) {}
 
   public paginate(paginateDto: PaginationQueryDto, filter?: Filter) {
     const { limit = 10, page = 1 } = paginateDto;
@@ -31,10 +30,7 @@ export class DocumentInvestmentsRepository {
           where: filter?.where,
           orderBy: filter?.orderBy,
           cursor: filter?.cursor,
-          include: {
-            cage:true,
-            file:true
-          },
+          include: filter?.include,
         }),
         this.prismaService.documentInvestment.count({
           where: filter?.where,

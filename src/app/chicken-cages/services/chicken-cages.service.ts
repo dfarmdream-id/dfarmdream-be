@@ -42,6 +42,9 @@ export class ChickenCagesService {
           site: true,
         },
         where,
+        orderBy: {
+          createdAt: 'desc',
+        },
       }),
     );
   }

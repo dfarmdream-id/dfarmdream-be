@@ -47,6 +47,8 @@ model User {
   WarehouseTransaction      WarehouseTransaction[]
   attendance                Attendance[]
   WarehouseTransactionItems WarehouseTransactionItems[]
+  biaya                     Biaya[]
+  JournalHeader             JournalHeader[]
 
   @@index([email, username, identityId])
 }
@@ -88,18 +90,18 @@ model Blog {
 }
 
 model File {
-  id        String    @id @unique @default(uuid())
-  name      String
-  size      Int
-  url       String?
-  public    Boolean   @default(false)
-  deletedAt DateTime?
-  createdAt DateTime  @default(now())
-  updatedAt DateTime  @updatedAt
-  mime      String
-  provider  String    @default("S3")
-  Blog      Blog[]
-  Dokumen DocumentInvestment[]
+  id                 String               @id @unique @default(uuid())
+  name               String
+  size               Int
+  url                String?
+  public             Boolean              @default(false)
+  deletedAt          DateTime?
+  createdAt          DateTime             @default(now())
+  updatedAt          DateTime             @updatedAt
+  mime               String
+  provider           String               @default("S3")
+  Blog               Blog[]
+  DocumentInvestment DocumentInvestment[]
 }
 
 model Faq {
@@ -176,8 +178,12 @@ model Site {
   cages                Cage[]
   cashFlow             CashFlow[]
   transaction          Transaction[]
+  biaya                Biaya[]
   WarehouseTransaction WarehouseTransaction[]
   Price                Price[]
+  DocumentInvestment   DocumentInvestment[]
+  PenerimaanModal PenerimaanModal[]
+  PersediaanPakanObat PersediaanPakanObat[]
 }
 
 model Position {
@@ -252,10 +258,13 @@ model Cage {
   racks                CageRack[]
   cashFlow             CashFlow[]
   transaction          Transaction[]
-  dokumen              DocumentInvestment[]
   warehouseTransaction WarehouseTransaction[]
   IotSensor            IotSensor[]
   CctvCamera           CctvCamera[]
+  documents            DocumentInvestment[]
+  biaya Biaya[]
+  PenerimaanModal PenerimaanModal[]
+  PersediaanPakanObat PersediaanPakanObat[]
 }
 
 model CageRack {
@@ -304,6 +313,7 @@ model Investor {
   updatedAt          DateTime             @updatedAt
   documentInvestment DocumentInvestment[]
   roles              InvestorRole[]
+  PenerimaanModal    PenerimaanModal[]
 
   @@index([username, identityId])
 }
@@ -322,13 +332,15 @@ model InvestorRole {
 model DocumentInvestment {
   id         String    @id @unique @default(uuid())
   name       String
-  url        String?
-  fileId String?
-  cageId String?
-  cage Cage? @relation(fields: [cageId], references: [id])
-  file File? @relation(fields: [fileId], references: [id])
+  file       File?     @relation(fields: [fileId], references: [id])
+  fileId     String?
+  cageId     String?
+  cage       Cage?     @relation(fields: [cageId], references: [id])
   investor   Investor? @relation(fields: [investorId], references: [id])
   investorId String?
+  site       Site?     @relation(fields: [siteId], references: [id])
+  siteId     String?
+  amount     Int?      @default(0)
   deletedAt  DateTime?
   createdAt  DateTime  @default(now())
   updatedAt  DateTime  @updatedAt
@@ -468,6 +480,7 @@ model WarehouseTransaction {
 
 model IotSensor {
   id                 String      @id @unique @default(uuid())
+  name               String?     @default("")
   code               String
   cage               Cage?       @relation(fields: [cageId], references: [id])
   cageId             String?
@@ -480,6 +493,7 @@ model IotSensor {
   currentAirQuality  Float?
   lampStatus         Float?
   logs               SensorLog[]
+  relayLog           RelayLog[]
   deletedAt          DateTime?
   createdAt          DateTime    @default(now())
   updatedAt          DateTime    @updatedAt
@@ -495,6 +509,21 @@ model SensorLog {
   amonia      Float
   ldrValue    Int
   epoch       BigInt
+  createdAt   DateTime   @default(now())
+  updatedAt   DateTime   @updatedAt
+}
+
+model RelayLog {
+  id          String     @id @unique @default(uuid())
+  sensorId    String?
+  sensor      IotSensor? @relation(fields: [sensorId], references: [id])
+  relayNumber Int
+  relayDesc   String?
+  status      Int
+  humidity    Float?
+  temperature Float?
+  amonia      Float?
+  ldrValue    Int?
   createdAt   DateTime   @default(now())
   updatedAt   DateTime   @updatedAt
 }
@@ -522,8 +551,8 @@ model Attendance {
   timestampKeluar DateTime? @db.Timestamp()
   user            User?     @relation(fields: [userId], references: [id])
   status          Int?      @default(0)
-  createdAt   DateTime  @default(now())
-  updatedAt   DateTime  @updatedAt @default(now())
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @default(now()) @updatedAt
 }
 
 // COA
@@ -537,21 +566,152 @@ model akuncoa {
   status      Int
 }
 
-model biaya {
-  kodekategoribiaya String   @id
-  kodebiaya         String
-  biaya             Decimal  @db.Money
-  tanggal           DateTime @db.Timestamp()
-  idlokasi          String
-  idkandang         String
-  idkaryawan        String
-  keterangan        String
-  status            Int
+// model biaya {
+//   kodekategoribiaya String   @id
+//   kodebiaya         String
+//   biaya             Decimal  @db.Money
+//   tanggal           DateTime @db.Timestamp()
+//   idlokasi          String
+//   idkandang         String
+//   idkaryawan        String
+//   keterangan        String
+//   status            Int
+// }
+
+model KategoriBiaya {
+  id           String    @id @unique @default(uuid())
+  namaKategori String
+  kodeAkun     String
+  status       Int
+  biaya        Biaya[]
+  deletedAt    DateTime?
+  createdAt    DateTime  @default(now())
+  updatedAt    DateTime  @updatedAt
 }
 
-model groupakun {
-  kodegroup   Int    @id @unique
-  namagroup   String
-  statusgroup Int
-  status      Int
+model Biaya {
+  id            String        @id @unique @default(uuid())
+  kategoriId    String
+  kategoriBiaya KategoriBiaya @relation(fields: [kategoriId], references: [id])
+  tanggal       String
+  siteId        String
+  site          Site          @relation(fields: [siteId], references: [id])
+  cageId        String
+  cage          Cage          @relation(fields: [cageId], references: [id])
+  userId        String
+  user          User          @relation(fields: [userId], references: [id])
+  keterangan    String?
+  biaya         Int
+  status        Int
+  deletedAt     DateTime?
+  createdAt     DateTime      @default(now())
+  updatedAt     DateTime      @updatedAt
+}
+
+model PenerimaanModal {
+  id         String @id @unique @default(uuid())
+  tanggal    String @db.VarChar(100)
+  investorId String
+  nominal    Int    @default(0)
+  siteId     String
+  cageId     String
+  status     Int    @default(1)
+
+  investor  Investor  @relation(fields: [investorId], references: [id])
+  site      Site      @relation(fields: [siteId], references: [id])
+  cage      Cage      @relation(fields: [cageId], references: [id])
+  deletedAt DateTime?
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+}
+
+model Coa {
+  id                 String    @id @unique @default(uuid())
+  code               String
+  name               String
+  level              Int
+  isBalanceSheet     Boolean
+  isRetainedEarnings Boolean
+  deletedAt          DateTime?
+  createdAt          DateTime  @default(now())
+  updatedAt          DateTime  @updatedAt
+}
+
+model GroupCoa {
+  id        String    @id @unique @default(uuid())
+  code      String
+  name      String
+  status    String
+  deletedAt DateTime?
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+}
+
+model JournalTemplate {
+  id        String    @id @unique @default(uuid())
+  code      String
+  name      String
+  status    String
+  deletedAt DateTime?
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+}
+
+model JournalTemplateDetail {
+  id        String    @id @unique @default(uuid())
+  code      String
+  name      String
+  status    String
+  deletedAt DateTime?
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+}
+
+model JurnalType {
+  id            String          @id @unique @default(uuid())
+  name          String
+  status        String
+  deletedAt     DateTime?
+  createdAt     DateTime        @default(now())
+  updatedAt     DateTime        @updatedAt
+  journalHeader JournalHeader[]
+}
+
+model JournalHeader {
+  id            String     @id @unique @default(uuid())
+  date          DateTime
+  userId        String
+  user          User       @relation(fields: [userId], references: [id])
+  journalTypeId String?
+  journalType   JurnalType @relation(fields: [jurnalTypeId], references: [id])
+  jurnalTypeId  String
+  debtTotal     Int
+  creditTotal   Int
+  status        String
+  deletedAt     DateTime?
+  createdAt     DateTime   @default(now())
+  updatedAt     DateTime   @updatedAt
+}
+
+model PersediaanPakanObat{
+  id String @id @unique @default(uuid())
+  namaBarang String
+  qty Int
+  harga Int @default(0)
+  total Int @default(0)
+  siteId String
+  cageId String
+  status Int @default(1)
+  tipeBarang TipeBarang
+  
+  site Site @relation(fields: [siteId], references: [id])
+  cage Cage @relation(fields: [cageId], references: [id])
+  deletedAt     DateTime?
+  createdAt     DateTime      @default(now())
+  updatedAt     DateTime      @updatedAt
+}
+
+enum TipeBarang {
+  PAKAN
+  OBAT
 }

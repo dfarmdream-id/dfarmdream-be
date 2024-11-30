@@ -1,7 +1,7 @@
 import { Module } from '@nestjs/common';
 import {
   WarehouseTransactionsHttpController,
-  WarehouseTransactionsMicroserviceController,
+  WarehouseTransactionsPublicHttpController,
 } from './controllers';
 import { WarehouseTransactionsService } from './services';
 import { WarehouseTransactionsRepository } from './repositories';
@@ -11,7 +11,7 @@ import { PricesModule } from '../prices';
   imports: [PricesModule],
   controllers: [
     WarehouseTransactionsHttpController,
-    WarehouseTransactionsMicroserviceController,
+    WarehouseTransactionsPublicHttpController,
   ],
   providers: [WarehouseTransactionsService, WarehouseTransactionsRepository],
   exports: [WarehouseTransactionsRepository],

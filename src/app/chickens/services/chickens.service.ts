@@ -21,6 +21,9 @@ export class ChickensService {
             },
           },
         },
+        orderBy: {
+          createdAt: 'desc',
+        },
       }),
     );
   }

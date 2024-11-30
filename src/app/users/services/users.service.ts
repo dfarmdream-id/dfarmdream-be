@@ -57,6 +57,9 @@ export class UsersService {
         roles: true,
         position: true,
       },
+      orderBy: {
+        createdAt: 'desc',
+      },
     });
   }
 

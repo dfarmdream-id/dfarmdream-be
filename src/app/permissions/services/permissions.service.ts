@@ -14,6 +14,9 @@ export class PermissionsService {
         where: {
           deletedAt: null,
         },
+        orderBy: {
+          createdAt: 'desc',
+        },
       }),
     );
   }

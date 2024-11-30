@@ -1,12 +1,12 @@
 import { Injectable } from '@nestjs/common';
 import { DocumentInvestmentsRepository } from '../repositories';
-import { PaginationQueryDto } from 'src/common/dtos/pagination-query.dto';
 import {
   CreateDocumentInvestmentsDto,
   UpdateDocumentInvestmentsDto,
 } from '../dtos';
 import { from } from 'rxjs';
-import { FilterDokumenDTO } from '../dtos/filter-dokumen.dto';
+import { Prisma } from '@prisma/client';
+import { GetDocumentInvestmentDto } from '../dtos/get-document-investment.dto';
 
 @Injectable()
 export class DocumentInvestmentsService {
@@ -14,18 +14,38 @@ export class DocumentInvestmentsService {
     private readonly documentinvestmentRepository: DocumentInvestmentsRepository,
   ) {}
 
-  public paginate(paginateDto: FilterDokumenDTO) {
-    let where:any = {deletedAt:null}
-    if(paginateDto.investorId){
-      where = {
-        ...where,
-        investorId:paginateDto.investorId
-      }
+  public paginate(paginateDto: GetDocumentInvestmentDto) {
+    const where = {
+      deletedAt: null,
+      OR: [
+        {
+          name: {
+            contains: paginateDto.q,
+            mode: Prisma.QueryMode.insensitive,
+          },
+        },
+      ],
+    };
+
+    if (paginateDto.investorId) {
+      Object.assign(where, {
+        investor: {
+          id: paginateDto.investorId,
+        },
+      });
     }
+
     return from(
       this.documentinvestmentRepository.paginate(paginateDto, {
-        where: {
-         ...where
+        where: where,
+        include: {
+          cage: true,
+          file: true,
+          investor: true,
+          site: true,
+        },
+        orderBy: {
+          createdAt: 'desc',
         },
       }),
     );
@@ -36,13 +56,35 @@ export class DocumentInvestmentsService {
   }
 
   public destroy(id: string) {
-    console.log("Id : ", id)
     return from(this.documentinvestmentRepository.delete({ id }));
   }
 
   public create(createDocumentInvestmentsDto: CreateDocumentInvestmentsDto) {
     return from(
-      this.documentinvestmentRepository.create(createDocumentInvestmentsDto),
+      this.documentinvestmentRepository.create({
+        name: '',
+        amount: createDocumentInvestmentsDto.amount,
+        cage: {
+          connect: {
+            id: createDocumentInvestmentsDto.cageId,
+          },
+        },
+        file: {
+          connect: {
+            id: createDocumentInvestmentsDto.fileId,
+          },
+        },
+        investor: {
+          connect: {
+            id: createDocumentInvestmentsDto.investorId,
+          },
+        },
+        site: {
+          connect: {
+            id: createDocumentInvestmentsDto.siteId,
+          },
+        },
+      }),
     );
   }
 
@@ -53,7 +95,30 @@ export class DocumentInvestmentsService {
     return from(
       this.documentinvestmentRepository.update(
         { id },
-        updateDocumentInvestmentsDto,
+        {
+          name: '',
+          amount: updateDocumentInvestmentsDto.amount,
+          cage: {
+            connect: {
+              id: updateDocumentInvestmentsDto.cageId,
+            },
+          },
+          investor: {
+            connect: {
+              id: updateDocumentInvestmentsDto.investorId,
+            },
+          },
+          file: {
+            connect: {
+              id: updateDocumentInvestmentsDto.fileId,
+            },
+          },
+          site: {
+            connect: {
+              id: updateDocumentInvestmentsDto.siteId,
+            },
+          },
+        },
       ),
     );
   }

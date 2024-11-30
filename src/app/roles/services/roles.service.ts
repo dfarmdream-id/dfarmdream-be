@@ -21,6 +21,9 @@ export class RolesService {
             },
           },
         },
+        orderBy: {
+          createdAt: 'desc',
+        },
       }),
     );
   }

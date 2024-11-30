@@ -19,6 +19,9 @@ export class CashFlowCategoriesService {
         where: {
           deletedAt: null,
         },
+        orderBy: {
+          createdAt: 'desc',
+        },
       }),
     );
   }
