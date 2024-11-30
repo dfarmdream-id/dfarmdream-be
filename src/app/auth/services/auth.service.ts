@@ -135,19 +135,19 @@ export class AuthService {
         address: body.address,
         email: body.email,
         phone: body.phone,
-      }
+      };
 
-      if(body.imageId){
-        Object.assign(payload,{
+      if (body.imageId) {
+        Object.assign(payload, {
           photoProfile: body?.imageId,
-        })
+        });
       }
       await this.prisma.user.update({
         where: {
           id: user.id,
         },
         data: {
-          ...payload
+          ...payload,
         },
       });
 
@@ -157,10 +157,29 @@ export class AuthService {
         data: [],
       };
     } catch (e) {
+      console.log(e);
       throw new HttpException(
         'Failed to update password',
         HttpStatus.BAD_REQUEST,
       );
     }
+  }
+
+  getMySite(userId: string) {
+    return this.userService.getMySite(userId);
+  }
+
+  switchSite(userId: string, siteId: string) {
+    return this.userService.detail(userId).pipe(
+      map((user) => {
+        const token = this.jwtService.sign({
+          email: user.email,
+          id: user.id,
+          name: user.fullName,
+          siteId: siteId,
+        });
+        return { token, user };
+      }),
+    );
   }
 }

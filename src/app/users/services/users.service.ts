@@ -11,6 +11,10 @@ import { Prisma } from '@prisma/client';
 export class UsersService {
   constructor(private readonly userRepository: UsersRepository) {}
 
+  public getMySite(userId: string) {
+    return this.userRepository.getMySite(userId);
+  }
+
   public paginate(paginateDto: PaginationQueryDto) {
     const where: Prisma.UserWhereInput = {
       deletedAt: null,
