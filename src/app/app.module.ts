@@ -85,16 +85,16 @@ class AppController {
     SensorModule,
     AbsenModule,
     TaskModule,
-    TelegramModule,
-    TelegrafModule.forRootAsync({
-      useFactory: async () => {
-        return {
-          token: "8052148218:AAH4T8STc4OYAJaCIBVFqWEdUmWDzBBY_1E",
-          middlewares: [session()],
-          include: [TelegramModule],
-        };
-      },
-    }),
+    // TelegramModule,
+    // TelegrafModule.forRootAsync({
+    //   useFactory: async () => {
+    //     return {
+    //       token: ENV.TELEGRAM_TOKEN ?? '',
+    //       middlewares: [session()],
+    //       include: [TelegramModule],
+    //     };
+    //   },
+    // }),
     KategoriBiayaModule,
     BiayaModule,
     ScheduleModule.forRoot(),
