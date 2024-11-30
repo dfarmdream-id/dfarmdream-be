@@ -49,6 +49,7 @@ model User {
   WarehouseTransactionItems WarehouseTransactionItems[]
   biaya                     Biaya[]
   JournalHeader             JournalHeader[]
+  KartuStokBarang KartuStokBarang[]
 
   @@index([email, username, identityId])
 }
@@ -184,6 +185,7 @@ model Site {
   DocumentInvestment   DocumentInvestment[]
   PenerimaanModal PenerimaanModal[]
   PersediaanPakanObat PersediaanPakanObat[]
+  KartuStokBarang KartuStokBarang[]
 }
 
 model Position {
@@ -265,6 +267,7 @@ model Cage {
   biaya Biaya[]
   PenerimaanModal PenerimaanModal[]
   PersediaanPakanObat PersediaanPakanObat[]
+  KartuStokBarang KartuStokBarang[]
 }
 
 model CageRack {
@@ -706,6 +709,33 @@ model PersediaanPakanObat{
   
   site Site @relation(fields: [siteId], references: [id])
   cage Cage @relation(fields: [cageId], references: [id])
+  kartuStok KartuStokBarang[]
+  deletedAt     DateTime?
+  createdAt     DateTime      @default(now())
+  updatedAt     DateTime      @updatedAt
+}
+
+model KartuStokBarang{
+  id String @id @unique @default(uuid())
+  tanggal String
+  barangId String 
+  barang PersediaanPakanObat @relation(fields: [barangId], references: [id])
+  qtyAsal Int
+  qtyIn Int
+  qtyOut Int
+  qtyAkhir Int
+  karyawanId String
+  siteId String
+  cageId String
+
+  site Site @relation(fields: [siteId], references: [id])
+  cage Cage @relation(fields: [cageId], references: [id])
+  karyawan User @relation(fields: [karyawanId], references: [id])
+  keterangan String?
+  status Int? @default(1)
+  harga Int
+  total Int
+
   deletedAt     DateTime?
   createdAt     DateTime      @default(now())
   updatedAt     DateTime      @updatedAt
