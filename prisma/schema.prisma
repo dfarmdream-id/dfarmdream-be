@@ -44,7 +44,8 @@ model User {
   WarehouseTransaction      WarehouseTransaction[]
   attendance                Attendance[]
   WarehouseTransactionItems WarehouseTransactionItems[]
-  biaya Biaya[]
+  biaya                     Biaya[]
+  JournalHeader             JournalHeader[]
 
   @@index([email, username, identityId])
 }
@@ -309,7 +310,7 @@ model Investor {
   updatedAt          DateTime             @updatedAt
   documentInvestment DocumentInvestment[]
   roles              InvestorRole[]
-  PenerimaanModal PenerimaanModal[]
+  PenerimaanModal    PenerimaanModal[]
 
   @@index([username, identityId])
 }
@@ -476,7 +477,7 @@ model WarehouseTransaction {
 
 model IotSensor {
   id                 String      @id @unique @default(uuid())
-  name               String? @default("")
+  name               String?     @default("")
   code               String
   cage               Cage?       @relation(fields: [cageId], references: [id])
   cageId             String?
@@ -574,13 +575,6 @@ model akuncoa {
 //   status            Int
 // }
 
-model groupakun {
-  kodegroup   Int    @id @unique
-  namagroup   String
-  statusgroup Int
-  status      Int
-}
-
 model KategoriBiaya {
   id           String    @id @unique @default(uuid())
   namaKategori String
@@ -598,13 +592,13 @@ model Biaya {
   kategoriBiaya KategoriBiaya @relation(fields: [kategoriId], references: [id])
   tanggal       String
   siteId        String
-  site  Site @relation(fields: [siteId], references: [id])
+  site          Site          @relation(fields: [siteId], references: [id])
   cageId        String
-  cage Cage @relation(fields: [cageId], references: [id])
+  cage          Cage          @relation(fields: [cageId], references: [id])
   userId        String
-  user User @relation(fields: [userId], references: [id])
+  user          User          @relation(fields: [userId], references: [id])
   keterangan    String?
-  biaya Int
+  biaya         Int
   status        Int
   deletedAt     DateTime?
   createdAt     DateTime      @default(now())
@@ -612,20 +606,88 @@ model Biaya {
 }
 
 model PenerimaanModal {
-  id String @id @unique @default(uuid())
-  tanggal String @db.VarChar(100)
+  id         String @id @unique @default(uuid())
+  tanggal    String @db.VarChar(100)
   investorId String
-  nominal Int @default(0)
-  siteId String
-  cageId String
-  status Int @default(1)
+  nominal    Int    @default(0)
+  siteId     String
+  cageId     String
+  status     Int    @default(1)
 
-  investor Investor @relation(fields: [investorId], references: [id])
-  site Site @relation(fields: [siteId], references: [id])
-  cage Cage @relation(fields: [cageId], references: [id])
+  investor  Investor  @relation(fields: [investorId], references: [id])
+  site      Site      @relation(fields: [siteId], references: [id])
+  cage      Cage      @relation(fields: [cageId], references: [id])
+  deletedAt DateTime?
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+}
+
+model Coa {
+  id                 String    @id @unique @default(uuid())
+  code               String
+  name               String
+  level              Int
+  isBalanceSheet     Boolean
+  isRetainedEarnings Boolean
+  deletedAt          DateTime?
+  createdAt          DateTime  @default(now())
+  updatedAt          DateTime  @updatedAt
+}
+
+model GroupCoa {
+  id        String    @id @unique @default(uuid())
+  code      String
+  name      String
+  status    String
+  deletedAt DateTime?
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+}
+
+model JournalTemplate {
+  id        String    @id @unique @default(uuid())
+  code      String
+  name      String
+  status    String
+  deletedAt DateTime?
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+}
+
+model JournalTemplateDetail {
+  id        String    @id @unique @default(uuid())
+  code      String
+  name      String
+  status    String
+  deletedAt DateTime?
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+}
+
+model JurnalType {
+  id            String          @id @unique @default(uuid())
+  name          String
+  status        String
   deletedAt     DateTime?
-  createdAt     DateTime      @default(now())
-  updatedAt     DateTime      @updatedAt
+  createdAt     DateTime        @default(now())
+  updatedAt     DateTime        @updatedAt
+  journalHeader JournalHeader[]
+}
+
+model JournalHeader {
+  id            String     @id @unique @default(uuid())
+  date          DateTime
+  userId        String
+  user          User       @relation(fields: [userId], references: [id])
+  journalTypeId String?
+  journalType   JurnalType @relation(fields: [jurnalTypeId], references: [id])
+  jurnalTypeId  String
+  debtTotal     Int
+  creditTotal   Int
+  status        String
+  deletedAt     DateTime?
+  createdAt     DateTime   @default(now())
+  updatedAt     DateTime   @updatedAt
 }
 
 model PersediaanPakanObat{

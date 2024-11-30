@@ -1,30 +1,47 @@
 import { Injectable } from '@nestjs/common';
 import { PricesRepository } from '../repositories';
-import { PaginationQueryDto } from 'src/common/dtos/pagination-query.dto';
 import { CreatePricesDto, UpdatePricesDto } from '../dtos';
 import { from, switchMap } from 'rxjs';
 import { Prisma } from '@prisma/client';
+import { GetPricesDto } from '../dtos/get-prices.dto';
 
 @Injectable()
 export class PricesService {
   constructor(private readonly priceRepository: PricesRepository) {}
 
-  public paginate(paginateDto: PaginationQueryDto) {
+  public paginate(paginateDto: GetPricesDto) {
+    const where = {
+      OR: [
+        {
+          name: {
+            contains: paginateDto.q,
+            mode: Prisma.QueryMode.insensitive,
+          },
+        },
+      ],
+    };
+
+    if (paginateDto.startDate && paginateDto.endDate) {
+      Object.assign(where, {
+        createdAt: {
+          gte: new Date(paginateDto.startDate),
+          lte: new Date(paginateDto.endDate),
+        },
+      });
+    }
+
+    if (paginateDto.siteId) {
+      Object.assign(where, {
+        siteId: paginateDto.siteId,
+      });
+    }
+
     return from(
       this.priceRepository.paginate(paginateDto, {
         include: {
           site: true,
         },
-        where: {
-          OR: [
-            {
-              name: {
-                contains: paginateDto.q,
-                mode: Prisma.QueryMode.insensitive,
-              },
-            },
-          ],
-        },
+        where: where,
         orderBy: {
           createdAt: 'desc',
         },

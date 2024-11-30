@@ -11,12 +11,12 @@ import {
   Query,
 } from '@nestjs/common';
 import { PricesService } from 'src/app/prices/services';
-import { PaginationQueryDto } from 'src/common/dtos/pagination-query.dto';
 import { ResponseEntity } from 'src/common/entities/response.entity';
 import { CreatePricesDto, UpdatePricesDto } from 'src/app/prices/dtos';
 import { ApiTags } from '@nestjs/swagger';
 import { catchError, map } from 'rxjs';
 import { Observable } from 'rxjs';
+import { GetPricesDto } from '../../dtos/get-prices.dto';
 
 @ApiTags('Prices')
 @Controller({
@@ -39,9 +39,7 @@ export class PricesHttpController {
   }
 
   @Get()
-  public index(
-    @Query() paginateDto: PaginationQueryDto,
-  ): Observable<ResponseEntity> {
+  public index(@Query() paginateDto: GetPricesDto): Observable<ResponseEntity> {
     return this.priceService.paginate(paginateDto).pipe(
       map((data) => new ResponseEntity({ data, message: 'success' })),
       catchError((error) => {
