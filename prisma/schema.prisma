@@ -28,7 +28,7 @@ model User {
   photoProfile String?
   position     Position?   @relation(fields: [positionId], references: [id])
   status       UserStatus? @default(INACTIVE)
-  telegramVerification String?
+  lastSendNotification DateTime?
   telegramId String?
   telegramUsername String?
 
@@ -494,6 +494,7 @@ model IotSensor {
   lampStatus         Float?
   logs               SensorLog[]
   relayLog           RelayLog[]
+  telegramLog       TelegramMesasgeLog[]
   deletedAt          DateTime?
   createdAt          DateTime    @default(now())
   updatedAt          DateTime    @updatedAt
@@ -503,6 +504,22 @@ model SensorLog {
   id          String     @id @unique @default(uuid())
   sensorId    String?
   sensor      IotSensor? @relation(fields: [sensorId], references: [id])
+  temperature Float
+  humidity    Float
+  airQuality  Float
+  amonia      Float
+  ldrValue    Int
+  epoch       BigInt
+  createdAt   DateTime   @default(now())
+  updatedAt   DateTime   @updatedAt
+}
+
+model TelegramMesasgeLog {
+  id          String     @id @unique @default(uuid())
+  sensorId    String?
+  userId      String?
+  sensor      IotSensor? @relation(fields: [sensorId], references: [id])
+  message     String?
   temperature Float
   humidity    Float
   airQuality  Float
