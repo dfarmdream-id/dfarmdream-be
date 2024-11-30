@@ -1,0 +1,1 @@
+export const REGISTER_WIZARD = 'REGISTER_WIZARD';

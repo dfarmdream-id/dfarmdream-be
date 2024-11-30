@@ -29,6 +29,9 @@ import { SensorModule } from './sensor/sensor.module';
 import { CctvCameraModule } from './cctv-camera';
 import { AbsenModule } from './absen';
 import { TaskModule } from './task/task.module';
+import { TelegrafModule } from 'nestjs-telegraf';
+import { session } from 'telegraf';
+import { TelegramModule } from './telegram';
 
 @ApiTags('App Spec')
 @Controller()
@@ -75,7 +78,18 @@ class AppController {
     CctvCameraModule,
     SensorModule,
     AbsenModule,
-    TaskModule
+    TaskModule,
+    TelegramModule,
+    TelegrafModule.forRootAsync({
+      useFactory: async () => {
+        return {
+          // token: configService.getBotTelegramToken(),
+          token: '7515309784:AAE1-ZbAhY-2aVnuBnFvC7VJ8WfFOFO2DIg',
+          middlewares: [session()],
+          include: [TelegramModule],
+        };
+      },
+    }),
   ],
   controllers: [AppController],
   exports: [FilesModule],

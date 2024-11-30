@@ -49,10 +49,10 @@ export class UsersService {
             site: true,
           },
         },
-        cages:{
-          include:{
-            cage:true
-          }
+        cages: {
+          include: {
+            cage: true,
+          },
         },
         roles: true,
         position: true,
@@ -85,12 +85,12 @@ export class UsersService {
               site: true,
             },
           },
-          cages:{
-            include:{
-              cage:true
-            }
+          cages: {
+            include: {
+              cage: true,
+            },
           },
-          position:true
+          position: true,
         },
       ),
     ).pipe(
@@ -127,11 +127,11 @@ export class UsersService {
             skipDuplicates: true,
           },
         },
-        cages:{
-          createMany:{
+        cages: {
+          createMany: {
             data: createUsersDto.cages,
-            skipDuplicates: true
-          }
+            skipDuplicates: true,
+          },
         },
         position: {
           connect: {
@@ -258,5 +258,48 @@ export class UsersService {
         throw new Error('error.user_not_found');
       }),
     );
+  }
+
+  public async generateToken(username: string) {
+    try {
+      const user = await this.userRepository.firstOrThrow({ username });
+      await this.userRepository.update(
+        {
+          id: user.id,
+        },
+        {
+          telegramVerification: (Math.random() + 1).toString(36).substring(6),
+        },
+      );
+      return user;
+    } catch (e) {
+      throw new Error(e);
+    }
+  }
+
+  public async validationTOken(
+    username: string,
+    token: string,
+    telegramId: string,
+    telegramUsername: string,
+  ) {
+    try {
+      const user = await this.userRepository.firstOrThrow({ username });
+      if (user.telegramVerification !== token)
+        throw new Error('error.token_not_match');
+
+      await this.userRepository.update(
+        {
+          id: user.id,
+        },
+        {
+          telegramId,
+          telegramUsername,
+        },
+      );
+      return user;
+    } catch (e) {
+      throw new Error(e);
+    }
   }
 }
