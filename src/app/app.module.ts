@@ -29,10 +29,15 @@ import { SensorModule } from './sensor/sensor.module';
 import { CctvCameraModule } from './cctv-camera';
 import { AbsenModule } from './absen';
 import { TaskModule } from './task/task.module';
+import { TelegrafModule } from 'nestjs-telegraf';
+import { session } from 'telegraf';
+import { TelegramModule } from './telegram';
 import { ScheduleModule } from '@nestjs/schedule';
 import { KategoriBiayaModule } from './kategori-biaya';
 import { BiayaModule } from './biaya';
 import { PenerimaanModalModule } from './penerimaan-modal/penerimaan-modal.module';
+import { PersediaanBarangModule } from './persediaan-barang';
+import { ENV } from '@src/config/env';
 
 @ApiTags('App Spec')
 @Controller()
@@ -80,10 +85,21 @@ class AppController {
     SensorModule,
     AbsenModule,
     TaskModule,
+    // TelegramModule,
+    // TelegrafModule.forRootAsync({
+    //   useFactory: async () => {
+    //     return {
+    //       token: ENV.TELEGRAM_TOKEN ?? '',
+    //       middlewares: [session()],
+    //       include: [TelegramModule],
+    //     };
+    //   },
+    // }),
     KategoriBiayaModule,
     BiayaModule,
     ScheduleModule.forRoot(),
-    PenerimaanModalModule
+    PenerimaanModalModule,
+    PersediaanBarangModule
   ],
   controllers: [AppController],
   exports: [FilesModule],
