@@ -2,10 +2,11 @@ import { Injectable } from '@nestjs/common';
 import { from } from 'rxjs';
 import { map, catchError } from 'rxjs';
 import { Prisma, TipeBarang } from '@prisma/client';
-import { PaginationQueryDto } from 'src/common/dtos/pagination-query.dto';
 import { PaginatedEntity } from 'src/common/entities/paginated.entity';
 import { PrismaService } from 'src/platform/database/services/prisma.service';
 import { CreatePersediaanBarang, UpdatePersediaanBarangDTO } from '../dtos';
+import { FilterPersediaanBarangDTO } from '../dtos/filter-persediaan-barang.dto';
+import { equals } from 'class-validator';
 
 export type Filter = {
   where?: Prisma.PersediaanPakanObatWhereInput;
@@ -20,14 +21,21 @@ export type Filter = {
 export class PersediaanBarangRepository {
   constructor(private readonly prismaService: PrismaService) {}
 
-  public paginate(paginateDto: PaginationQueryDto, filter?: Filter) {
-    const { limit = 10, page = 1, q } = paginateDto;
+  public paginate(paginateDto: FilterPersediaanBarangDTO, filter?: Filter) {
+    const { limit = 10, page = 1, q, tipeBarang } = paginateDto;
 
     let where:any = {
       deletedAt:null,
       ...filter?.where
     }
 
+    if(tipeBarang && tipeBarang!=''){
+      where = {
+        ...where,
+        tipeBarang:tipeBarang
+      }
+    }
+    
     if(q && q!=''){
       where = {
         ...where,
@@ -43,10 +51,12 @@ export class PersediaanBarangRepository {
               name:{contains:q, mode:'insensitive'}
             }
           },
-          { tipeBarang: { contains: q, mode: 'insensitive' } },
+          // { tipeBarang: { contains: q, mode: 'insensitive' } },
         ],
       }
     }
+
+
     return from(
       this.prismaService.$transaction([
         this.prismaService.persediaanPakanObat.findMany({

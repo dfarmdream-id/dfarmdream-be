@@ -173,7 +173,7 @@ export class AbsenService {
       return acc;
     }, {});
 
-    console.log(groupedData);
+    // console.log(groupedData);
     if (groupedData) {
       const pinIndex = Object.keys(groupedData);
       for (let i of pinIndex) {

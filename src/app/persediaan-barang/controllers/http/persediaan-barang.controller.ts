@@ -11,7 +11,6 @@ import {
     Query,
     UseGuards,
   } from '@nestjs/common';
-  import { PaginationQueryDto } from 'src/common/dtos/pagination-query.dto';
   import { ResponseEntity } from 'src/common/entities/response.entity';
   import { ApiSecurity, ApiTags } from '@nestjs/swagger';
   import { catchError, map } from 'rxjs';
@@ -19,11 +18,12 @@ import {
   import { AuthGuard } from '@src/app/auth';
 import { PersediaanBarangService } from '../../services';
 import { CreatePersediaanBarang, UpdatePersediaanBarangDTO } from '../../dtos';
+import { FilterPersediaanBarangDTO } from '../../dtos/filter-persediaan-barang.dto';
   
   @ApiSecurity('JWT')
   @ApiTags('Persediaan Barang')
   @Controller({
-    path: 'persediaan-biaya',
+    path: 'persediaan-barang',
     version: '1',
   })
   export class PersediaanBarangController {
@@ -45,7 +45,7 @@ import { CreatePersediaanBarang, UpdatePersediaanBarangDTO } from '../../dtos';
     @UseGuards(AuthGuard)
     @Get()
     public index(
-      @Query() paginateDto: PaginationQueryDto,
+      @Query() paginateDto: FilterPersediaanBarangDTO,
     ): Observable<ResponseEntity> {
       return this.persediaanBarangService.paginate(paginateDto).pipe(
         map((data) => new ResponseEntity({ data, message: 'success' })),

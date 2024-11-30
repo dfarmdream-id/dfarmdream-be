@@ -1,14 +1,14 @@
 import { Injectable } from '@nestjs/common';
-import { PaginationQueryDto } from '@src/common/dtos/pagination-query.dto';
 import { from } from 'rxjs';
 import { PersediaanBarangRepository } from '../repositories';
 import { CreatePersediaanBarang, UpdatePersediaanBarangDTO } from '../dtos';
+import { FilterPersediaanBarangDTO } from '../dtos/filter-persediaan-barang.dto';
 
 @Injectable()
 export class PersediaanBarangService {
   constructor(private readonly persediaanBarangRepo: PersediaanBarangRepository) {}
 
-  paginate(paginateDto: PaginationQueryDto) {
+  paginate(paginateDto: FilterPersediaanBarangDTO) {
     return from(this.persediaanBarangRepo.paginate(paginateDto));
   }
 
