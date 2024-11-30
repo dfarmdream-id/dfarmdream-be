@@ -89,7 +89,7 @@ class AppController {
     TelegrafModule.forRootAsync({
       useFactory: async () => {
         return {
-          token: ENV.TELEGRAM_TOKEN ?? '',
+          token: "8052148218:AAH4T8STc4OYAJaCIBVFqWEdUmWDzBBY_1E",
           middlewares: [session()],
           include: [TelegramModule],
         };
