@@ -33,6 +33,7 @@ import { ScheduleModule } from '@nestjs/schedule';
 import { KategoriBiayaModule } from './kategori-biaya';
 import { BiayaModule } from './biaya';
 import { PenerimaanModalModule } from './penerimaan-modal/penerimaan-modal.module';
+import { PersediaanBarangModule } from './persediaan-barang';
 
 @ApiTags('App Spec')
 @Controller()
@@ -83,7 +84,8 @@ class AppController {
     KategoriBiayaModule,
     BiayaModule,
     ScheduleModule.forRoot(),
-    PenerimaanModalModule
+    PenerimaanModalModule,
+    PersediaanBarangModule
   ],
   controllers: [AppController],
   exports: [FilesModule],

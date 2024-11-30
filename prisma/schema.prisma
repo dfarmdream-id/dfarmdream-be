@@ -179,7 +179,8 @@ model Site {
   WarehouseTransaction WarehouseTransaction[]
   Price                Price[]
   DocumentInvestment   DocumentInvestment[]
-  PenerimaanModal      PenerimaanModal[]
+  PenerimaanModal PenerimaanModal[]
+  PersediaanPakanObat PersediaanPakanObat[]
 }
 
 model Position {
@@ -258,8 +259,9 @@ model Cage {
   IotSensor            IotSensor[]
   CctvCamera           CctvCamera[]
   documents            DocumentInvestment[]
-  biaya                Biaya[]
-  PenerimaanModal      PenerimaanModal[]
+  biaya Biaya[]
+  PenerimaanModal PenerimaanModal[]
+  PersediaanPakanObat PersediaanPakanObat[]
 }
 
 model CageRack {
@@ -686,4 +688,27 @@ model JournalHeader {
   deletedAt     DateTime?
   createdAt     DateTime   @default(now())
   updatedAt     DateTime   @updatedAt
+}
+
+model PersediaanPakanObat{
+  id String @id @unique @default(uuid())
+  namaBarang String
+  qty Int
+  harga Int @default(0)
+  total Int @default(0)
+  siteId String
+  cageId String
+  status Int @default(1)
+  tipeBarang TipeBarang
+  
+  site Site @relation(fields: [siteId], references: [id])
+  cage Cage @relation(fields: [cageId], references: [id])
+  deletedAt     DateTime?
+  createdAt     DateTime      @default(now())
+  updatedAt     DateTime      @updatedAt
+}
+
+enum TipeBarang {
+  PAKAN
+  OBAT
 }
