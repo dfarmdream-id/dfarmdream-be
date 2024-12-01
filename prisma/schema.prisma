@@ -31,6 +31,7 @@ model User {
   telegramVerification String?
   telegramId           String?
   telegramUsername     String?
+  lastSendNotification DateTime? @db.Timestamptz()
 
   deletedAt                 DateTime?
   createdAt                 DateTime                    @default(now())
