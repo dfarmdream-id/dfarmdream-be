@@ -15,9 +15,14 @@ export class UsersService {
     return this.userRepository.getMySite(userId);
   }
 
-  public paginate(paginateDto: PaginationQueryDto) {
+  public paginate(paginateDto: PaginationQueryDto, siteId: string) {
     const where: Prisma.UserWhereInput = {
       deletedAt: null,
+      sites: {
+        some: {
+          siteId,
+        },
+      },
     };
 
     if (paginateDto.q) {

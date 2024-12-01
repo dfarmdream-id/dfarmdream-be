@@ -29,15 +29,16 @@ import { SensorModule } from './sensor/sensor.module';
 import { CctvCameraModule } from './cctv-camera';
 import { AbsenModule } from './absen';
 import { TaskModule } from './task/task.module';
-import { TelegrafModule } from 'nestjs-telegraf';
-import { session } from 'telegraf';
-import { TelegramModule } from './telegram';
 import { ScheduleModule } from '@nestjs/schedule';
 import { KategoriBiayaModule } from './kategori-biaya';
 import { BiayaModule } from './biaya';
 import { PenerimaanModalModule } from './penerimaan-modal/penerimaan-modal.module';
 import { PersediaanBarangModule } from './persediaan-barang';
-import { ENV } from '@src/config/env';
+import { GroupCoasModule } from './group-coas';
+import { JournalHeadersModule } from './journal-headers';
+import { JournalTemplatesModule } from './journal-templates';
+import { JournalTemplateDetailsModule } from './journal-template-details';
+import { JournalTypesModule } from './journal-types';
 
 @ApiTags('App Spec')
 @Controller()
@@ -99,7 +100,12 @@ class AppController {
     BiayaModule,
     ScheduleModule.forRoot(),
     PenerimaanModalModule,
-    PersediaanBarangModule
+    PersediaanBarangModule,
+    GroupCoasModule,
+    JournalHeadersModule,
+    JournalTemplatesModule,
+    JournalTemplateDetailsModule,
+    JournalTypesModule,
   ],
   controllers: [AppController],
   exports: [FilesModule],

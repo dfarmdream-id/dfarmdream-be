@@ -39,6 +39,7 @@ export class DashboardsService {
             .sum('weight', {
               type: 'IN',
               deletedAt: null,
+              siteId,
             })
             .pipe(map((qty) => qty._sum.weight)),
         );
@@ -48,6 +49,7 @@ export class DashboardsService {
             .sum('qty', {
               type: 'IN',
               deletedAt: null,
+              siteId,
             })
             .pipe(map((qty) => qty._sum.qty)),
         );

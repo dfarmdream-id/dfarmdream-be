@@ -18,6 +18,7 @@ import { CreateUsersDto, UpdateUsersDto } from '../dtos';
 import { ApiSecurity, ApiTags } from '@nestjs/swagger';
 import { AuthGuard } from '@app/auth';
 import { catchError, map } from 'rxjs';
+import { User } from '@src/app/auth/decorators';
 
 @ApiTags('Users')
 @ApiSecurity('JWT')
@@ -29,6 +30,7 @@ import { catchError, map } from 'rxjs';
 export class UsersController {
   constructor(private readonly userService: UsersService) {}
 
+  @UseGuards(AuthGuard)
   @Post()
   public async create(@Body() createUsersDto: CreateUsersDto) {
     try {
@@ -42,10 +44,14 @@ export class UsersController {
     }
   }
 
+  @UseGuards(AuthGuard)
   @Get()
-  public async index(@Query() paginateDto: PaginationQueryDto) {
+  public async index(
+    @Query() paginateDto: PaginationQueryDto,
+    @User() user: { id: string; siteId: string },
+  ) {
     try {
-      const data = await this.userService.paginate(paginateDto);
+      const data = await this.userService.paginate(paginateDto, user.siteId);
       return new ResponseEntity({
         data,
         message: 'success',
@@ -55,6 +61,7 @@ export class UsersController {
     }
   }
 
+  @UseGuards(AuthGuard)
   @Get(':id')
   public async detail(@Param('id') id: string) {
     return this.userService.detail(id).pipe(
@@ -65,6 +72,7 @@ export class UsersController {
     );
   }
 
+  @UseGuards(AuthGuard)
   @Delete(':id')
   public async destroy(@Param('id') id: string) {
     try {
@@ -78,6 +86,7 @@ export class UsersController {
     }
   }
 
+  @UseGuards(AuthGuard)
   @Put(':id')
   public async update(
     @Param('id') id: string,

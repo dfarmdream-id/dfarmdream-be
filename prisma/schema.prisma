@@ -16,21 +16,21 @@ enum UserStatus {
 }
 
 model User {
-  id           String      @id @default(uuid())
-  nip          String?
-  email        String?
-  username     String
-  fullName     String?
-  password     String
-  identityId   String?
-  phone        String?
-  address      String?
-  photoProfile String?
-  position     Position?   @relation(fields: [positionId], references: [id])
-  status       UserStatus? @default(INACTIVE)
+  id                   String      @id @default(uuid())
+  nip                  String?
+  email                String?
+  username             String
+  fullName             String?
+  password             String
+  identityId           String?
+  phone                String?
+  address              String?
+  photoProfile         String?
+  position             Position?   @relation(fields: [positionId], references: [id])
+  status               UserStatus? @default(INACTIVE)
   telegramVerification String?
-  telegramId String?
-  telegramUsername String?
+  telegramId           String?
+  telegramUsername     String?
 
   deletedAt                 DateTime?
   createdAt                 DateTime                    @default(now())
@@ -49,7 +49,7 @@ model User {
   WarehouseTransactionItems WarehouseTransactionItems[]
   biaya                     Biaya[]
   JournalHeader             JournalHeader[]
-  KartuStokBarang KartuStokBarang[]
+  KartuStokBarang           KartuStokBarang[]
 
   @@index([email, username, identityId])
 }
@@ -183,9 +183,9 @@ model Site {
   WarehouseTransaction WarehouseTransaction[]
   Price                Price[]
   DocumentInvestment   DocumentInvestment[]
-  PenerimaanModal PenerimaanModal[]
-  PersediaanPakanObat PersediaanPakanObat[]
-  KartuStokBarang KartuStokBarang[]
+  PenerimaanModal      PenerimaanModal[]
+  PersediaanPakanObat  PersediaanPakanObat[]
+  KartuStokBarang      KartuStokBarang[]
 }
 
 model Position {
@@ -264,10 +264,10 @@ model Cage {
   IotSensor            IotSensor[]
   CctvCamera           CctvCamera[]
   documents            DocumentInvestment[]
-  biaya Biaya[]
-  PenerimaanModal PenerimaanModal[]
-  PersediaanPakanObat PersediaanPakanObat[]
-  KartuStokBarang KartuStokBarang[]
+  biaya                Biaya[]
+  PenerimaanModal      PenerimaanModal[]
+  PersediaanPakanObat  PersediaanPakanObat[]
+  KartuStokBarang      KartuStokBarang[]
 }
 
 model CageRack {
@@ -670,7 +670,7 @@ model JournalTemplateDetail {
   updatedAt DateTime  @updatedAt
 }
 
-model JurnalType {
+model JournalType {
   id            String          @id @unique @default(uuid())
   name          String
   status        String
@@ -681,64 +681,64 @@ model JurnalType {
 }
 
 model JournalHeader {
-  id            String     @id @unique @default(uuid())
+  id            String      @id @unique @default(uuid())
   date          DateTime
   userId        String
-  user          User       @relation(fields: [userId], references: [id])
+  user          User        @relation(fields: [userId], references: [id])
   journalTypeId String?
-  journalType   JurnalType @relation(fields: [jurnalTypeId], references: [id])
+  journalType   JournalType @relation(fields: [jurnalTypeId], references: [id])
   jurnalTypeId  String
   debtTotal     Int
   creditTotal   Int
   status        String
   deletedAt     DateTime?
-  createdAt     DateTime   @default(now())
-  updatedAt     DateTime   @updatedAt
+  createdAt     DateTime    @default(now())
+  updatedAt     DateTime    @updatedAt
 }
 
-model PersediaanPakanObat{
-  id String @id @unique @default(uuid())
+model PersediaanPakanObat {
+  id         String     @id @unique @default(uuid())
   namaBarang String
-  qty Int
-  harga Int @default(0)
-  total Int @default(0)
-  siteId String
-  cageId String
-  status Int @default(1)
+  qty        Int
+  harga      Int        @default(0)
+  total      Int        @default(0)
+  siteId     String
+  cageId     String
+  status     Int        @default(1)
   tipeBarang TipeBarang
-  
-  site Site @relation(fields: [siteId], references: [id])
-  cage Cage @relation(fields: [cageId], references: [id])
+
+  site      Site              @relation(fields: [siteId], references: [id])
+  cage      Cage              @relation(fields: [cageId], references: [id])
   kartuStok KartuStokBarang[]
-  deletedAt     DateTime?
-  createdAt     DateTime      @default(now())
-  updatedAt     DateTime      @updatedAt
+  deletedAt DateTime?
+  createdAt DateTime          @default(now())
+  updatedAt DateTime          @updatedAt
 }
 
-model KartuStokBarang{
-  id String @id @unique @default(uuid())
-  tanggal String
-  barangId String 
-  barang PersediaanPakanObat @relation(fields: [barangId], references: [id])
-  qtyAsal Int
-  qtyIn Int
-  qtyOut Int
-  qtyAkhir Int
+model KartuStokBarang {
+  id         String              @id @unique @default(uuid())
+  tanggal    String
+  barangId   String
+  barang     PersediaanPakanObat @relation(fields: [barangId], references: [id])
+  qtyAsal    Int
+  qtyIn      Int
+  qtyOut     Int
+  qtyAkhir   Int
   karyawanId String
-  siteId String
-  cageId String
+  siteId     String
+  cageId     String
 
-  site Site @relation(fields: [siteId], references: [id])
-  cage Cage @relation(fields: [cageId], references: [id])
-  karyawan User @relation(fields: [karyawanId], references: [id])
+  site       Site    @relation(fields: [siteId], references: [id])
+  cage       Cage    @relation(fields: [cageId], references: [id])
+  karyawan   User    @relation(fields: [karyawanId], references: [id])
   keterangan String?
-  status Int? @default(1)
-  harga Int
-  total Int
+  status     Int?    @default(1)
+  harga      Int
+  total      Int
 
-  deletedAt     DateTime?
-  createdAt     DateTime      @default(now())
-  updatedAt     DateTime      @updatedAt
+  deletedAt DateTime?
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
 }
 
 enum TipeBarang {

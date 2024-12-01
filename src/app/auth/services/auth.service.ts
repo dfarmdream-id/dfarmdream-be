@@ -3,7 +3,7 @@ import { UsersService } from 'src/app/users/services';
 import { SignInChoose, SignInDto } from '../dtos/sign-in.dto';
 import { JwtService } from '@nestjs/jwt';
 import { SignUpDto } from '../dtos';
-import { forkJoin, from, map } from 'rxjs';
+import { catchError, forkJoin, from, map } from 'rxjs';
 import { pick } from 'lodash';
 import { PrismaService } from '@src/platform/database/services/prisma.service';
 import { UpdatePasswordDTO } from '../dtos/update-password.dto';
@@ -24,6 +24,19 @@ export class AuthService {
       map((user) => ({
         user: pick(user, ['email', 'id', 'fullName', 'sites']),
       })),
+      catchError((error) => {
+        console.log(
+          '🦖 ------------------------------------------------------------------------🦖',
+        );
+        console.log(
+          '🦖 ~ file: auth.service.ts:28 ~ AuthService ~ catchError ~ error:',
+          error,
+        );
+        console.log(
+          '🦖 ------------------------------------------------------------------------🦖',
+        );
+        throw error;
+      }),
     );
   }
 
