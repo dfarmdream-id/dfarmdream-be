@@ -3,6 +3,7 @@ import { CageRacksRepository } from '../repositories';
 import { CreateChickenCageRacksDto, UpdateChickenCageRacksDto } from '../dtos';
 import { from } from 'rxjs';
 import { GetCageRackDto } from '../dtos/get-cage-rack.dto';
+import { Prisma } from '@prisma/client';
 
 @Injectable()
 export class ChickenCageRacksService {
@@ -10,8 +11,12 @@ export class ChickenCageRacksService {
     private readonly chickencagerackRepository: CageRacksRepository,
   ) {}
 
-  public paginate(paginateDto: GetCageRackDto) {
-    const w = {};
+  public paginate(paginateDto: GetCageRackDto, siteId: string) {
+    const w: Prisma.CageRackWhereInput = {
+      cage: {
+        siteId: siteId,
+      },
+    };
 
     if (paginateDto.cageId) {
       Object.assign(w, {

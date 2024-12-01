@@ -8,11 +8,16 @@ import { from } from 'rxjs';
 export class ChickensService {
   constructor(private readonly chickenRepository: ChickensRepository) {}
 
-  public paginate(paginateDto: PaginationQueryDto) {
+  public paginate(paginateDto: PaginationQueryDto, siteId: string) {
     return from(
       this.chickenRepository.paginate(paginateDto, {
         where: {
           deletedAt: null,
+          rack: {
+            cage: {
+              siteId,
+            },
+          },
         },
         include: {
           rack: {
