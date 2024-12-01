@@ -26,7 +26,7 @@ import { AuthGuard } from '@src/app/auth';
 @ApiSecurity('JWT')
 @ApiTags('JournalTemplates')
 @Controller({
-  path: 'journaltemplate',
+  path: 'journal-template',
   version: '1',
 })
 export class JournalTemplatesHttpController {

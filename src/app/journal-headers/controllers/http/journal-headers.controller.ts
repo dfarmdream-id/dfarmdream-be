@@ -27,7 +27,7 @@ import { User } from '@src/app/auth/decorators';
 @ApiSecurity('JWT')
 @ApiTags('JournalHeaders')
 @Controller({
-  path: 'journalheader',
+  path: 'journal-header',
   version: '1',
 })
 export class JournalHeadersHttpController {

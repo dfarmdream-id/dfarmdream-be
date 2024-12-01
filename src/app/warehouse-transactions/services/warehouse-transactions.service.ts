@@ -16,9 +16,10 @@ export class WarehouseTransactionsService {
     private readonly priceRepository: PricesRepository,
   ) {}
 
-  public paginate(paginateDto: PaginationQueryDto) {
+  public paginate(paginateDto: PaginationQueryDto, siteId: string) {
     return from(
       this.warehousetransactionRepository.paginate(paginateDto, {
+        where: { siteId },
         orderBy: {
           createdAt: 'desc',
         },
