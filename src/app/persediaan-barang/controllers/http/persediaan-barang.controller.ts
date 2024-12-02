@@ -16,9 +16,12 @@ import {
   import { catchError, map } from 'rxjs';
   import { Observable } from 'rxjs';
   import { AuthGuard } from '@src/app/auth';
-import { PersediaanBarangService } from '../../services';
-import { CreatePersediaanBarang, UpdatePersediaanBarangDTO } from '../../dtos';
-import { FilterPersediaanBarangDTO } from '../../dtos/filter-persediaan-barang.dto';
+  import { PersediaanBarangService } from '../../services';
+  import { CreatePersediaanBarang, UpdatePersediaanBarangDTO } from '../../dtos';
+  import { FilterPersediaanBarangDTO } from '../../dtos/filter-persediaan-barang.dto';
+import { User } from '@src/app/auth/decorators';
+import { TransaksiBarangDTO } from '../../dtos/transaksi.dto';
+import { FilterTransaksiBarangDTO } from '../../dtos/filter-transaksi-barang.dto';
   
   @ApiSecurity('JWT')
   @ApiTags('Persediaan Barang')
@@ -28,18 +31,27 @@ import { FilterPersediaanBarangDTO } from '../../dtos/filter-persediaan-barang.d
   })
   export class PersediaanBarangController {
     constructor(private readonly persediaanBarangService: PersediaanBarangService) {}
-  
+    
+    @UseGuards(AuthGuard)
+    @Get('/transaksi')
+    public indexTransaksi(
+      @Query() paginateDto: FilterTransaksiBarangDTO,
+    ): Observable<ResponseEntity> {
+      return this.persediaanBarangService.paginateTransaksi(paginateDto).pipe(
+        map((data) => new ResponseEntity({ data, message: 'success' })),
+        catchError((error) => {
+          throw new HttpException(error.message, HttpStatus.NOT_FOUND);
+        }),
+      );
+    }
+    
     @UseGuards(AuthGuard)
     @Post()
     public create(
       @Body() payload: CreatePersediaanBarang,
-    ): Observable<ResponseEntity> {
-      return this.persediaanBarangService.create(payload).pipe(
-        map((data) => new ResponseEntity({ data, message: 'success' })),
-        catchError((error) => {
-          throw new HttpException(error.message, HttpStatus.BAD_REQUEST);
-        }),
-      );
+      @User() user: { as: 'user' | 'investor'; id: string } & { siteId: string }
+    ) {
+      return this.persediaanBarangService.create(payload, user);
     }
   
     @UseGuards(AuthGuard)
@@ -83,13 +95,17 @@ import { FilterPersediaanBarangDTO } from '../../dtos/filter-persediaan-barang.d
     public update(
       @Param('id') id: string,
       @Body() payload: UpdatePersediaanBarangDTO,
-    ): Observable<ResponseEntity> {
-      return this.persediaanBarangService.update(id, payload).pipe(
-        map((data) => new ResponseEntity({ data, message: 'success' })),
-        catchError((error) => {
-          throw new HttpException(error.message, HttpStatus.BAD_REQUEST);
-        }),
-      );
+      @User() user: { as: 'user' | 'investor'; id: string } & { siteId: string }
+    ) {
+      return this.persediaanBarangService.update(id, payload, user)
     }
+
+
+    @Post('/transaksi')
+    @UseGuards(AuthGuard)
+    public transaksiBarang(@Body() body:TransaksiBarangDTO, @User() user: { as: 'user' | 'investor'; id: string } & { siteId: string }){
+      return this.persediaanBarangService.submitTransaksi(body, user)
+    }
+
   }
   

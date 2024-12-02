@@ -6,7 +6,7 @@ import { PaginatedEntity } from 'src/common/entities/paginated.entity';
 import { PrismaService } from 'src/platform/database/services/prisma.service';
 import { CreatePersediaanBarang, UpdatePersediaanBarangDTO } from '../dtos';
 import { FilterPersediaanBarangDTO } from '../dtos/filter-persediaan-barang.dto';
-import { equals } from 'class-validator';
+import { FilterTransaksiBarangDTO } from '../dtos/filter-transaksi-barang.dto';
 
 export type Filter = {
   where?: Prisma.PersediaanPakanObatWhereInput;
@@ -15,6 +15,15 @@ export type Filter = {
   take?: number;
   skip?: number;
   include?: Prisma.PersediaanPakanObatInclude;
+};
+
+export type FilterTransaksi = {
+  where?: Prisma.KartuStokBarangWhereInput;
+  orderBy?: Prisma.KartuStokBarangOrderByWithRelationInput;
+  cursor?: Prisma.KartuStokBarangWhereUniqueInput;
+  take?: number;
+  skip?: number;
+  include?: Prisma.KartuStokBarangInclude;
 };
 
 @Injectable()
@@ -71,6 +80,72 @@ export class PersediaanBarangRepository {
           }
         }), 
         this.prismaService.persediaanPakanObat.count({
+          where: filter?.where,
+        }),
+      ]),
+    ).pipe(
+      map(
+        ([data, count]) =>
+          new PaginatedEntity(data, {
+            limit,
+            page,
+            totalData: count,
+          }),
+      ),
+      catchError((error) => {
+        throw error;
+      }),
+    );
+  }
+
+  public paginateTransaksi(paginateDto: FilterTransaksiBarangDTO, filter?: FilterTransaksi) {
+    const { limit = 10, page = 1, q } = paginateDto;
+
+    let where:any = {
+      deletedAt:null,
+      ...filter?.where
+    }
+    
+    if(q && q!=''){
+      where = {
+        ...where,
+        OR: [
+          {
+            barang:{
+              namaBarang:{contains:q, mode:'insensitive'}
+            }
+          },
+          {
+            site:{
+              name:{contains:q, mode:'insensitive'}
+            }
+          },
+          {
+            cage:{
+              name:{contains:q, mode:'insensitive'}
+            }
+          },
+        ],
+      }
+    }
+
+
+    return from(
+      this.prismaService.$transaction([
+        this.prismaService.kartuStokBarang.findMany({
+          skip: (+page - 1) * +limit,
+          take: +limit,
+          where: where,
+          orderBy: filter?.orderBy,
+          cursor: filter?.cursor,
+          include:{
+            site:true,
+            cage:true,
+            barang:true,
+            karyawan:true
+          }
+        }), 
+        this.prismaService.kartuStokBarang.count({
           where: filter?.where,
         }),
       ]),
