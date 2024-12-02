@@ -2,21 +2,23 @@ import { Injectable } from '@nestjs/common';
 import { InvestorsRepository } from '../repositories';
 import { PaginationQueryDto } from 'src/common/dtos/pagination-query.dto';
 import { CreateInvestorsDto, UpdateInvestorsDto } from '../dtos';
-import { from, map } from 'rxjs';
+import { from, map, switchMap } from 'rxjs';
 import { hashSync, verifySync } from '@node-rs/bcrypt';
 import { SignInDto } from '@src/app/auth/dtos';
 import { JwtService } from '@nestjs/jwt';
 import { Prisma } from '@prisma/client';
+import { PrismaService } from '@src/platform/database/services/prisma.service';
 
 @Injectable()
 export class InvestorsService {
   constructor(
     private readonly investorRepository: InvestorsRepository,
     private readonly jwtService: JwtService,
+    private readonly prisma: PrismaService,
   ) {}
 
   public paginate(paginateDto: PaginationQueryDto, siteId?: string) {
-    siteId;
+    console.log('paginateDto', siteId);
     return from(
       this.investorRepository.paginate(paginateDto, {
         where: {
@@ -126,6 +128,23 @@ export class InvestorsService {
         map((user) => {
           return user[0];
         }),
+        switchMap(async (user) => {
+          const site = await this.prisma.site.findMany({
+            where: {
+              DocumentInvestment: {
+                some: {
+                  investorId: user.id,
+                },
+              },
+            },
+          });
+
+          Object.assign(user, {
+            site: site[0],
+          });
+
+          return user;
+        }),
         map((user) => {
           if (!user) throw new Error('error.user_not_found');
           return user;
@@ -140,7 +159,6 @@ export class InvestorsService {
             id: user.id,
             name: user.fullName,
             as: 'investor',
-            siteId: 
           });
 
           return {
