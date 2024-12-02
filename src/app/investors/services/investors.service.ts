@@ -114,6 +114,7 @@ export class InvestorsService {
     return this.investorRepository
       .find({
         where: {
+          deletedAt: null,
           OR: [
             {
               username: signInDto.username,
