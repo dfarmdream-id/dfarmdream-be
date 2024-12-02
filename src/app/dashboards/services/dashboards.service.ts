@@ -31,6 +31,11 @@ export class DashboardsService {
           this.investorRepository.count({
             where: {
               deletedAt: null,
+              documentInvestment: {
+                some: {
+                  siteId,
+                },
+              },
             },
           }),
         );

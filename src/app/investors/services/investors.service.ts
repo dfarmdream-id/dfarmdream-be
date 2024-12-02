@@ -15,7 +15,8 @@ export class InvestorsService {
     private readonly jwtService: JwtService,
   ) {}
 
-  public paginate(paginateDto: PaginationQueryDto) {
+  public paginate(paginateDto: PaginationQueryDto, siteId?: string) {
+    siteId;
     return from(
       this.investorRepository.paginate(paginateDto, {
         where: {
@@ -40,6 +41,13 @@ export class InvestorsService {
               },
             },
           ],
+          // documentInvestment: {
+          //   some: {
+          //     cage: {
+          //       siteId,
+          //     },
+          //   },
+          // },
         },
         orderBy: {
           createdAt: 'desc',
