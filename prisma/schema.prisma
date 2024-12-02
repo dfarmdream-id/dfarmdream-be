@@ -31,6 +31,7 @@ model User {
   telegramVerification String?
   telegramId           String?
   telegramUsername     String?
+  lastSendNotification DateTime? @db.Timestamptz()
 
   deletedAt                 DateTime?
   createdAt                 DateTime                    @default(now())
@@ -635,6 +636,8 @@ model Coa {
   level              Int
   isBalanceSheet     Boolean
   isRetainedEarnings Boolean
+  groupId            String
+  group              GroupCoa @relation(fields: [groupId], references: [id])
   deletedAt          DateTime?
   createdAt          DateTime  @default(now())
   updatedAt          DateTime  @updatedAt
@@ -645,6 +648,7 @@ model GroupCoa {
   code      String
   name      String
   status    String
+  coa       Coa[]
   deletedAt DateTime?
   createdAt DateTime  @default(now())
   updatedAt DateTime  @updatedAt

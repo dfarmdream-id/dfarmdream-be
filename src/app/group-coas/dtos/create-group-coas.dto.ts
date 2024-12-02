@@ -13,16 +13,4 @@ export class CreateGroupCoasDto {
   @ApiProperty()
   @IsString()
   status: string;
-
-  @ApiProperty()
-  @IsDateString()
-  date: string;
-
-  @ApiProperty()
-  @IsInt()
-  debtTotal: number;
-
-  @ApiProperty()
-  @IsInt()
-  creditTotal: number;
 }

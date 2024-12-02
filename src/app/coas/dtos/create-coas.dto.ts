@@ -1,5 +1,5 @@
 import { ApiProperty } from '@nestjs/swagger';
-import { IsBoolean, IsInt, IsString } from 'class-validator';
+import { IsBoolean, IsInt, IsNotEmpty, IsString, IsUUID } from 'class-validator';
 
 export class CreateCoasDto {
   @ApiProperty()
@@ -11,16 +11,16 @@ export class CreateCoasDto {
   code: string;
 
   @ApiProperty()
-  @IsString()
-  status: string;
-
-  @ApiProperty()
   @IsBoolean()
   isBalanceSheet: boolean;
 
   @ApiProperty()
   @IsBoolean()
   isRetainedEarnings: boolean;
+
+  @ApiProperty()
+  @IsNotEmpty()
+  groupId:string;
 
   @ApiProperty()
   @IsInt()

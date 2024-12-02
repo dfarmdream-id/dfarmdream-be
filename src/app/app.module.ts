@@ -39,6 +39,7 @@ import { JournalHeadersModule } from './journal-headers';
 import { JournalTemplatesModule } from './journal-templates';
 import { JournalTemplateDetailsModule } from './journal-template-details';
 import { JournalTypesModule } from './journal-types';
+import { CoasModule } from './coas';
 
 @ApiTags('App Spec')
 @Controller()
@@ -86,6 +87,7 @@ class AppController {
     SensorModule,
     AbsenModule,
     TaskModule,
+    CoasModule,
     // TelegramModule,
     // TelegrafModule.forRootAsync({
     //   useFactory: async () => {
