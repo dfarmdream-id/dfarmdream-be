@@ -10,6 +10,8 @@ import { UpdatePasswordDTO } from '../dtos/update-password.dto';
 import { UpdateProfileDTO } from '../dtos/update-profile.dto';
 import { hashSync, verifySync } from '@node-rs/bcrypt';
 import { Prisma } from '@prisma/client';
+import { SitesRepository } from '@src/app/sites/repositories';
+import { InvestorsRepository } from '@src/app/investors/repositories';
 
 @Injectable()
 export class AuthService {
@@ -17,6 +19,8 @@ export class AuthService {
     private readonly userService: UsersService,
     private readonly jwtService: JwtService,
     private readonly prisma: PrismaService,
+    private readonly siteRepository: SitesRepository,
+    private readonly investorRepository: InvestorsRepository,
   ) {}
 
   signIn(signInDto: SignInDto) {
@@ -178,11 +182,50 @@ export class AuthService {
     }
   }
 
-  getMySite(userId: string) {
+  getMySite(userId: string, actAs: 'user' | 'investor') {
+    if (actAs == 'investor') {
+      return this.siteRepository
+        .find({
+          where: {
+            DocumentInvestment: {
+              some: {
+                investorId: userId,
+              },
+            },
+          },
+        })
+        .pipe(
+          map((sites) => {
+            return sites.map((site) => {
+              return { site, id: site.id };
+            });
+          }),
+        );
+    }
     return this.userService.getMySite(userId);
   }
 
-  switchSite(userId: string, siteId: string) {
+  switchSite(userId: string, siteId: string, actAs: 'user' | 'investor') {
+    if (actAs == 'investor') {
+      return this.investorRepository.first({ id: userId }).pipe(
+        map((investor) => {
+          if (!investor) {
+            throw new HttpException('Investor not found', HttpStatus.NOT_FOUND);
+          }
+          return investor;
+        }),
+        map((investor) => {
+          const token = this.jwtService.sign({
+            email: investor?.identityId,
+            id: userId,
+            name: investor.fullName,
+            siteId: siteId,
+            as: 'investor',
+          });
+          return { token, user: { name: investor.fullName } };
+        }),
+      );
+    }
     return this.userService.detail(userId).pipe(
       map((user) => {
         const token = this.jwtService.sign({
@@ -190,8 +233,9 @@ export class AuthService {
           id: user.id,
           name: user.fullName,
           siteId: siteId,
+          as: 'user',
         });
-        return { token, user };
+        return { token, user: { name: user.fullName } };
       }),
     );
   }

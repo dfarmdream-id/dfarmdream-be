@@ -140,6 +140,7 @@ export class InvestorsService {
             id: user.id,
             name: user.fullName,
             as: 'investor',
+            siteId: 
           });
 
           return {
