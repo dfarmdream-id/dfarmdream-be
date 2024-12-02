@@ -5,6 +5,7 @@ import { Prisma } from '@prisma/client';
 import { PaginationQueryDto } from 'src/common/dtos/pagination-query.dto';
 import { PaginatedEntity } from 'src/common/entities/paginated.entity';
 import { PrismaService } from 'src/platform/database/services/prisma.service';
+import { CreateCoasDto, UpdateCoasDto } from '../dtos';
 
 export type Filter = {
   where?: Prisma.CoaWhereInput;
@@ -19,19 +20,35 @@ export class CoasRepository {
   constructor(private readonly prismaService: PrismaService) {}
 
   public paginate(paginateDto: PaginationQueryDto, filter?: Filter) {
-    const { limit = 10, page = 1 } = paginateDto;
+    const { limit = 10, page = 1, q } = paginateDto;
+    const where = {
+      ...filter?.where,
+      deletedAt:null,
+    }
 
+    if(q && q!=''){
+      Object.assign(where,{
+        OR: [
+          { code: { contains: q, mode: 'insensitive' } },
+          { name: { contains: q, mode: 'insensitive' } },
+          { group: { name:{contains: q, mode: 'insensitive'} } },
+        ]
+      })
+    }
     return from(
       this.prismaService.$transaction([
         this.prismaService.coa.findMany({
           skip: (+page - 1) * +limit,
           take: +limit,
-          where: filter?.where,
+          where: where,
           orderBy: filter?.orderBy,
           cursor: filter?.cursor,
+          include:{
+            group:true
+          }
         }),
         this.prismaService.coa.count({
-          where: filter?.where,
+          where: where,
         }),
       ]),
     ).pipe(
@@ -49,7 +66,7 @@ export class CoasRepository {
     );
   }
 
-  public create(data: Prisma.CoaCreateInput) {
+  public create(data: CreateCoasDto) {
     return from(this.prismaService.coa.create({ data })).pipe(
       catchError((error) => {
         throw error;
@@ -59,9 +76,11 @@ export class CoasRepository {
 
   public update(
     where: Prisma.CoaWhereUniqueInput,
-    data: Prisma.CoaUpdateInput,
+    data: UpdateCoasDto,
   ) {
-    return from(this.prismaService.coa.update({ where, data })).pipe(
+    return from(this.prismaService.coa.update({ where, data:{
+      ...data,
+    } })).pipe(
       catchError((error) => {
         throw error;
       }),

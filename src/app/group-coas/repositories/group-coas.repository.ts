@@ -19,19 +19,31 @@ export class GroupCoasRepository {
   constructor(private readonly prismaService: PrismaService) {}
 
   public paginate(paginateDto: PaginationQueryDto, filter?: Filter) {
-    const { limit = 10, page = 1 } = paginateDto;
+    const { limit = 10, page = 1,q  } = paginateDto;
+    const where = {
+      ...filter?.where,
+      deletedAt:null
+    }
 
+    if(q && q!=''){
+      Object.assign(where,{
+        OR: [
+          { code: { contains: q, mode: 'insensitive' } },
+          { name: { contains: q, mode: 'insensitive' } },
+        ]
+      })
+    }
     return from(
       this.prismaService.$transaction([
         this.prismaService.groupCoa.findMany({
           skip: (+page - 1) * +limit,
           take: +limit,
-          where: filter?.where,
+          where: where,
           orderBy: filter?.orderBy,
           cursor: filter?.cursor,
         }),
         this.prismaService.groupCoa.count({
-          where: filter?.where,
+          where: where,
         }),
       ]),
     ).pipe(
