@@ -135,16 +135,15 @@ export class InvestorsService {
               DocumentInvestment: {
                 some: {
                   investorId: user.id,
+                  deletedAt: null,
                 },
               },
             },
           });
 
-          Object.assign(user, {
+          return Object.assign(user, {
             site: site[0],
           });
-
-          return user;
         }),
         map((user) => {
           if (!user) throw new Error('error.user_not_found');
@@ -155,11 +154,14 @@ export class InvestorsService {
 
           if (!isValid) throw new Error('error.password_not_match');
 
+          if (!user.site) throw new Error('error.site_not_found');
+
           const token = this.jwtService.sign({
             email: user.username,
             id: user.id,
             name: user.fullName,
             as: 'investor',
+            siteId: user?.site?.id,
           });
 
           return {

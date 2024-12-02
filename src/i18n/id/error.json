@@ -2,5 +2,6 @@
   "not_found": "Data tidak ditemukan",
   "user_already_exist": "User sudah ada",
   "password_not_match": "Password tidak cocok",
-  "user_not_found": "Akun tidak ditemukan"
+  "user_not_found": "Akun tidak ditemukan",
+  "site_not_found": "Anda tidak memiliki investasi di lokasi manapun"
 }
