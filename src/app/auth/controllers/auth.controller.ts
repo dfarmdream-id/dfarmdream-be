@@ -14,7 +14,7 @@ import { ResponseEntity } from '@src/common/entities/response.entity';
 import { AuthGuard } from '../guards';
 import { User } from '../decorators';
 import { SignUpDto } from '../dtos';
-import { catchError, from, map, of, switchMap } from 'rxjs';
+import { catchError, forkJoin, from, map, of, switchMap } from 'rxjs';
 import { pick } from 'lodash';
 import { UpdateProfileDTO } from '../dtos/update-profile.dto';
 import { UpdatePasswordDTO } from '../dtos/update-password.dto';
@@ -78,7 +78,22 @@ export class AuthController {
     @User() user: { as: 'user' | 'investor'; id: string } & { siteId: string },
   ) {
     if (user.as === 'investor') {
-      return from(
+      const site = from(
+        this.prisma.site.findMany({
+          where: {
+            id: user.siteId,
+          },
+        }),
+      ).pipe(
+        switchMap((site) => {
+          if (site.length === 0) {
+            throw new HttpException('Site not found', HttpStatus.NOT_FOUND);
+          }
+          return site;
+        }),
+      );
+
+      const u = from(
         this.prisma.investor.findUniqueOrThrow({
           where: {
             id: user.id,
@@ -107,12 +122,19 @@ export class AuthController {
             },
           },
         }),
-      ).pipe(
+      );
+      return forkJoin({
+        user: u,
+        site: site,
+      }).pipe(
         map(
           (data) =>
             new ResponseEntity({
               message: 'success',
-              data: data,
+              data: {
+                ...data.user,
+                site: data.site,
+              },
             }),
         ),
         catchError((error) => {
@@ -177,7 +199,7 @@ export class AuthController {
   getMySite(
     @User() user: { as: 'user' | 'investor'; id: string } & { siteId: string },
   ) {
-    return this.authService.getMySite(user.id).pipe(
+    return this.authService.getMySite(user.id, user.as).pipe(
       map((data) => new ResponseEntity({ data })),
       catchError((error) => {
         throw new HttpException(error.message, HttpStatus.UNAUTHORIZED);
@@ -192,7 +214,7 @@ export class AuthController {
     @Body() payload: { siteId: string },
     @User() user: { as: 'user' | 'investor'; id: string } & { siteId: string },
   ) {
-    return this.authService.switchSite(user.id, payload.siteId).pipe(
+    return this.authService.switchSite(user.id, payload.siteId, user.as).pipe(
       map((data) => new ResponseEntity({ data })),
       catchError((error) => {
         throw new HttpException(error.message, HttpStatus.UNAUTHORIZED);

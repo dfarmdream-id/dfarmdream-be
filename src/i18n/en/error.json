@@ -2,5 +2,6 @@
   "not_found": "Data not found",
   "user_already_exist": "User already exist",
   "password_not_match": "Password not match",
-  "user_not_found": "User not found"
+  "user_not_found": "User not found",
+  "site_not_found": "You don't have any investment in any location"
 }

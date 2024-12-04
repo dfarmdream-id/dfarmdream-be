@@ -28,6 +28,7 @@ export class CoasService {
         name: createCoasDto.name,
         isRetainedEarnings: createCoasDto.isRetainedEarnings,
         level: createCoasDto.level,
+        groupId: createCoasDto.groupId,
       }),
     );
   }
