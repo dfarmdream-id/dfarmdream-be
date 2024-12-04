@@ -22,12 +22,12 @@ export class CctvCameraRepository {
   public paginate(paginateDto: PaginationQueryDto, filter?: Filter) {
     const { limit = 10, page = 1, q } = paginateDto;
 
-    let where:any = {
-      deletedAt:null,
-      ...filter?.where
-    }
+    let where: any = {
+      deletedAt: null,
+      ...filter?.where,
+    };
 
-    if(q && q!=''){
+    if (q && q != '') {
       where = {
         ...where,
         OR: [
@@ -39,7 +39,7 @@ export class CctvCameraRepository {
             },
           },
         ],
-      }
+      };
     }
     return from(
       this.prismaService.$transaction([
@@ -51,9 +51,9 @@ export class CctvCameraRepository {
           cursor: filter?.cursor,
           // include: filter?.include,
           include: {
-            cage:true
+            cage: true,
           },
-        }), 
+        }),
         this.prismaService.cctvCamera.count({
           where: filter?.where,
         }),
@@ -118,12 +118,14 @@ export class CctvCameraRepository {
     );
   }
 
-  public getByCage(cageId:string) {
+  public getByCage(cageId: string) {
     return from(
-      this.prismaService.cctvCamera.findMany({ where:{
-        cageId:cageId,
-        deletedAt:null,
-      } }),
+      this.prismaService.cctvCamera.findMany({
+        where: {
+          cageId: cageId,
+          deletedAt: null,
+        },
+      }),
     ).pipe(
       catchError((error) => {
         throw error;

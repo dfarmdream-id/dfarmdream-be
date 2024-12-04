@@ -1,1 +1,1 @@
-export * from './absen.module'
+export * from './absen.module';

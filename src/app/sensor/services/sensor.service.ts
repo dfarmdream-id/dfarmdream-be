@@ -93,7 +93,7 @@ export class SensorService {
                 temperature: payload.temperature,
                 amonia: payload.amonia,
                 status: 1,
-                relayDesc: `Kipas Menyala Kondisi Sensor Amonia : ${payload.amonia?payload.amonia:0} PPM, Humidity: ${payload.humidity}, Temperature: ${payload.temperature}`,
+                relayDesc: `Kipas Menyala Kondisi Sensor Amonia : ${payload.amonia ? payload.amonia : 0} PPM, Humidity: ${payload.humidity}, Temperature: ${payload.temperature}`,
               },
             });
           }
@@ -111,7 +111,7 @@ export class SensorService {
                 temperature: payload.temperature,
                 amonia: payload.amonia,
                 status: 0,
-                relayDesc: `Kipas Mati Kondisi Sensor Amonia : ${payload.amonia?payload.amonia:0} PPM, Humidity: ${payload.humidity}, Temperature: ${payload.temperature}`,
+                relayDesc: `Kipas Mati Kondisi Sensor Amonia : ${payload.amonia ? payload.amonia : 0} PPM, Humidity: ${payload.humidity}, Temperature: ${payload.temperature}`,
               },
             });
           }
@@ -165,7 +165,9 @@ export class SensorService {
   }
 
   async getTemperatureChartDaily(filter: ChartFilterDTO) {
-    let filterTanggal = filter.tanggal ? new Date(filter.tanggal) : new Date();
+    const filterTanggal = filter.tanggal
+      ? new Date(filter.tanggal)
+      : new Date();
     const startOfDay = filterTanggal.setHours(0, 0, 0, 0);
     let cageIds: any = [];
     let where = {};
@@ -229,7 +231,9 @@ export class SensorService {
   }
 
   async getAmoniaChartDaily(filter: ChartFilterDTO) {
-    let filterTanggal = filter.tanggal ? new Date(filter.tanggal) : new Date();
+    const filterTanggal = filter.tanggal
+      ? new Date(filter.tanggal)
+      : new Date();
     const startOfDay = filterTanggal.setHours(0, 0, 0, 0);
     let cageIds: any = [];
     let where = {};
@@ -290,7 +294,9 @@ export class SensorService {
   }
 
   async getHumidityDaily(filter: ChartFilterDTO) {
-    let filterTanggal = filter.tanggal ? new Date(filter.tanggal) : new Date();
+    const filterTanggal = filter.tanggal
+      ? new Date(filter.tanggal)
+      : new Date();
     const startOfDay = filterTanggal.setHours(0, 0, 0, 0);
 
     let cageIds: any = [];

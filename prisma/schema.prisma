@@ -31,7 +31,7 @@ model User {
   telegramVerification String?
   telegramId           String?
   telegramUsername     String?
-  lastSendNotification DateTime? @db.Timestamptz()
+  lastSendNotification DateTime?   @db.Timestamptz()
 
   deletedAt                 DateTime?
   createdAt                 DateTime                    @default(now())
@@ -187,6 +187,7 @@ model Site {
   PenerimaanModal      PenerimaanModal[]
   PersediaanPakanObat  PersediaanPakanObat[]
   KartuStokBarang      KartuStokBarang[]
+  CashFlowCategory     CashFlowCategory[]
 }
 
 model Position {
@@ -380,6 +381,8 @@ model CashFlowCategory {
   id        String     @id @default(uuid())
   code      String?    @default(cuid())
   name      String
+  site      Site?      @relation(fields: [siteId], references: [id])
+  siteId    String?
   deletedAt DateTime?
   createdAt DateTime   @default(now())
   updatedAt DateTime   @updatedAt

@@ -5,7 +5,7 @@ import { CreatePersediaanBarang, UpdatePersediaanBarangDTO } from '../dtos';
 import { FilterPersediaanBarangDTO } from '../dtos/filter-persediaan-barang.dto';
 import { TipeBarang } from '@prisma/client';
 import { PrismaService } from '@src/platform/database/services/prisma.service';
-import { DateTime } from 'luxon'
+import { DateTime } from 'luxon';
 import { TransaksiBarangDTO } from '../dtos/transaksi.dto';
 import { FilterTransaksiBarangDTO } from '../dtos/filter-transaksi-barang.dto';
 @Injectable()
@@ -23,47 +23,56 @@ export class PersediaanBarangService {
     return from(this.persediaanBarangRepo.firstOrThrow({ id }));
   }
 
-  async update(id: string, payload: UpdatePersediaanBarangDTO, user: { as: 'user' | 'investor'; id: string } & { siteId: string }) {
-    try{
+  async update(
+    id: string,
+    payload: UpdatePersediaanBarangDTO,
+    user: { as: 'user' | 'investor'; id: string } & { siteId: string },
+  ) {
+    try {
       const currentDate = DateTime.now().toFormat('yyyy-MM-dd');
-      const updated = await this.prismaService.persediaanPakanObat.update({ where:{
-        id:id
-      }, data:{
-        qty: payload.qty,
-        cageId: payload.cageId,
-        siteId: payload.siteId,
-        harga: payload.harga,
-        total: payload.harga! * payload.qty!,
-        status: 1,
-        tipeBarang: TipeBarang[payload.tipeBarang!]
-      }});
+      const updated = await this.prismaService.persediaanPakanObat.update({
+        where: {
+          id: id,
+        },
+        data: {
+          qty: payload.qty,
+          cageId: payload.cageId,
+          siteId: payload.siteId,
+          harga: payload.harga,
+          total: payload.harga! * payload.qty!,
+          status: 1,
+          tipeBarang: TipeBarang[payload.tipeBarang!],
+        },
+      });
 
       const kartuStok = await this.prismaService.kartuStokBarang.create({
-        data:{
+        data: {
           barangId: id,
           cageId: payload.cageId!,
           siteId: payload.siteId!,
-          qtyAsal:payload.qty!,
+          qtyAsal: payload.qty!,
           qtyIn: 0,
-          qtyAkhir:payload.qty!,
-          qtyOut:0,
-          keterangan:"Create Barang",
+          qtyAkhir: payload.qty!,
+          qtyOut: 0,
+          keterangan: 'Create Barang',
           karyawanId: user.id,
           tanggal: currentDate,
           harga: payload.harga!,
           total: payload.qty! * payload.harga!,
-          status:1
-        }
-      })
+          status: 1,
+        },
+      });
 
       return {
-        status:HttpStatus.OK,
-        message:"Success create persediaan barang",
-        data:kartuStok
-      }
-
-    }catch(e){
-      throw new HttpException("Failed to update persediaan barang", HttpStatus.BAD_REQUEST)
+        status: HttpStatus.OK,
+        message: 'Success create persediaan barang',
+        data: kartuStok,
+      };
+    } catch (e) {
+      throw new HttpException(
+        'Failed to update persediaan barang',
+        HttpStatus.BAD_REQUEST,
+      );
     }
   }
 
@@ -71,7 +80,10 @@ export class PersediaanBarangService {
     return from(this.persediaanBarangRepo.delete({ id }));
   }
 
-  async create(payload: CreatePersediaanBarang, user: { as: 'user' | 'investor'; id: string } & { siteId: string }) {
+  async create(
+    payload: CreatePersediaanBarang,
+    user: { as: 'user' | 'investor'; id: string } & { siteId: string },
+  ) {
     try {
       const currentDate = DateTime.now().toFormat('yyyy-MM-dd');
       const save = await this.prismaService.persediaanPakanObat.create({
@@ -89,29 +101,29 @@ export class PersediaanBarangService {
 
       // Save ke kartustok
       const kartuStok = await this.prismaService.kartuStokBarang.create({
-        data:{
+        data: {
           barangId: save.id,
           cageId: payload.cageId,
           siteId: payload.siteId,
-          qtyAsal:payload.qty,
+          qtyAsal: payload.qty,
           qtyIn: 0,
-          qtyAkhir:payload.qty,
-          qtyOut:0,
-          keterangan:"Create Barang",
+          qtyAkhir: payload.qty,
+          qtyOut: 0,
+          keterangan: 'Create Barang',
           karyawanId: user.id,
           tanggal: currentDate,
           harga: payload.harga,
-          total: payload.qty * payload.harga
-        }
-      })
+          total: payload.qty * payload.harga,
+        },
+      });
       return {
         status: HttpStatus.OK,
-        message:"Success create persediaan barang",
-        data:{
+        message: 'Success create persediaan barang',
+        data: {
           barang: save,
-          stok: kartuStok
-        }
-      }
+          stok: kartuStok,
+        },
+      };
     } catch (e) {
       throw new HttpException(
         'Failed to create persediaan barang',
@@ -120,67 +132,84 @@ export class PersediaanBarangService {
     }
   }
 
-  async submitTransaksi(body:TransaksiBarangDTO, user: { as: 'user' | 'investor'; id: string } & { siteId: string }){
+  async submitTransaksi(
+    body: TransaksiBarangDTO,
+    user: { as: 'user' | 'investor'; id: string } & { siteId: string },
+  ) {
     const currentDate = DateTime.now().toFormat('yyyy-MM-dd');
-    const barang = await this.prismaService.persediaanPakanObat.findFirst({where:{
-      id: body.barangId
-    }})
-    if(!barang){
-      throw new HttpException("Failed to save transaction, barang tidak ditemukan", HttpStatus.BAD_REQUEST)
+    const barang = await this.prismaService.persediaanPakanObat.findFirst({
+      where: {
+        id: body.barangId,
+      },
+    });
+    if (!barang) {
+      throw new HttpException(
+        'Failed to save transaction, barang tidak ditemukan',
+        HttpStatus.BAD_REQUEST,
+      );
     }
-    try{
-      if(body.tipe=='in'){
+    try {
+      if (body.tipe == 'in') {
         await this.prismaService.kartuStokBarang.create({
-          data:{
-            tanggal:currentDate,
+          data: {
+            tanggal: currentDate,
             barangId: barang.id,
             cageId: body.cageId,
             siteId: body.siteId,
             qtyAsal: barang.qty,
             qtyIn: body.qty,
-            qtyOut:0,
+            qtyOut: 0,
             qtyAkhir: barang.qty + body.qty,
             harga: barang.harga,
             total: barang.harga * body.qty,
             karyawanId: user.id,
-            keterangan:body.keterangan,
-            status:1
-          }
-        })
+            keterangan: body.keterangan,
+            status: 1,
+          },
+        });
         // Update stok
-        await this.prismaService.persediaanPakanObat.update({where:{id:barang.id}, data:{
-          qty: barang.qty + body.qty
-        }})
-      }else{
+        await this.prismaService.persediaanPakanObat.update({
+          where: { id: barang.id },
+          data: {
+            qty: barang.qty + body.qty,
+          },
+        });
+      } else {
         await this.prismaService.kartuStokBarang.create({
-          data:{
-            tanggal:currentDate,
+          data: {
+            tanggal: currentDate,
             barangId: barang.id,
             cageId: body.cageId,
             siteId: body.siteId,
             qtyAsal: barang.qty,
             qtyIn: 0,
-            qtyOut:body.qty,
+            qtyOut: body.qty,
             qtyAkhir: barang.qty - body.qty,
             harga: barang.harga,
             total: barang.harga * body.qty,
             karyawanId: user.id,
             keterangan: body.keterangan,
-            status:0
-          }
-        })
+            status: 0,
+          },
+        });
 
-        await this.prismaService.persediaanPakanObat.update({where:{id:barang.id}, data:{
-          qty: barang.qty - body.qty
-        }})
+        await this.prismaService.persediaanPakanObat.update({
+          where: { id: barang.id },
+          data: {
+            qty: barang.qty - body.qty,
+          },
+        });
       }
       return {
-        status:HttpStatus.OK,
-        message:"Success save transaction",
-        data:[]
-      }
-    }catch(e){
-      throw new HttpException("Failed to submit data transaksi", HttpStatus.BAD_REQUEST)
+        status: HttpStatus.OK,
+        message: 'Success save transaction',
+        data: [],
+      };
+    } catch (e) {
+      throw new HttpException(
+        'Failed to submit data transaksi',
+        HttpStatus.BAD_REQUEST,
+      );
     }
   }
 

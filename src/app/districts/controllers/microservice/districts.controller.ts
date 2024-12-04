@@ -1,6 +1,9 @@
 import { Controller, HttpStatus } from '@nestjs/common';
 import { MessagePattern, Payload, RpcException } from '@nestjs/microservices';
-import { DistrictsRepository, type Filter } from 'src/app/districts/repositories';
+import {
+  DistrictsRepository,
+  type Filter,
+} from 'src/app/districts/repositories';
 import { DistrictsService } from 'src/app/districts/services';
 import { PaginationQueryDto } from 'src/common/dtos/pagination-query.dto';
 import { ResponseEntity } from 'src/common/entities/response.entity';
@@ -22,15 +25,20 @@ export class DistrictsMicroserviceController {
   @MessagePattern('district.create')
   public create(@Payload() createDistrictsDto: CreateDistrictsDto) {
     return from(this.districtService.create(createDistrictsDto)).pipe(
-      map(data => new ResponseEntity({
-        data,
-        message: 'success',
-      })),
-      catchError(error => { 
-        throw new RpcException(new ResponseEntity({
-          status: HttpStatus.BAD_REQUEST,
-          message: error.message
-        }));
+      map(
+        (data) =>
+          new ResponseEntity({
+            data,
+            message: 'success',
+          }),
+      ),
+      catchError((error) => {
+        throw new RpcException(
+          new ResponseEntity({
+            status: HttpStatus.BAD_REQUEST,
+            message: error.message,
+          }),
+        );
       }),
     );
   }
@@ -38,11 +46,13 @@ export class DistrictsMicroserviceController {
   @MessagePattern('district.find')
   public find(@Payload() filter: Omit<Filter, 'include'>) {
     return from(this.districtRepository.find(filter)).pipe(
-      catchError(error => {
-        throw new RpcException(new ResponseEntity({
-          status: HttpStatus.BAD_REQUEST,
-          message: error.message
-        }));
+      catchError((error) => {
+        throw new RpcException(
+          new ResponseEntity({
+            status: HttpStatus.BAD_REQUEST,
+            message: error.message,
+          }),
+        );
       }),
     );
   }
@@ -50,15 +60,20 @@ export class DistrictsMicroserviceController {
   @MessagePattern('district.paginate')
   public index(@Payload() paginateDto: PaginationQueryDto) {
     return from(this.districtService.paginate(paginateDto)).pipe(
-      map(data => new ResponseEntity({
-        data,
-        message: 'success',
-      })),
-      catchError(error => {
-        throw new RpcException(new ResponseEntity({
-          status: HttpStatus.BAD_REQUEST,
-          message: error.message
-        }));
+      map(
+        (data) =>
+          new ResponseEntity({
+            data,
+            message: 'success',
+          }),
+      ),
+      catchError((error) => {
+        throw new RpcException(
+          new ResponseEntity({
+            status: HttpStatus.BAD_REQUEST,
+            message: error.message,
+          }),
+        );
       }),
     );
   }
@@ -66,15 +81,20 @@ export class DistrictsMicroserviceController {
   @MessagePattern('district.detail')
   public detail(@Payload('id') id: string) {
     return from(this.districtService.detail(id)).pipe(
-      map(data => new ResponseEntity({
-        data,
-        message: 'success',
-      })),
-      catchError(error => {
-        throw new RpcException(new ResponseEntity({
-          status: HttpStatus.BAD_REQUEST,
-          message: error.message
-        }));
+      map(
+        (data) =>
+          new ResponseEntity({
+            data,
+            message: 'success',
+          }),
+      ),
+      catchError((error) => {
+        throw new RpcException(
+          new ResponseEntity({
+            status: HttpStatus.BAD_REQUEST,
+            message: error.message,
+          }),
+        );
       }),
     );
   }
@@ -82,15 +102,20 @@ export class DistrictsMicroserviceController {
   @MessagePattern('district.destroy')
   public destroy(@Payload('id') id: string) {
     return from(this.districtService.destroy(id)).pipe(
-      map(data => new ResponseEntity({
-        data,
-        message: 'success',
-      })),
-      catchError(error => {
-        throw new RpcException(new ResponseEntity({
-          status: HttpStatus.BAD_REQUEST,
-          message: error.message
-        }));
+      map(
+        (data) =>
+          new ResponseEntity({
+            data,
+            message: 'success',
+          }),
+      ),
+      catchError((error) => {
+        throw new RpcException(
+          new ResponseEntity({
+            status: HttpStatus.BAD_REQUEST,
+            message: error.message,
+          }),
+        );
       }),
     );
   }
@@ -101,17 +126,21 @@ export class DistrictsMicroserviceController {
     @Payload() updateDistrictsDto: UpdateDistrictsDto,
   ) {
     return from(this.districtService.update(id, updateDistrictsDto)).pipe(
-      map(data => new ResponseEntity({
-        data,
-        message: 'success',
-      })),
-      catchError(error => {
-        throw new RpcException(new ResponseEntity({
-          status: HttpStatus.BAD_REQUEST,
-          message: error.message
-        }));
+      map(
+        (data) =>
+          new ResponseEntity({
+            data,
+            message: 'success',
+          }),
+      ),
+      catchError((error) => {
+        throw new RpcException(
+          new ResponseEntity({
+            status: HttpStatus.BAD_REQUEST,
+            message: error.message,
+          }),
+        );
       }),
     );
   }
 }
-

@@ -1,1 +1,1 @@
-export * from './http/cctv-camera.controller'
+export * from './http/cctv-camera.controller';

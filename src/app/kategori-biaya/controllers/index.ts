@@ -1,1 +1,1 @@
-export * from './http/kategori-biaya.controller'
+export * from './http/kategori-biaya.controller';

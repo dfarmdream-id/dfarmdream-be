@@ -63,9 +63,9 @@ export class BiayaRepository {
           // include: filter?.include,
           include: {
             cage: true,
-            kategoriBiaya:true,
+            kategoriBiaya: true,
             site: true,
-            user:true
+            user: true,
           },
         }),
         this.prismaService.biaya.count({
@@ -123,9 +123,7 @@ export class BiayaRepository {
     where: Prisma.BiayaWhereUniqueInput,
     select?: Prisma.BiayaSelect,
   ) {
-    return from(
-      this.prismaService.biaya.findUnique({ where, select }),
-    ).pipe(
+    return from(this.prismaService.biaya.findUnique({ where, select })).pipe(
       catchError((error) => {
         throw error;
       }),
@@ -136,9 +134,7 @@ export class BiayaRepository {
     where: Prisma.BiayaWhereUniqueInput,
     select?: Prisma.BiayaSelect,
   ) {
-    return from(
-      this.prismaService.biaya.findUnique({ where, select }),
-    ).pipe(
+    return from(this.prismaService.biaya.findUnique({ where, select })).pipe(
       catchError((error) => {
         throw error;
       }),

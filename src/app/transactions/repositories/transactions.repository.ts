@@ -22,25 +22,30 @@ export class TransactionsRepository {
   public paginate(paginateDto: PaginationQueryDto, filter?: Filter) {
     const { limit = 10, page = 1 } = paginateDto;
 
-    return from(this.prismaService.$transaction([
-      this.prismaService.transaction.findMany({
-        skip: (+page - 1) * +limit,
-        take: +limit,
-        where: filter?.where,
-        orderBy: filter?.orderBy,
-        cursor: filter?.cursor,
-        include: filter?.include,
-      }),
-      this.prismaService.transaction.count({
-        where: filter?.where,
-      }),
-    ])).pipe(
-      map(([data, count]) => new PaginatedEntity(data, {
-        limit,
-        page,
-        totalData: count,
-      })),
-           catchError((error) => {
+    return from(
+      this.prismaService.$transaction([
+        this.prismaService.transaction.findMany({
+          skip: (+page - 1) * +limit,
+          take: +limit,
+          where: filter?.where,
+          orderBy: filter?.orderBy,
+          cursor: filter?.cursor,
+          include: filter?.include,
+        }),
+        this.prismaService.transaction.count({
+          where: filter?.where,
+        }),
+      ]),
+    ).pipe(
+      map(
+        ([data, count]) =>
+          new PaginatedEntity(data, {
+            limit,
+            page,
+            totalData: count,
+          }),
+      ),
+      catchError((error) => {
         throw error;
       }),
     );
@@ -48,7 +53,7 @@ export class TransactionsRepository {
 
   public create(data: Prisma.TransactionCreateInput) {
     return from(this.prismaService.transaction.create({ data })).pipe(
-           catchError((error) => {
+      catchError((error) => {
         throw error;
       }),
     );
@@ -59,20 +64,20 @@ export class TransactionsRepository {
     data: Prisma.TransactionUpdateInput,
   ) {
     return from(this.prismaService.transaction.update({ where, data })).pipe(
-           catchError((error) => {
+      catchError((error) => {
         throw error;
       }),
     );
   }
 
-  public delete(
-    where: Prisma.TransactionWhereUniqueInput,
-  ) {
-    return from(this.prismaService.transaction.update({
-      where,
-      data: { deletedAt: new Date() },
-    })).pipe(
-           catchError((error) => {
+  public delete(where: Prisma.TransactionWhereUniqueInput) {
+    return from(
+      this.prismaService.transaction.update({
+        where,
+        data: { deletedAt: new Date() },
+      }),
+    ).pipe(
+      catchError((error) => {
         throw error;
       }),
     );
@@ -82,8 +87,10 @@ export class TransactionsRepository {
     where: Prisma.TransactionWhereUniqueInput,
     select?: Prisma.TransactionSelect,
   ) {
-    return from(this.prismaService.transaction.findUnique({ where, select })).pipe(
-           catchError((error) => {
+    return from(
+      this.prismaService.transaction.findUnique({ where, select }),
+    ).pipe(
+      catchError((error) => {
         throw error;
       }),
     );
@@ -93,8 +100,10 @@ export class TransactionsRepository {
     where: Prisma.TransactionWhereUniqueInput,
     select?: Prisma.TransactionSelect,
   ) {
-    return from(this.prismaService.transaction.findUnique({ where, select })).pipe(
-           catchError((error) => {
+    return from(
+      this.prismaService.transaction.findUnique({ where, select }),
+    ).pipe(
+      catchError((error) => {
         throw error;
       }),
     );
@@ -102,7 +111,7 @@ export class TransactionsRepository {
 
   public find(filter: Filter) {
     return from(this.prismaService.transaction.findMany(filter)).pipe(
-           catchError((error) => {
+      catchError((error) => {
         throw error;
       }),
     );
@@ -110,7 +119,7 @@ export class TransactionsRepository {
 
   public count(filter: Omit<Filter, 'include'>) {
     return from(this.prismaService.transaction.count(filter)).pipe(
-           catchError((error) => {
+      catchError((error) => {
         throw error;
       }),
     );
@@ -118,11 +127,10 @@ export class TransactionsRepository {
 
   public any(filter: Omit<Filter, 'include'>) {
     return this.count(filter).pipe(
-      map(count => count > 0),
-           catchError((error) => {
+      map((count) => count > 0),
+      catchError((error) => {
         throw error;
       }),
     );
   }
 }
-

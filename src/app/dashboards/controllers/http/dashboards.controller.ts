@@ -3,6 +3,7 @@ import {
   Get,
   HttpException,
   HttpStatus,
+  Query,
   UseGuards,
 } from '@nestjs/common';
 import { DashboardsService } from 'src/app/dashboards/services';
@@ -26,23 +27,38 @@ export class DashboardsHttpController {
   @Get()
   public index(
     @User() user: { id: string; siteId: string },
+    // get param date, cageId
+    @Query() query: { date: string; cageId: string },
   ): Observable<ResponseEntity> {
-    return this.dashboardService.summary(user.siteId).pipe(
-      map((data) => new ResponseEntity({ data, message: 'success' })),
-      catchError((error) => {
-        throw new HttpException(error.message, HttpStatus.NOT_FOUND);
-      }),
-    );
+    return this.dashboardService
+      .summary(user.siteId, {
+        date: query.date,
+        cageId: query.cageId,
+      })
+      .pipe(
+        map((data) => new ResponseEntity({ data, message: 'success' })),
+        catchError((error) => {
+          throw new HttpException(error.message, HttpStatus.NOT_FOUND);
+        }),
+      );
   }
 
   @UseGuards(AuthGuard)
   @Get('chart')
-  public chart(@User() user: { id: string; siteId: string }) {
-    return this.dashboardService.chart(user.siteId).pipe(
-      map((data) => new ResponseEntity({ data, message: 'success' })),
-      catchError((error) => {
-        throw new HttpException(error.message, HttpStatus.NOT_FOUND);
-      }),
-    );
+  public chart(
+    @User() user: { id: string; siteId: string },
+    @Query() query: { date: string; cageId: string },
+  ) {
+    return this.dashboardService
+      .chart(user.siteId, {
+        date: query.date,
+        cageId: query.cageId,
+      })
+      .pipe(
+        map((data) => new ResponseEntity({ data, message: 'success' })),
+        catchError((error) => {
+          throw new HttpException(error.message, HttpStatus.NOT_FOUND);
+        }),
+      );
   }
 }

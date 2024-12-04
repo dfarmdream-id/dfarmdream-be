@@ -1,5 +1,8 @@
 import { Module } from '@nestjs/common';
-import { SubDistrictsHttpController, SubDistrictsMicroserviceController } from './controllers';
+import {
+  SubDistrictsHttpController,
+  SubDistrictsMicroserviceController,
+} from './controllers';
 import { SubDistrictsService } from './services';
 import { SubDistrictsRepository } from './repositories';
 

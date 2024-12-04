@@ -57,9 +57,8 @@ export class StorageService implements OnModuleInit {
       Body: uploadFileDto.file,
       ContentType: uploadFileDto.mimeType,
       ACL: 'public-read',
-    })
+    });
 
-    return await this.s3Client.send(command)
-
+    return await this.s3Client.send(command);
   }
 }

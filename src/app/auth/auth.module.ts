@@ -14,7 +14,7 @@ import { FilesModule } from '../files';
       secret: process.env.JWT_SECRET,
       signOptions: { expiresIn: '7d' },
     }),
-    FilesModule
+    FilesModule,
   ],
   controllers: [AuthController],
   providers: [AuthService, AuthGuard],
