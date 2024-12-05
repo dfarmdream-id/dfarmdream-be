@@ -125,16 +125,19 @@ export class SensorHttpController {
     return this.sensorService.getTemperatureChartDaily(filter, user);
   }
 
+  @UseGuards(AuthGuard)
   @Get('/amonia')
   getAmoniaData(@Query() filter: ChartFilterDTO, @User() user: JWTClaim) {
     return this.sensorService.getAmoniaChartDaily(filter, user);
   }
 
+  @UseGuards(AuthGuard)
   @Get('/humidity')
   getHumidityData(@Query() filter: ChartFilterDTO, @User() user: JWTClaim) {
     return this.sensorService.getHumidityDaily(filter, user);
   }
 
+  @UseGuards(AuthGuard)
   @Get('/relay-log')
   getRelayLog(
     @Query() filter: PaginatedChartFilterDTO,
