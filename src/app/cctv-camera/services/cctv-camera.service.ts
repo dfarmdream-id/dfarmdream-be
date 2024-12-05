@@ -3,10 +3,14 @@ import { CctvCameraRepository } from '../repositories';
 import { PaginationQueryDto } from '@src/common/dtos/pagination-query.dto';
 import { from } from 'rxjs';
 import { CreateCameraDTO, UpdateCameraDTO } from '../dtos';
+import { PrismaService } from 'src/platform/database/services/prisma.service';
 
 @Injectable()
 export class CctvCameraService {
-  constructor(private readonly cameraRepository: CctvCameraRepository) {}
+  constructor(
+    private readonly cameraRepository: CctvCameraRepository,
+    private readonly prismaService: PrismaService,
+  ) {}
 
   paginate(paginateDto: PaginationQueryDto) {
     return from(

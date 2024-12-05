@@ -53,10 +53,10 @@ export class PenerimaanModalRepository {
           take: +limit,
           where: where,
           orderBy: filter?.orderBy,
-          include:{
-            cage:true,
+          include: {
+            cage: true,
             site: true,
-            investor: true
+            investor: true,
           },
           cursor: filter?.cursor,
         }),
@@ -91,7 +91,9 @@ export class PenerimaanModalRepository {
     where: Prisma.PenerimaanModalWhereUniqueInput,
     data: Prisma.PenerimaanModalUpdateInput,
   ) {
-    return from(this.prismaService.penerimaanModal.update({ where, data })).pipe(
+    return from(
+      this.prismaService.penerimaanModal.update({ where, data }),
+    ).pipe(
       catchError((error) => {
         throw error;
       }),

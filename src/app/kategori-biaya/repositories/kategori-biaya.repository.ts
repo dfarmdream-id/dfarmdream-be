@@ -22,19 +22,19 @@ export class KategoriBiayaRepository {
   public paginate(paginateDto: PaginationQueryDto, filter?: Filter) {
     const { limit = 10, page = 1, q } = paginateDto;
 
-    let where:any = {
-      deletedAt:null,
-      ...filter?.where
-    }
+    let where: any = {
+      deletedAt: null,
+      ...filter?.where,
+    };
 
-    if(q && q!=''){
+    if (q && q != '') {
       where = {
         ...where,
         OR: [
           { namaAkun: { contains: q, mode: 'insensitive' } },
           { kodeAkun: { contains: q, mode: 'insensitive' } },
         ],
-      }
+      };
     }
     return from(
       this.prismaService.$transaction([
@@ -44,7 +44,7 @@ export class KategoriBiayaRepository {
           where: where,
           orderBy: filter?.orderBy,
           cursor: filter?.cursor,
-        }), 
+        }),
         this.prismaService.kategoriBiaya.count({
           where: filter?.where,
         }),

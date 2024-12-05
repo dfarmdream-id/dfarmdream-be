@@ -3,7 +3,7 @@ import { IsNotEmpty, IsOptional, IsString } from 'class-validator';
 
 enum TipeBarangDTO {
   PAKAN,
-  OBAT
+  OBAT,
 }
 
 export class CreatePersediaanBarang {
@@ -21,17 +21,17 @@ export class CreatePersediaanBarang {
 
   @ApiProperty()
   @IsOptional()
-  total:number
+  total: number;
 
   @ApiProperty()
   @IsString()
-  siteId:string
+  siteId: string;
 
   @ApiProperty()
   @IsString()
-  cageId:string
+  cageId: string;
 
   @ApiProperty()
   @IsString()
-  tipeBarang:TipeBarangDTO
+  tipeBarang: TipeBarangDTO;
 }

@@ -1,8 +1,7 @@
 import { Module } from '@nestjs/common';
-import {  PersediaanBarangController } from './controllers';
+import { PersediaanBarangController } from './controllers';
 import { PersediaanBarangService } from './services';
 import { PersediaanBarangRepository } from './repositories';
-
 
 @Module({
   controllers: [PersediaanBarangController],

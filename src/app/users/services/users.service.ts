@@ -16,59 +16,37 @@ export class UsersService {
   }
 
   public paginate(paginateDto: PaginationQueryDto, siteId: string) {
+    // Destructuring `paginateDto` untuk nilai default
+    const { q } = paginateDto;
+
+    // Filter `where` untuk query utama
     const where: Prisma.UserWhereInput = {
       deletedAt: null,
       sites: {
-        some: {
-          siteId,
-        },
+        some: { siteId },
       },
+      ...(q && {
+        OR: [
+          { username: { contains: q, mode: Prisma.QueryMode.insensitive } },
+          { fullName: { contains: q, mode: Prisma.QueryMode.insensitive } },
+          { identityId: { contains: q, mode: Prisma.QueryMode.insensitive } },
+        ],
+      }),
     };
 
-    if (paginateDto.q) {
-      Object.assign(where, {
-        OR: [
-          {
-            username: {
-              contains: paginateDto.q,
-              mode: Prisma.QueryMode.insensitive,
-            },
-          },
-          {
-            fullName: {
-              contains: paginateDto.q,
-              mode: Prisma.QueryMode.insensitive,
-            },
-          },
-          {
-            identityId: {
-              contains: paginateDto.q,
-              mode: Prisma.QueryMode.insensitive,
-            },
-          },
-        ],
-      } as Prisma.UserWhereInput);
-    }
+    // Debugging query `where`
+    console.log('Generated Where Clause:', JSON.stringify(where, null, 2));
 
+    // Optimized paginate function
     return this.userRepository.paginate(paginateDto, {
       where,
       include: {
-        sites: {
-          include: {
-            site: true,
-          },
-        },
-        cages: {
-          include: {
-            cage: true,
-          },
-        },
+        sites: { include: { site: true } },
+        cages: { include: { cage: true } },
         roles: true,
         position: true,
       },
-      orderBy: {
-        createdAt: 'desc',
-      },
+      orderBy: { createdAt: 'desc' },
     });
   }
 

@@ -27,7 +27,9 @@ export class UsersRepository {
         take: +limit,
         ...filter,
       }),
-      this.prismaService.user.count(),
+      this.prismaService.user.count({
+        where: filter?.where,
+      }),
     ]);
 
     return new PaginatedEntity(data, {

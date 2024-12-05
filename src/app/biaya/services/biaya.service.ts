@@ -6,7 +6,7 @@ import { CreateBiayaDTO, UpdateBiayaDTO } from '../dtos';
 
 @Injectable()
 export class BiayaService {
-  constructor(private readonly biayaRepository: BiayaRepository ) {}
+  constructor(private readonly biayaRepository: BiayaRepository) {}
 
   paginate(paginateDto: PaginationQueryDto) {
     return from(this.biayaRepository.paginate(paginateDto));
@@ -17,7 +17,7 @@ export class BiayaService {
   }
 
   update(id: string, UpdateBiayaDTO: UpdateBiayaDTO) {
-    return from(this.biayaRepository.update({id}, UpdateBiayaDTO))
+    return from(this.biayaRepository.update({ id }, UpdateBiayaDTO));
   }
 
   destroy(id: string) {

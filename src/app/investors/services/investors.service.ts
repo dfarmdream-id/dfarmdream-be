@@ -50,6 +50,11 @@ export class InvestorsService {
           //     },
           //   },
           // },
+          documentInvestment: {
+            some: {
+              siteId,
+            },
+          },
         },
         orderBy: {
           createdAt: 'desc',

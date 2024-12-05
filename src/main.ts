@@ -13,7 +13,6 @@ import { MicroserviceOptions, Transport } from '@nestjs/microservices';
 import { ResponseEntity } from './common/entities/response.entity';
 
 async function bootstrap() {
-
   const app = await NestFactory.create(MainModule, {
     logger: ['log', 'error', 'warn', 'debug', 'verbose'],
   });

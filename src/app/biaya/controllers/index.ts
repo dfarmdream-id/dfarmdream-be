@@ -1,1 +1,1 @@
-export * from './http/biaya.controller'
+export * from './http/biaya.controller';

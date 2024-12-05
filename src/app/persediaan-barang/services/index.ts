@@ -1,1 +1,1 @@
-export * from './persediaan-barang.service'
+export * from './persediaan-barang.service';

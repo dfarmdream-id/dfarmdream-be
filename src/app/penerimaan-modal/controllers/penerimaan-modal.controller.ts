@@ -1,4 +1,16 @@
-import { Body, Controller, Delete, Get, HttpException, HttpStatus, Param, Post, Put, Query, UseGuards } from '@nestjs/common';
+import {
+  Body,
+  Controller,
+  Delete,
+  Get,
+  HttpException,
+  HttpStatus,
+  Param,
+  Post,
+  Put,
+  Query,
+  UseGuards,
+} from '@nestjs/common';
 import { PenerimaanModalService } from '../services/penerimaan-modal.service';
 import { ApiSecurity, ApiTags } from '@nestjs/swagger';
 import { CreatePenerimaanModal } from '../dtos/create-penerimaan-modal.dto';
@@ -15,7 +27,9 @@ import { UpdatePenerimaanModalDTO } from '../dtos/update-penerimaan-modal.dto';
   version: '1',
 })
 export class PenerimaanModalController {
-  constructor(private readonly penerimaanModalService: PenerimaanModalService) {}
+  constructor(
+    private readonly penerimaanModalService: PenerimaanModalService,
+  ) {}
 
   @UseGuards(AuthGuard)
   @Post()
@@ -54,7 +68,6 @@ export class PenerimaanModalController {
     );
   }
 
- 
   @UseGuards(AuthGuard)
   @Delete(':id')
   public destroy(@Param('id') id: string): Observable<ResponseEntity> {

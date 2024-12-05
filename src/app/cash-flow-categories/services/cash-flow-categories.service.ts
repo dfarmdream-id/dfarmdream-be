@@ -13,11 +13,12 @@ export class CashFlowCategoriesService {
     private readonly cashflowcategoryRepository: CashFlowCategoriesRepository,
   ) {}
 
-  public paginate(paginateDto: PaginationQueryDto) {
+  public paginate(paginateDto: PaginationQueryDto, siteId: string) {
     return from(
       this.cashflowcategoryRepository.paginate(paginateDto, {
         where: {
           deletedAt: null,
+          siteId,
         },
         orderBy: {
           createdAt: 'desc',
