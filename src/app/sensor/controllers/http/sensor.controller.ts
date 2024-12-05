@@ -25,7 +25,8 @@ import {
   ChartFilterDTO,
   PaginatedChartFilterDTO,
 } from '../../dtos/chart-filter.dto';
-import { User } from '@app/auth/decorators';
+import { User } from '@src/app/auth/decorators';
+import { JWTClaim } from '@src/app/auth/entity/jwt-claim.dto';
 
 @ApiSecurity('JWT')
 @ApiTags('IOT Sensors')
@@ -108,8 +109,9 @@ export class SensorHttpController {
   @Get()
   public index(
     @Query() paginateDto: PaginationQueryDto,
+    @User() user: JWTClaim,
   ): Observable<ResponseEntity> {
-    return this.sensorService.paginate(paginateDto).pipe(
+    return this.sensorService.paginate(paginateDto, user).pipe(
       map((data) => new ResponseEntity({ data, message: 'success' })),
       catchError((error) => {
         throw new HttpException(error.message, HttpStatus.NOT_FOUND);
@@ -119,50 +121,29 @@ export class SensorHttpController {
 
   @UseGuards(AuthGuard)
   @Get('/temperature')
-  getTemperatureData(
-    @Query() filter: ChartFilterDTO,
-    @User() user: { id: string; siteId: string },
-  ) {
-    return this.sensorService.getTemperatureChartDaily({
-      ...filter,
-      siteId: user.siteId,
-    });
+  getTemperatureData(@Query() filter: ChartFilterDTO, @User() user: JWTClaim) {
+    return this.sensorService.getTemperatureChartDaily(filter, user);
   }
 
   @UseGuards(AuthGuard)
   @Get('/amonia')
-  getAmoniaData(
-    @Query() filter: ChartFilterDTO,
-    @User() user: { id: string; siteId: string },
-  ) {
-    return this.sensorService.getAmoniaChartDaily({
-      ...filter,
-      siteId: user.siteId,
-    });
+  getAmoniaData(@Query() filter: ChartFilterDTO, @User() user: JWTClaim) {
+    return this.sensorService.getAmoniaChartDaily(filter, user);
   }
 
   @UseGuards(AuthGuard)
   @Get('/humidity')
-  getHumidityData(
-    @Query() filter: ChartFilterDTO,
-    @User() user: { id: string; siteId: string },
-  ) {
-    return this.sensorService.getHumidityDaily({
-      ...filter,
-      siteId: user.siteId,
-    });
+  getHumidityData(@Query() filter: ChartFilterDTO, @User() user: JWTClaim) {
+    return this.sensorService.getHumidityDaily(filter, user);
   }
 
   @UseGuards(AuthGuard)
   @Get('/relay-log')
   getRelayLog(
     @Query() filter: PaginatedChartFilterDTO,
-    @User() user: { id: string; siteId: string },
+    @User() user: JWTClaim,
   ) {
-    return this.sensorService.getRelayLog({
-      ...filter,
-      siteId: user.siteId,
-    });
+    return this.sensorService.getRelayLog(filter, user);
   }
 
   @UseGuards(AuthGuard)

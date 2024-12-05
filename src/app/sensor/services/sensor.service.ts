@@ -10,6 +10,7 @@ import {
   ChartFilterDTO,
   PaginatedChartFilterDTO,
 } from '../dtos/chart-filter.dto';
+import { JWTClaim } from '@src/app/auth/entity/jwt-claim.dto';
 
 @Injectable()
 export class SensorService {
@@ -18,8 +19,16 @@ export class SensorService {
     private readonly prismaService: PrismaService,
   ) {}
 
-  paginate(paginateDto: PaginationQueryDto) {
-    return from(this.sensorRepository.paginate(paginateDto));
+  paginate(paginateDto: PaginationQueryDto, claim: JWTClaim) {
+    return from(
+      this.sensorRepository.paginate(paginateDto, {
+        where: {
+          cage: {
+            siteId: claim.siteId,
+          },
+        },
+      }),
+    );
   }
 
   detail(id: string) {
@@ -164,7 +173,7 @@ export class SensorService {
     }
   }
 
-  async getTemperatureChartDaily(filter: ChartFilterDTO) {
+  async getTemperatureChartDaily(filter: ChartFilterDTO, user: JWTClaim) {
     const filterTanggal = filter.tanggal
       ? new Date(filter.tanggal)
       : new Date();
@@ -172,10 +181,10 @@ export class SensorService {
     let cageIds: any = [];
     let where = {};
 
-    if (filter.siteId && filter.siteId != '') {
+    if (user.siteId) {
       const cages = await this.prismaService.cage.findMany({
         where: {
-          siteId: filter.siteId,
+          siteId: user.siteId,
         },
       });
       cageIds = cages.map((x) => x.id);
@@ -230,7 +239,8 @@ export class SensorService {
     };
   }
 
-  async getAmoniaChartDaily(filter: ChartFilterDTO) {
+
+  async getAmoniaChartDaily(filter: ChartFilterDTO, user: JWTClaim) {
     const filterTanggal = filter.tanggal
       ? new Date(filter.tanggal)
       : new Date();
@@ -238,10 +248,10 @@ export class SensorService {
     let cageIds: any = [];
     let where = {};
 
-    if (filter.siteId && filter.siteId != '') {
+    if (user.siteId) {
       const cages = await this.prismaService.cage.findMany({
         where: {
-          siteId: filter.siteId,
+          siteId: user.siteId,
         },
       });
       cageIds = cages.map((x) => x.id);
@@ -293,7 +303,7 @@ export class SensorService {
     };
   }
 
-  async getHumidityDaily(filter: ChartFilterDTO) {
+  async getHumidityDaily(filter: ChartFilterDTO, user: JWTClaim) {
     const filterTanggal = filter.tanggal
       ? new Date(filter.tanggal)
       : new Date();
@@ -302,10 +312,10 @@ export class SensorService {
     let cageIds: any = [];
     let where = {};
 
-    if (filter.siteId && filter.siteId != '') {
+    if (user.siteId) {
       const cages = await this.prismaService.cage.findMany({
         where: {
-          siteId: filter.siteId,
+          siteId: user.siteId,
         },
       });
       cageIds = cages.map((x) => x.id);
@@ -358,16 +368,16 @@ export class SensorService {
     };
   }
 
-  async getRelayLog(filter: PaginatedChartFilterDTO) {
+  async getRelayLog(filter: PaginatedChartFilterDTO, user: JWTClaim) {
     // let filterTanggal = filter.tanggal ? new Date(filter.tanggal) : new Date();
     // const startOfDay = filterTanggal.setHours(0, 0, 0, 0);
     let cageIds: any = [];
     let where = {};
 
-    if (filter.siteId && filter.siteId != '') {
+    if (user.siteId) {
       const cages = await this.prismaService.cage.findMany({
         where: {
-          siteId: filter.siteId,
+          siteId: user.siteId,
         },
       });
       cageIds = cages.map((x) => x.id);
