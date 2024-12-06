@@ -10,23 +10,19 @@ export class AbsenService {
     private prismaService: PrismaService,
   ) {}
 
-  async getAbsenData(filter: FilterAbsenDTO) {
+  async getAbsenData(filter: FilterAbsenDTO, siteId: string) {
     const today = DateTime.now().toFormat('yyyy-MM-dd');
     let where = {};
-    if (filter.lokasi && filter.lokasi != '') {
-      where = {
-        ...where,
-        user: {
-          sites: {
-            some: {
-              siteId: filter.lokasi, // Assuming `siteId` is available in User's related `sites`
-            },
+    where = {
+      ...where,
+      user: {
+        sites: {
+          some: {
+            siteId: filter.lokasi ?? siteId, // Assuming `siteId` is available in User's related `sites`
           },
         },
-      };
-    }
-    if (filter.kandang && filter.kandang != '') {
-    }
+      },
+    };
 
     if (filter.tanggal) {
       // const startOfDay = filter.tanggal
@@ -151,7 +147,7 @@ export class AbsenService {
       }
 
       // const dateTime = DateTime.fromJSDate(new Date(event_time!),{ zone: "Asia/Jakarta" });
-      const dateTime = new Date(event_time!);
+      // const dateTime = new Date(event_time!);
 
       const hour = event_time!.getUTCHours();
       if (hour < 12) {
@@ -233,7 +229,7 @@ export class AbsenService {
   }
 
   formatToHHmm = (utcDate) => {
-    const dt = utcDate.toString();
+    // const dt = utcDate.toString();
     const dateTime = DateTime.fromJSDate(new Date(utcDate!));
     // Tambahkan 7 jam untuk GMT+7
 
