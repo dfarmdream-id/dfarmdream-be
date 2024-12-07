@@ -26,10 +26,9 @@ export class FilesService {
     return from(this.fileRepository.delete({ id }));
   }
 
-
   public extensionToMimetype(extension) {
     extension = '.' + extension.replace(/^\.+/, '');
-  
+
     const mimetypes = {
       '.jpg': 'image/jpeg',
       '.png': 'image/png',
@@ -37,49 +36,57 @@ export class FilesService {
       '.txt': 'text/plain',
       '.html': 'text/html',
       '.doc': 'application/msword',
-      '.docx': 'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+      '.docx':
+        'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
       '.xls': 'application/vnd.ms-excel',
-      '.xlsx': 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+      '.xlsx':
+        'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
     };
-  
+
     return mimetypes[extension] || 'application/octet-stream';
   }
-  
-  public async uploadFile(file: Express.Multer.File){
+
+  public async uploadFile(file: Express.Multer.File) {
     const timestamp = Date.now();
     const originalFileName = file.originalname;
-    const fileName = `${timestamp}_${originalFileName}` // 'myfile'
+    const fileName = `${timestamp}_${originalFileName}`; // 'myfile'
     const fileExtension = path.extname(originalFileName);
-    const mimeType = this.extensionToMimetype(fileExtension)
-    try{
+    const mimeType = this.extensionToMimetype(fileExtension);
+    try {
       const upload = await this.storageService.uploadAsync({
-        file:file.buffer,
+        file: file.buffer,
         fileName: fileName,
-        mimeType: mimeType||''
-      })
-    }catch(e){
-      throw new HttpException("Failed to upload file into S3", HttpStatus.BAD_REQUEST)
+        mimeType: mimeType || '',
+      });
+    } catch (e) {
+      throw new HttpException(
+        'Failed to upload file into S3',
+        HttpStatus.BAD_REQUEST,
+      );
     }
 
-    try{
+    try {
       const result = {
         size: file.size,
         name: fileName,
-        url:`${ENV.S3.ENDPOINT}/${ENV.S3.BUCKET_NAME}/${fileName}`,
-        public:true,
-        mime: mimeType
-      }
-      const data = await this.fileRepository.createAsync(result)
+        url: `${ENV.S3.ENDPOINT}/${ENV.S3.BUCKET_NAME}/${fileName}`,
+        public: true,
+        mime: mimeType,
+      };
+      const data = await this.fileRepository.createAsync(result);
       return {
-        status:HttpStatus.OK,
-        message:"Success upload file",
+        status: HttpStatus.OK,
+        message: 'Success upload file',
         data: {
-          id:data.id,
-          ...result
-        }
-      }
-    }catch(e){
-      throw new HttpException("Failed to save file iamge", HttpStatus.BAD_REQUEST)
+          id: data.id,
+          ...result,
+        },
+      };
+    } catch (e) {
+      throw new HttpException(
+        'Failed to save file iamge',
+        HttpStatus.BAD_REQUEST,
+      );
     }
   }
 

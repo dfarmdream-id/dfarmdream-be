@@ -14,7 +14,7 @@ import { ResponseEntity } from '@src/common/entities/response.entity';
 import { AuthGuard } from '../guards';
 import { User } from '../decorators';
 import { SignUpDto } from '../dtos';
-import { catchError, from, map, of, switchMap } from 'rxjs';
+import { catchError, forkJoin, from, map, of, switchMap } from 'rxjs';
 import { pick } from 'lodash';
 import { UpdateProfileDTO } from '../dtos/update-profile.dto';
 import { UpdatePasswordDTO } from '../dtos/update-password.dto';
@@ -30,7 +30,7 @@ export class AuthController {
   constructor(
     private readonly authService: AuthService,
     private readonly prisma: PrismaService,
-    private readonly fileService:FilesService
+    private readonly fileService: FilesService,
   ) {}
 
   @Post('sign-in')
@@ -78,7 +78,22 @@ export class AuthController {
     @User() user: { as: 'user' | 'investor'; id: string } & { siteId: string },
   ) {
     if (user.as === 'investor') {
-      return from(
+      const site = from(
+        this.prisma.site.findMany({
+          where: {
+            id: user.siteId,
+          },
+        }),
+      ).pipe(
+        switchMap((site) => {
+          if (site.length === 0) {
+            throw new HttpException('Site not found', HttpStatus.NOT_FOUND);
+          }
+          return site;
+        }),
+      );
+
+      const u = from(
         this.prisma.investor.findUniqueOrThrow({
           where: {
             id: user.id,
@@ -107,12 +122,19 @@ export class AuthController {
             },
           },
         }),
-      ).pipe(
+      );
+      return forkJoin({
+        user: u,
+        site: site,
+      }).pipe(
         map(
           (data) =>
             new ResponseEntity({
               message: 'success',
-              data: data,
+              data: {
+                ...data.user,
+                site: data.site,
+              },
             }),
         ),
         catchError((error) => {
@@ -122,30 +144,29 @@ export class AuthController {
     }
 
     return this.authService.profile(user).pipe(
-      map(
-        (data) =>{
-          if(!data.photoProfile){
+      map((data) => {
+        if (!data.photoProfile) {
+          return new ResponseEntity({
+            message: 'success',
+            data: data,
+          });
+        }
+        return data;
+      }),
+      switchMap((data) => {
+        if (data instanceof ResponseEntity) {
+          return of(data);
+        }
+        return this.fileService.detail(data.photoProfile!).pipe(
+          map((fileData) => {
+            data.photoProfile = fileData?.url ?? null;
             return new ResponseEntity({
               message: 'success',
               data: data,
-            })
-          }
-          return data
-        }),
-        switchMap((data)=>{
-          if(data instanceof ResponseEntity){
-            return of(data)
-          }
-          return this.fileService.detail(data.photoProfile!).pipe(
-            map((fileData)=>{
-              data.photoProfile = fileData?.url ?? null
-              return new ResponseEntity({
-                message:"success",
-                data:data
-              })
-            })
-          )
-        }),
+            });
+          }),
+        );
+      }),
       catchError((error) => {
         throw new HttpException(error.message, HttpStatus.UNAUTHORIZED);
       }),
@@ -155,15 +176,49 @@ export class AuthController {
   @ApiSecurity('JWT')
   @UseGuards(AuthGuard)
   @Post('update-profile')
-  updateProfile(@Body() payload:UpdateProfileDTO,@User() user: { as: 'user' | 'investor'; id: string } & { siteId: string }) {
-    return this.authService.updateProfile(user,payload)
+  updateProfile(
+    @Body() payload: UpdateProfileDTO,
+    @User() user: { as: 'user' | 'investor'; id: string } & { siteId: string },
+  ) {
+    return this.authService.updateProfile(user, payload);
   }
 
   @ApiSecurity('JWT')
   @UseGuards(AuthGuard)
   @Post('update-password')
-  updatePassword(@Body() payload:UpdatePasswordDTO, @User() user: { as: 'user' | 'investor'; id: string } & { siteId: string }) {
-    return this.authService.updatePassword(user, payload)
-    
+  updatePassword(
+    @Body() payload: UpdatePasswordDTO,
+    @User() user: { as: 'user' | 'investor'; id: string } & { siteId: string },
+  ) {
+    return this.authService.updatePassword(user, payload);
+  }
+
+  @ApiSecurity('JWT')
+  @UseGuards(AuthGuard)
+  @Get('sites')
+  getMySite(
+    @User() user: { as: 'user' | 'investor'; id: string } & { siteId: string },
+  ) {
+    return this.authService.getMySite(user.id, user.as).pipe(
+      map((data) => new ResponseEntity({ data })),
+      catchError((error) => {
+        throw new HttpException(error.message, HttpStatus.UNAUTHORIZED);
+      }),
+    );
+  }
+
+  @ApiSecurity('JWT')
+  @UseGuards(AuthGuard)
+  @Post('switch')
+  switchSite(
+    @Body() payload: { siteId: string },
+    @User() user: { as: 'user' | 'investor'; id: string } & { siteId: string },
+  ) {
+    return this.authService.switchSite(user.id, payload.siteId, user.as).pipe(
+      map((data) => new ResponseEntity({ data })),
+      catchError((error) => {
+        throw new HttpException(error.message, HttpStatus.UNAUTHORIZED);
+      }),
+    );
   }
 }

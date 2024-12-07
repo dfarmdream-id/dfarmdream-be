@@ -1,1 +1,1 @@
-export * from './http/persediaan-barang.controller'
+export * from './http/persediaan-barang.controller';

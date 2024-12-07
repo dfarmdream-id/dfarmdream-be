@@ -20,6 +20,7 @@ import { catchError, map } from 'rxjs';
 import { Observable } from 'rxjs';
 import { AuthGuard } from '@src/app/auth';
 import { SignInDto } from '@src/app/auth/dtos';
+import { User } from '@src/app/auth/decorators';
 
 @ApiSecurity('JWT')
 @ApiTags('Investors')
@@ -57,8 +58,9 @@ export class InvestorsHttpController {
   @Get()
   public index(
     @Query() paginateDto: PaginationQueryDto,
+    @User() user: { id: string; siteId: string },
   ): Observable<ResponseEntity> {
-    return this.investorService.paginate(paginateDto).pipe(
+    return this.investorService.paginate(paginateDto, user.siteId).pipe(
       map((data) => new ResponseEntity({ data, message: 'success' })),
       catchError((error) => {
         throw new HttpException(error.message, HttpStatus.NOT_FOUND);

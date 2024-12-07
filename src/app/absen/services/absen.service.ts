@@ -173,10 +173,10 @@ export class AbsenService {
       return acc;
     }, {});
 
-    console.log(groupedData);
+    // console.log(groupedData);
     if (groupedData) {
       const pinIndex = Object.keys(groupedData);
-      for (let i of pinIndex) {
+      for (const i of pinIndex) {
         const jamAbsen = groupedData[i];
         const jamMasuk = jamAbsen.masuk
           ? this.formatToHHmm(jamAbsen.masuk)

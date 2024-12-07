@@ -1,1 +1,1 @@
-export * from './kategori-biaya.service'
+export * from './kategori-biaya.service';

@@ -1,1 +1,1 @@
-export * from './penerimaan-modal.module'
+export * from './penerimaan-modal.module';

@@ -16,9 +16,9 @@ export class CreatePenerimaanModal {
 
   @ApiProperty()
   @IsUUID()
-  siteId:string
+  siteId: string;
 
   @ApiProperty()
   @IsUUID()
-  cageId:string
+  cageId: string;
 }

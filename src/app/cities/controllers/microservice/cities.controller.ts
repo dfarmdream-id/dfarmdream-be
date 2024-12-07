@@ -22,15 +22,20 @@ export class CitiesMicroserviceController {
   @MessagePattern('city.create')
   public create(@Payload() createCitiesDto: CreateCitiesDto) {
     return from(this.cityService.create(createCitiesDto)).pipe(
-      map(data => new ResponseEntity({
-        data,
-        message: 'success',
-      })),
-      catchError(error => { 
-        throw new RpcException(new ResponseEntity({
-          status: HttpStatus.BAD_REQUEST,
-          message: error.message
-        }));
+      map(
+        (data) =>
+          new ResponseEntity({
+            data,
+            message: 'success',
+          }),
+      ),
+      catchError((error) => {
+        throw new RpcException(
+          new ResponseEntity({
+            status: HttpStatus.BAD_REQUEST,
+            message: error.message,
+          }),
+        );
       }),
     );
   }
@@ -38,11 +43,13 @@ export class CitiesMicroserviceController {
   @MessagePattern('city.find')
   public find(@Payload() filter: Omit<Filter, 'include'>) {
     return from(this.cityRepository.find(filter)).pipe(
-      catchError(error => {
-        throw new RpcException(new ResponseEntity({
-          status: HttpStatus.BAD_REQUEST,
-          message: error.message
-        }));
+      catchError((error) => {
+        throw new RpcException(
+          new ResponseEntity({
+            status: HttpStatus.BAD_REQUEST,
+            message: error.message,
+          }),
+        );
       }),
     );
   }
@@ -50,15 +57,20 @@ export class CitiesMicroserviceController {
   @MessagePattern('city.paginate')
   public index(@Payload() paginateDto: PaginationQueryDto) {
     return from(this.cityService.paginate(paginateDto)).pipe(
-      map(data => new ResponseEntity({
-        data,
-        message: 'success',
-      })),
-      catchError(error => {
-        throw new RpcException(new ResponseEntity({
-          status: HttpStatus.BAD_REQUEST,
-          message: error.message
-        }));
+      map(
+        (data) =>
+          new ResponseEntity({
+            data,
+            message: 'success',
+          }),
+      ),
+      catchError((error) => {
+        throw new RpcException(
+          new ResponseEntity({
+            status: HttpStatus.BAD_REQUEST,
+            message: error.message,
+          }),
+        );
       }),
     );
   }
@@ -66,15 +78,20 @@ export class CitiesMicroserviceController {
   @MessagePattern('city.detail')
   public detail(@Payload('id') id: string) {
     return from(this.cityService.detail(id)).pipe(
-      map(data => new ResponseEntity({
-        data,
-        message: 'success',
-      })),
-      catchError(error => {
-        throw new RpcException(new ResponseEntity({
-          status: HttpStatus.BAD_REQUEST,
-          message: error.message
-        }));
+      map(
+        (data) =>
+          new ResponseEntity({
+            data,
+            message: 'success',
+          }),
+      ),
+      catchError((error) => {
+        throw new RpcException(
+          new ResponseEntity({
+            status: HttpStatus.BAD_REQUEST,
+            message: error.message,
+          }),
+        );
       }),
     );
   }
@@ -82,15 +99,20 @@ export class CitiesMicroserviceController {
   @MessagePattern('city.destroy')
   public destroy(@Payload('id') id: string) {
     return from(this.cityService.destroy(id)).pipe(
-      map(data => new ResponseEntity({
-        data,
-        message: 'success',
-      })),
-      catchError(error => {
-        throw new RpcException(new ResponseEntity({
-          status: HttpStatus.BAD_REQUEST,
-          message: error.message
-        }));
+      map(
+        (data) =>
+          new ResponseEntity({
+            data,
+            message: 'success',
+          }),
+      ),
+      catchError((error) => {
+        throw new RpcException(
+          new ResponseEntity({
+            status: HttpStatus.BAD_REQUEST,
+            message: error.message,
+          }),
+        );
       }),
     );
   }
@@ -101,17 +123,21 @@ export class CitiesMicroserviceController {
     @Payload() updateCitiesDto: UpdateCitiesDto,
   ) {
     return from(this.cityService.update(id, updateCitiesDto)).pipe(
-      map(data => new ResponseEntity({
-        data,
-        message: 'success',
-      })),
-      catchError(error => {
-        throw new RpcException(new ResponseEntity({
-          status: HttpStatus.BAD_REQUEST,
-          message: error.message
-        }));
+      map(
+        (data) =>
+          new ResponseEntity({
+            data,
+            message: 'success',
+          }),
+      ),
+      catchError((error) => {
+        throw new RpcException(
+          new ResponseEntity({
+            status: HttpStatus.BAD_REQUEST,
+            message: error.message,
+          }),
+        );
       }),
     );
   }
 }
-

@@ -11,7 +11,7 @@ import {
   PaginatedChartFilterDTO,
 } from '../dtos/chart-filter.dto';
 import { MqttClient, connect } from 'mqtt';
-import { TelegramService } from '@src/app/telegram';
+import { JWTClaim } from '@src/app/auth/entity/jwt-claim.dto';
 
 @Injectable()
 export class SensorService {
@@ -21,7 +21,6 @@ export class SensorService {
   constructor(
     private readonly sensorRepository: SensorRepository,
     private readonly prismaService: PrismaService,
-    private readonly telegramService: TelegramService,
   ) {
     const topics = process.env.MQTT_TOPICS;
     this.sensorId = process.env.MQTT_SENSOR_ID || '8KVP701731';
@@ -161,8 +160,16 @@ export class SensorService {
     }
   }
 
-  paginate(paginateDto: PaginationQueryDto) {
-    return from(this.sensorRepository.paginate(paginateDto));
+  paginate(paginateDto: PaginationQueryDto, claim: JWTClaim) {
+    return from(
+      this.sensorRepository.paginate(paginateDto, {
+        where: {
+          cage: {
+            siteId: claim.siteId,
+          },
+        },
+      }),
+    );
   }
 
   detail(id: string) {
@@ -219,13 +226,13 @@ export class SensorService {
             if (!lastStatus || lastStatus.status === 0) {
               await this.prismaService.relayLog.create({
                 data: {
-                  sensorId: sensor.id,
+                  sensorId: iot.id,
                   relayNumber: 2,
                   humidity: iot.currentHumidty,
                   temperature: payload.value,
                   amonia: iot.currentAmonia,
                   status: 1,
-                  relayDesc: `Kipas Menyala Kondisi Sensor Amonia : ${iot.currentAmonia ?? 0} PPM, Humidity: ${iot.currentHumidty}, Temperature: ${iot.currentTemperature}`,
+                  relayDesc: `Kipas Menyala Kondisi Sensor Amonia : ${iot.currentAmonia ?? 0} PPM, Humidity: ${iot.currentHumidty}, Temperature: ${payload.value}`,
                 },
               });
             }
@@ -243,9 +250,22 @@ export class SensorService {
                   temperature: payload.value,
                   amonia: iot.currentAmonia,
                   status: 0,
-                  relayDesc: `Kipas Mati Kondisi Sensor Amonia : ${iot.currentAmonia ?? 0} PPM, Humidity: ${iot.currentHumidty}, Temperature: ${iot.currentTemperature}`,
+                  relayDesc: `Kipas Mati Kondisi Sensor Amonia : ${iot.currentAmonia ?? 0} PPM, Humidity: ${iot.currentHumidty}, Temperature: ${payload.value}`,
                 },
               });
+              if (!lastStatus || lastStatus.status === 1) {
+                await this.prismaService.relayLog.create({
+                  data: {
+                    sensorId: sensor.id,
+                    relayNumber: 2,
+                    humidity: iot.currentHumidty,
+                    temperature: payload.value,
+                    amonia: iot.currentAmonia,
+                    status: 0,
+                    relayDesc: `Kipas Mati Kondisi Sensor Amonia : ${iot.currentAmonia ?? 0} PPM, Humidity: ${iot.currentHumidty}, Temperature: ${iot.currentTemperature}`,
+                  },
+                });
+              }
             }
           }
         }
@@ -293,7 +313,7 @@ export class SensorService {
     }
   }
 
-  async getTemperatureChartDaily(filter: ChartFilterDTO) {
+  async getTemperatureChartDaily(filter: ChartFilterDTO, user: JWTClaim) {
     const filterTanggal = filter.tanggal
       ? new Date(filter.tanggal)
       : new Date();
@@ -301,10 +321,10 @@ export class SensorService {
     let cageIds: any = [];
     let where = {};
 
-    if (filter.siteId && filter.siteId != '') {
+    if (user.siteId) {
       const cages = await this.prismaService.cage.findMany({
         where: {
-          siteId: filter.siteId,
+          siteId: user.siteId,
         },
       });
       cageIds = cages.map((x) => x.id);
@@ -359,7 +379,8 @@ export class SensorService {
     };
   }
 
-  async getAmoniaChartDaily(filter: ChartFilterDTO) {
+
+  async getAmoniaChartDaily(filter: ChartFilterDTO, user: JWTClaim) {
     const filterTanggal = filter.tanggal
       ? new Date(filter.tanggal)
       : new Date();
@@ -367,10 +388,10 @@ export class SensorService {
     let cageIds: any = [];
     let where = {};
 
-    if (filter.siteId && filter.siteId != '') {
+    if (user.siteId) {
       const cages = await this.prismaService.cage.findMany({
         where: {
-          siteId: filter.siteId,
+          siteId: user.siteId,
         },
       });
       cageIds = cages.map((x) => x.id);
@@ -422,7 +443,7 @@ export class SensorService {
     };
   }
 
-  async getHumidityDaily(filter: ChartFilterDTO) {
+  async getHumidityDaily(filter: ChartFilterDTO, user: JWTClaim) {
     const filterTanggal = filter.tanggal
       ? new Date(filter.tanggal)
       : new Date();
@@ -431,10 +452,10 @@ export class SensorService {
     let cageIds: any = [];
     let where = {};
 
-    if (filter.siteId && filter.siteId != '') {
+    if (user.siteId) {
       const cages = await this.prismaService.cage.findMany({
         where: {
-          siteId: filter.siteId,
+          siteId: user.siteId,
         },
       });
       cageIds = cages.map((x) => x.id);
@@ -487,16 +508,16 @@ export class SensorService {
     };
   }
 
-  async getRelayLog(filter: PaginatedChartFilterDTO) {
+  async getRelayLog(filter: PaginatedChartFilterDTO, user: JWTClaim) {
     // let filterTanggal = filter.tanggal ? new Date(filter.tanggal) : new Date();
     // const startOfDay = filterTanggal.setHours(0, 0, 0, 0);
     let cageIds: any = [];
     let where = {};
 
-    if (filter.siteId && filter.siteId != '') {
+    if (user.siteId) {
       const cages = await this.prismaService.cage.findMany({
         where: {
-          siteId: filter.siteId,
+          siteId: user.siteId,
         },
       });
       cageIds = cages.map((x) => x.id);

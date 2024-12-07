@@ -1,1 +1,1 @@
-export * from './biaya.service'
+export * from './biaya.service';

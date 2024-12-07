@@ -1,5 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import { Prisma } from '@prisma/client';
+import { from } from 'rxjs';
 import { PaginationQueryDto } from 'src/common/dtos/pagination-query.dto';
 import { PaginatedEntity } from 'src/common/entities/paginated.entity';
 import { PrismaService } from 'src/platform/database/services/prisma.service';
@@ -26,7 +27,9 @@ export class UsersRepository {
         take: +limit,
         ...filter,
       }),
-      this.prismaService.user.count(),
+      this.prismaService.user.count({
+        where: filter?.where,
+      }),
     ]);
 
     return new PaginatedEntity(data, {
@@ -34,6 +37,19 @@ export class UsersRepository {
       page,
       totalData: count,
     });
+  }
+
+  getMySite(userId: string) {
+    return from(
+      this.prismaService.userSite.findMany({
+        where: {
+          userId,
+        },
+        include: {
+          site: true,
+        },
+      }),
+    );
   }
 
   public async create(data: Prisma.UserCreateInput) {

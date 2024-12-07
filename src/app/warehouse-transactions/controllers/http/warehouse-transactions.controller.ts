@@ -56,13 +56,16 @@ export class WarehouseTransactionsHttpController {
   @Get()
   public index(
     @Query() paginateDto: PaginationQueryDto,
+    @User() user: { id: string; siteId: string },
   ): Observable<ResponseEntity> {
-    return this.warehousetransactionService.paginate(paginateDto).pipe(
-      map((data) => new ResponseEntity({ data, message: 'success' })),
-      catchError((error) => {
-        throw new HttpException(error.message, HttpStatus.NOT_FOUND);
-      }),
-    );
+    return this.warehousetransactionService
+      .paginate(paginateDto, user.siteId)
+      .pipe(
+        map((data) => new ResponseEntity({ data, message: 'success' })),
+        catchError((error) => {
+          throw new HttpException(error.message, HttpStatus.NOT_FOUND);
+        }),
+      );
   }
 
   @UseGuards(AuthGuard)

@@ -16,5 +16,5 @@ export class CreateCameraDTO {
 
   @ApiProperty()
   @IsNotEmpty()
-  cageId:number;
+  cageId: number;
 }

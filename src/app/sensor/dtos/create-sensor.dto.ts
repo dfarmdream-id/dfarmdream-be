@@ -12,17 +12,17 @@ export class CreateSensorDTO {
 
   @ApiProperty()
   @IsNotEmpty()
-  cageId:number;
+  cageId: number;
 
   @ApiProperty()
   @IsNotEmpty()
-  tempThreshold:number;
+  tempThreshold: number;
 
   @ApiProperty()
   @IsNotEmpty()
-  humidityThreshold:number;
+  humidityThreshold: number;
 
   @ApiProperty()
   @IsNotEmpty()
-  amoniaThreshold:number;
+  amoniaThreshold: number;
 }

@@ -29,14 +29,17 @@ import { SensorModule } from './sensor/sensor.module';
 import { CctvCameraModule } from './cctv-camera';
 import { AbsenModule } from './absen';
 import { TaskModule } from './task/task.module';
-import { TelegrafModule } from 'nestjs-telegraf';
-import { session } from 'telegraf';
-import { TelegramModule } from './telegram';
 import { ScheduleModule } from '@nestjs/schedule';
 import { KategoriBiayaModule } from './kategori-biaya';
 import { BiayaModule } from './biaya';
 import { PenerimaanModalModule } from './penerimaan-modal/penerimaan-modal.module';
 import { PersediaanBarangModule } from './persediaan-barang';
+import { GroupCoasModule } from './group-coas';
+import { JournalHeadersModule } from './journal-headers';
+import { JournalTemplatesModule } from './journal-templates';
+import { JournalTemplateDetailsModule } from './journal-template-details';
+import { JournalTypesModule } from './journal-types';
+import { CoasModule } from './coas';
 
 @ApiTags('App Spec')
 @Controller()
@@ -84,21 +87,17 @@ class AppController {
     SensorModule,
     AbsenModule,
     TaskModule,
-    TelegramModule,
-    TelegrafModule.forRootAsync({
-      useFactory: async () => {
-        return {
-          token: process.env.TELEGRAM_TOKEN??'',
-          middlewares: [session()],
-          include: [TelegramModule],
-        };
-      },
-    }),
+    CoasModule,
     KategoriBiayaModule,
     BiayaModule,
     ScheduleModule.forRoot(),
     PenerimaanModalModule,
-    PersediaanBarangModule
+    PersediaanBarangModule,
+    GroupCoasModule,
+    JournalHeadersModule,
+    JournalTemplatesModule,
+    JournalTemplateDetailsModule,
+    JournalTypesModule,
   ],
   controllers: [AppController],
   exports: [FilesModule],

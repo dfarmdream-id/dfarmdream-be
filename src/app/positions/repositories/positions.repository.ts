@@ -54,7 +54,7 @@ export class PositionsRepository {
   public create(data: Prisma.PositionCreateInput) {
     data.checkinTime = new Date(`1970-01-01T${data.checkinTime}:00.000Z`); // Waktu yang valid ISO 8601
     data.checkoutTime = new Date(`1970-01-01T${data.checkoutTime}:00.000Z`); // Waktu yang valid ISO 8601
-    
+
     return from(this.prismaService.position.create({ data })).pipe(
       catchError((error) => {
         throw error;

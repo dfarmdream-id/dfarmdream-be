@@ -2,10 +2,11 @@ import { Injectable } from '@nestjs/common';
 import { from } from 'rxjs';
 import { map, catchError } from 'rxjs';
 import { Prisma, TipeBarang } from '@prisma/client';
-import { PaginationQueryDto } from 'src/common/dtos/pagination-query.dto';
 import { PaginatedEntity } from 'src/common/entities/paginated.entity';
 import { PrismaService } from 'src/platform/database/services/prisma.service';
 import { CreatePersediaanBarang, UpdatePersediaanBarangDTO } from '../dtos';
+import { FilterPersediaanBarangDTO } from '../dtos/filter-persediaan-barang.dto';
+import { FilterTransaksiBarangDTO } from '../dtos/filter-transaksi-barang.dto';
 
 export type Filter = {
   where?: Prisma.PersediaanPakanObatWhereInput;
@@ -16,37 +17,54 @@ export type Filter = {
   include?: Prisma.PersediaanPakanObatInclude;
 };
 
+export type FilterTransaksi = {
+  where?: Prisma.KartuStokBarangWhereInput;
+  orderBy?: Prisma.KartuStokBarangOrderByWithRelationInput;
+  cursor?: Prisma.KartuStokBarangWhereUniqueInput;
+  take?: number;
+  skip?: number;
+  include?: Prisma.KartuStokBarangInclude;
+};
+
 @Injectable()
 export class PersediaanBarangRepository {
   constructor(private readonly prismaService: PrismaService) {}
 
-  public paginate(paginateDto: PaginationQueryDto, filter?: Filter) {
-    const { limit = 10, page = 1, q } = paginateDto;
+  public paginate(paginateDto: FilterPersediaanBarangDTO, filter?: Filter) {
+    const { limit = 10, page = 1, q, tipeBarang } = paginateDto;
 
-    let where:any = {
-      deletedAt:null,
-      ...filter?.where
+    let where: any = {
+      deletedAt: null,
+      ...filter?.where,
+    };
+
+    if (tipeBarang && tipeBarang != '') {
+      where = {
+        ...where,
+        tipeBarang: tipeBarang,
+      };
     }
 
-    if(q && q!=''){
+    if (q && q != '') {
       where = {
         ...where,
         OR: [
           { namaBarang: { contains: q, mode: 'insensitive' } },
           {
-            site:{
-              name:{contains:q, mode:'insensitive'}
-            }
+            site: {
+              name: { contains: q, mode: 'insensitive' },
+            },
           },
           {
-            cage:{
-              name:{contains:q, mode:'insensitive'}
-            }
+            cage: {
+              name: { contains: q, mode: 'insensitive' },
+            },
           },
-          { tipeBarang: { contains: q, mode: 'insensitive' } },
+          // { tipeBarang: { contains: q, mode: 'insensitive' } },
         ],
-      }
+      };
     }
+
     return from(
       this.prismaService.$transaction([
         this.prismaService.persediaanPakanObat.findMany({
@@ -55,11 +73,11 @@ export class PersediaanBarangRepository {
           where: where,
           orderBy: filter?.orderBy,
           cursor: filter?.cursor,
-          include:{
-            site:true,
-            cage:true,
-          }
-        }), 
+          include: {
+            site: true,
+            cage: true,
+          },
+        }),
         this.prismaService.persediaanPakanObat.count({
           where: filter?.where,
         }),
@@ -79,17 +97,89 @@ export class PersediaanBarangRepository {
     );
   }
 
+  public paginateTransaksi(
+    paginateDto: FilterTransaksiBarangDTO,
+    filter?: FilterTransaksi,
+  ) {
+    const { limit = 10, page = 1, q } = paginateDto;
+
+    let where: any = {
+      deletedAt: null,
+      ...filter?.where,
+    };
+
+    if (q && q != '') {
+      where = {
+        ...where,
+        OR: [
+          {
+            barang: {
+              namaBarang: { contains: q, mode: 'insensitive' },
+            },
+          },
+          {
+            site: {
+              name: { contains: q, mode: 'insensitive' },
+            },
+          },
+          {
+            cage: {
+              name: { contains: q, mode: 'insensitive' },
+            },
+          },
+        ],
+      };
+    }
+
+    return from(
+      this.prismaService.$transaction([
+        this.prismaService.kartuStokBarang.findMany({
+          skip: (+page - 1) * +limit,
+          take: +limit,
+          where: where,
+          orderBy: filter?.orderBy,
+          cursor: filter?.cursor,
+          include: {
+            site: true,
+            cage: true,
+            barang: true,
+            karyawan: true,
+          },
+        }),
+        this.prismaService.kartuStokBarang.count({
+          where: filter?.where,
+        }),
+      ]),
+    ).pipe(
+      map(
+        ([data, count]) =>
+          new PaginatedEntity(data, {
+            limit,
+            page,
+            totalData: count,
+          }),
+      ),
+      catchError((error) => {
+        throw error;
+      }),
+    );
+  }
+
   public create(data: CreatePersediaanBarang) {
-    return from(this.prismaService.persediaanPakanObat.create({ data:{
-      namaBarang:data.namaBarang,
-      qty:data.qty,
-      cageId: data.cageId,
-      siteId: data.siteId,
-      harga: data.harga,
-      total: data.harga * data.qty,
-      status:1,
-      tipeBarang: TipeBarang[data.tipeBarang]
-    } })).pipe(
+    return from(
+      this.prismaService.persediaanPakanObat.create({
+        data: {
+          namaBarang: data.namaBarang,
+          qty: data.qty,
+          cageId: data.cageId,
+          siteId: data.siteId,
+          harga: data.harga,
+          total: data.harga * data.qty,
+          status: 1,
+          tipeBarang: TipeBarang[data.tipeBarang],
+        },
+      }),
+    ).pipe(
       catchError((error) => {
         throw error;
       }),
@@ -100,15 +190,20 @@ export class PersediaanBarangRepository {
     where: Prisma.PersediaanPakanObatWhereUniqueInput,
     data: UpdatePersediaanBarangDTO,
   ) {
-    return from(this.prismaService.persediaanPakanObat.update({ where, data:{
-      qty: data.qty,
-      cageId: data.cageId,
-      siteId: data.siteId,
-      harga: data.harga,
-      total: data.harga! * data.qty!,
-      status: 1,
-      tipeBarang: TipeBarang[data.tipeBarang!]
-    } })).pipe(
+    return from(
+      this.prismaService.persediaanPakanObat.update({
+        where,
+        data: {
+          qty: data.qty,
+          cageId: data.cageId,
+          siteId: data.siteId,
+          harga: data.harga,
+          total: data.harga! * data.qty!,
+          status: 1,
+          tipeBarang: TipeBarang[data.tipeBarang!],
+        },
+      }),
+    ).pipe(
       catchError((error) => {
         throw error;
       }),

@@ -1,1 +1,1 @@
-export * from './http/sensor.controller'
+export * from './http/sensor.controller';

@@ -3,6 +3,7 @@ import { CageRacksRepository } from '../repositories';
 import { CreateChickenCageRacksDto, UpdateChickenCageRacksDto } from '../dtos';
 import { from } from 'rxjs';
 import { GetCageRackDto } from '../dtos/get-cage-rack.dto';
+import { Prisma } from '@prisma/client';
 
 @Injectable()
 export class ChickenCageRacksService {
@@ -10,14 +11,34 @@ export class ChickenCageRacksService {
     private readonly chickencagerackRepository: CageRacksRepository,
   ) {}
 
-  public paginate(paginateDto: GetCageRackDto) {
-    const w = {};
+  public paginate(paginateDto: GetCageRackDto, siteId: string) {
+    const { q, cageId } = paginateDto;
 
-    if (paginateDto.cageId) {
+    // Base filter
+    const w: Prisma.CageRackWhereInput = {
+      cage: {
+        siteId: siteId,
+      },
+    };
+
+    // Filter berdasarkan `cageId`
+    if (cageId) {
       Object.assign(w, {
-        cageId: paginateDto.cageId,
+        cageId,
       });
     }
+
+    // Pencarian berdasarkan `q` untuk `name` dan `cage.name`
+    if (q) {
+      Object.assign(w, {
+        OR: [
+          { name: { contains: q, mode: 'insensitive' } }, // Pencarian di kolom `name`
+          { cage: { name: { contains: q, mode: 'insensitive' } } }, // Pencarian di `cage.name`
+        ],
+      });
+    }
+
+    console.log('Generated Where Clause:', JSON.stringify(w, null, 2));
 
     return from(
       this.chickencagerackRepository.paginate(paginateDto, {
