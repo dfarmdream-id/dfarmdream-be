@@ -12,7 +12,7 @@ export class CreateBiayaDTO {
 
   @ApiProperty()
   @IsNotEmpty()
-  biaya:number;
+  biaya: number;
 
   @ApiProperty()
   @IsOptional()
@@ -20,13 +20,13 @@ export class CreateBiayaDTO {
 
   @ApiProperty()
   @IsNotEmpty()
-  cageId:string;
+  cageId: string;
 
   @ApiProperty()
   @IsNotEmpty()
-  userId:string;
+  userId: string;
 
   @ApiProperty()
   @IsNotEmpty()
-  status:number;
+  status: number;
 }

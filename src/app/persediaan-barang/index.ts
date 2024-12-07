@@ -1,1 +1,1 @@
-export * from './persediaan-barang.module'
+export * from './persediaan-barang.module';

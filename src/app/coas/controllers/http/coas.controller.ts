@@ -27,20 +27,24 @@ export class CoasHttpController {
   constructor(private readonly coaService: CoasService) {}
 
   @Post()
-  public create(@Body() createCoasDto: CreateCoasDto): Observable<ResponseEntity> {
+  public create(
+    @Body() createCoasDto: CreateCoasDto,
+  ): Observable<ResponseEntity> {
     return this.coaService.create(createCoasDto).pipe(
-      map(data => new ResponseEntity({ data, message: 'success' })),
-      catchError(error => {
+      map((data) => new ResponseEntity({ data, message: 'success' })),
+      catchError((error) => {
         throw new HttpException(error.message, HttpStatus.BAD_REQUEST);
       }),
     );
   }
 
   @Get()
-  public index(@Query() paginateDto: PaginationQueryDto): Observable<ResponseEntity> {
+  public index(
+    @Query() paginateDto: PaginationQueryDto,
+  ): Observable<ResponseEntity> {
     return this.coaService.paginate(paginateDto).pipe(
-      map(data => new ResponseEntity({ data, message: 'success' })),
-      catchError(error => {
+      map((data) => new ResponseEntity({ data, message: 'success' })),
+      catchError((error) => {
         throw new HttpException(error.message, HttpStatus.NOT_FOUND);
       }),
     );
@@ -49,8 +53,8 @@ export class CoasHttpController {
   @Get(':id')
   public detail(@Param('id') id: string): Observable<ResponseEntity> {
     return this.coaService.detail(id).pipe(
-      map(data => new ResponseEntity({ data, message: 'success' })),
-      catchError(error => {
+      map((data) => new ResponseEntity({ data, message: 'success' })),
+      catchError((error) => {
         throw new HttpException(error.message, HttpStatus.NOT_FOUND);
       }),
     );
@@ -59,8 +63,8 @@ export class CoasHttpController {
   @Delete(':id')
   public destroy(@Param('id') id: string): Observable<ResponseEntity> {
     return this.coaService.destroy(id).pipe(
-      map(data => new ResponseEntity({ data, message: 'success' })),
-      catchError(error => {
+      map((data) => new ResponseEntity({ data, message: 'success' })),
+      catchError((error) => {
         throw new HttpException(error.message, HttpStatus.BAD_REQUEST);
       }),
     );
@@ -72,11 +76,10 @@ export class CoasHttpController {
     @Body() updateCoasDto: UpdateCoasDto,
   ): Observable<ResponseEntity> {
     return this.coaService.update(id, updateCoasDto).pipe(
-      map(data => new ResponseEntity({ data, message: 'success' })),
-      catchError(error => {
+      map((data) => new ResponseEntity({ data, message: 'success' })),
+      catchError((error) => {
         throw new HttpException(error.message, HttpStatus.BAD_REQUEST);
       }),
     );
   }
 }
-

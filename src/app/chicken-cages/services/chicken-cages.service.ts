@@ -40,6 +40,11 @@ export class ChickenCagesService {
       this.chickencageRepository.paginate(paginateDto, {
         include: {
           site: true,
+          CctvCamera: {
+            where: {
+              deletedAt: null,
+            },
+          },
         },
         where,
         orderBy: {

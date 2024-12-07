@@ -6,7 +6,9 @@ import { CreateKategoriBiaya, UpdateKategoriBiayaDTO } from '../dtos';
 
 @Injectable()
 export class KategoriBiayaService {
-  constructor(private readonly kategoriBiayaRepository: KategoriBiayaRepository) {}
+  constructor(
+    private readonly kategoriBiayaRepository: KategoriBiayaRepository,
+  ) {}
 
   paginate(paginateDto: PaginationQueryDto) {
     return from(this.kategoriBiayaRepository.paginate(paginateDto));
@@ -17,7 +19,7 @@ export class KategoriBiayaService {
   }
 
   update(id: string, payload: UpdateKategoriBiayaDTO) {
-    return from(this.kategoriBiayaRepository.update({id},payload))
+    return from(this.kategoriBiayaRepository.update({ id }, payload));
   }
 
   destroy(id: string) {

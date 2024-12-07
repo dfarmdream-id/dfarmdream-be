@@ -1,28 +1,28 @@
-import { ApiProperty, ApiPropertyOptional } from "@nestjs/swagger";
-import { IsNotEmpty, IsOptional, IsString } from "class-validator";
+import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
+import { IsNotEmpty, IsOptional, IsString } from 'class-validator';
 
-export class TransaksiBarangDTO{
-    @ApiProperty()
-    @IsNotEmpty()
-    siteId:string;
+export class TransaksiBarangDTO {
+  @ApiProperty()
+  @IsNotEmpty()
+  siteId: string;
 
-    @ApiProperty()
-    @IsString()
-    cageId:string;
+  @ApiProperty()
+  @IsString()
+  cageId: string;
 
-    @ApiProperty()
-    @IsString()
-    barangId:string;
-    
-    @ApiProperty()
-    @IsNotEmpty()
-    qty:number
+  @ApiProperty()
+  @IsString()
+  barangId: string;
 
-    @ApiProperty()
-    @IsNotEmpty()
-    tipe:string;
+  @ApiProperty()
+  @IsNotEmpty()
+  qty: number;
 
-    @ApiPropertyOptional()
-    @IsOptional()
-    keterangan:string;
+  @ApiProperty()
+  @IsNotEmpty()
+  tipe: string;
+
+  @ApiPropertyOptional()
+  @IsOptional()
+  keterangan: string;
 }

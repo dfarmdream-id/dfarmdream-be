@@ -16,17 +16,35 @@ export class DashboardsService {
     private readonly warehouseTransactionRepository: WarehouseTransactionsRepository,
   ) {}
 
-  public summary(siteId?: string) {
+  public summary(
+    siteId: string,
+    {
+      date,
+      cageId,
+    }: {
+      date: string;
+      cageId: string;
+    },
+  ) {
     return of({}).pipe(
       switchMap(async () => {
         const user = await this.userRepository.count({
-          where: { deletedAt: null, sites: { some: { siteId: siteId } } },
+          where: {
+            deletedAt: null,
+            sites: { some: { siteId: siteId } },
+          },
         });
+
         const cage = await firstValueFrom(
           this.chickenCageRepository.count({
-            where: { deletedAt: null, siteId },
+            where: {
+              deletedAt: null,
+              siteId,
+              ...(cageId && { id: cageId }), // Filter by cageId if provided
+            },
           }),
         );
+
         const investor = await firstValueFrom(
           this.investorRepository.count({
             where: {
@@ -39,12 +57,20 @@ export class DashboardsService {
             },
           }),
         );
+
         const weightTotal = await firstValueFrom(
           this.warehouseTransactionRepository
             .sum('weight', {
               type: 'IN',
               deletedAt: null,
               siteId,
+              ...(cageId && { cageId }), // Filter by cageId if provided
+              ...(date && {
+                createdAt: {
+                  gte: new Date(`${date}T00:00:00Z`), // Start of the day
+                  lt: new Date(`${date}T23:59:59Z`), // End of the day
+                },
+              }),
             })
             .pipe(map((qty) => qty._sum.weight)),
         );
@@ -55,6 +81,13 @@ export class DashboardsService {
               type: 'IN',
               deletedAt: null,
               siteId,
+              ...(cageId && { cageId }), // Filter by cageId if provided
+              ...(date && {
+                createdAt: {
+                  gte: new Date(`${date}T00:00:00Z`), // Start of the day
+                  lt: new Date(`${date}T23:59:59Z`), // End of the day
+                },
+              }),
             })
             .pipe(map((qty) => qty._sum.qty)),
         );
@@ -70,7 +103,16 @@ export class DashboardsService {
     );
   }
 
-  public chart(siteId: string) {
+  public chart(
+    siteId: string,
+    {
+      date,
+      cageId,
+    }: {
+      date: string;
+      cageId: string;
+    },
+  ) {
     const alive = this.chickendRepository.count({
       where: {
         status: 'ALIVE',
@@ -78,10 +120,18 @@ export class DashboardsService {
         rack: {
           cage: {
             siteId: siteId,
+            ...(cageId && { id: cageId }), // Filter by cageId jika tersedia
           },
         },
+        ...(date && {
+          createdAt: {
+            gte: new Date(`${date}T00:00:00Z`), // Start of the day
+            lt: new Date(`${date}T23:59:59Z`), // End of the day
+          },
+        }),
       },
     });
+
     const dead = this.chickendRepository.count({
       where: {
         status: 'DEAD',
@@ -89,8 +139,15 @@ export class DashboardsService {
         rack: {
           cage: {
             siteId: siteId,
+            ...(cageId && { id: cageId }), // Filter by cageId jika tersedia
           },
         },
+        ...(date && {
+          createdAt: {
+            gte: new Date(`${date}T00:00:00Z`), // Start of the day
+            lt: new Date(`${date}T23:59:59Z`), // End of the day
+          },
+        }),
       },
     });
 

@@ -22,15 +22,20 @@ export class CoasMicroserviceController {
   @MessagePattern('coa.create')
   public create(@Payload() createCoasDto: CreateCoasDto) {
     return from(this.coaService.create(createCoasDto)).pipe(
-      map(data => new ResponseEntity({
-        data,
-        message: 'success',
-      })),
-      catchError(error => { 
-        throw new RpcException(new ResponseEntity({
-          status: HttpStatus.BAD_REQUEST,
-          message: error.message
-        }));
+      map(
+        (data) =>
+          new ResponseEntity({
+            data,
+            message: 'success',
+          }),
+      ),
+      catchError((error) => {
+        throw new RpcException(
+          new ResponseEntity({
+            status: HttpStatus.BAD_REQUEST,
+            message: error.message,
+          }),
+        );
       }),
     );
   }
@@ -38,11 +43,13 @@ export class CoasMicroserviceController {
   @MessagePattern('coa.find')
   public find(@Payload() filter: Omit<Filter, 'include'>) {
     return from(this.coaRepository.find(filter)).pipe(
-      catchError(error => {
-        throw new RpcException(new ResponseEntity({
-          status: HttpStatus.BAD_REQUEST,
-          message: error.message
-        }));
+      catchError((error) => {
+        throw new RpcException(
+          new ResponseEntity({
+            status: HttpStatus.BAD_REQUEST,
+            message: error.message,
+          }),
+        );
       }),
     );
   }
@@ -50,15 +57,20 @@ export class CoasMicroserviceController {
   @MessagePattern('coa.paginate')
   public index(@Payload() paginateDto: PaginationQueryDto) {
     return from(this.coaService.paginate(paginateDto)).pipe(
-      map(data => new ResponseEntity({
-        data,
-        message: 'success',
-      })),
-      catchError(error => {
-        throw new RpcException(new ResponseEntity({
-          status: HttpStatus.BAD_REQUEST,
-          message: error.message
-        }));
+      map(
+        (data) =>
+          new ResponseEntity({
+            data,
+            message: 'success',
+          }),
+      ),
+      catchError((error) => {
+        throw new RpcException(
+          new ResponseEntity({
+            status: HttpStatus.BAD_REQUEST,
+            message: error.message,
+          }),
+        );
       }),
     );
   }
@@ -66,15 +78,20 @@ export class CoasMicroserviceController {
   @MessagePattern('coa.detail')
   public detail(@Payload('id') id: string) {
     return from(this.coaService.detail(id)).pipe(
-      map(data => new ResponseEntity({
-        data,
-        message: 'success',
-      })),
-      catchError(error => {
-        throw new RpcException(new ResponseEntity({
-          status: HttpStatus.BAD_REQUEST,
-          message: error.message
-        }));
+      map(
+        (data) =>
+          new ResponseEntity({
+            data,
+            message: 'success',
+          }),
+      ),
+      catchError((error) => {
+        throw new RpcException(
+          new ResponseEntity({
+            status: HttpStatus.BAD_REQUEST,
+            message: error.message,
+          }),
+        );
       }),
     );
   }
@@ -82,15 +99,20 @@ export class CoasMicroserviceController {
   @MessagePattern('coa.destroy')
   public destroy(@Payload('id') id: string) {
     return from(this.coaService.destroy(id)).pipe(
-      map(data => new ResponseEntity({
-        data,
-        message: 'success',
-      })),
-      catchError(error => {
-        throw new RpcException(new ResponseEntity({
-          status: HttpStatus.BAD_REQUEST,
-          message: error.message
-        }));
+      map(
+        (data) =>
+          new ResponseEntity({
+            data,
+            message: 'success',
+          }),
+      ),
+      catchError((error) => {
+        throw new RpcException(
+          new ResponseEntity({
+            status: HttpStatus.BAD_REQUEST,
+            message: error.message,
+          }),
+        );
       }),
     );
   }
@@ -101,17 +123,21 @@ export class CoasMicroserviceController {
     @Payload() updateCoasDto: UpdateCoasDto,
   ) {
     return from(this.coaService.update(id, updateCoasDto)).pipe(
-      map(data => new ResponseEntity({
-        data,
-        message: 'success',
-      })),
-      catchError(error => {
-        throw new RpcException(new ResponseEntity({
-          status: HttpStatus.BAD_REQUEST,
-          message: error.message
-        }));
+      map(
+        (data) =>
+          new ResponseEntity({
+            data,
+            message: 'success',
+          }),
+      ),
+      catchError((error) => {
+        throw new RpcException(
+          new ResponseEntity({
+            status: HttpStatus.BAD_REQUEST,
+            message: error.message,
+          }),
+        );
       }),
     );
   }
 }
-

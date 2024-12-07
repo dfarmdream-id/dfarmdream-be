@@ -8,6 +8,11 @@ import {
 import { catchError, concatMap, from, map } from 'rxjs';
 import { DateTime } from 'luxon';
 import { PricesRepository } from '@src/app/prices/repositories';
+import {
+  Prisma,
+  WarehouseTransactionCategoryEnum,
+  WarehouseTransactionType,
+} from '@prisma/client';
 
 @Injectable()
 export class WarehouseTransactionsService {
@@ -17,21 +22,66 @@ export class WarehouseTransactionsService {
   ) {}
 
   public paginate(paginateDto: PaginationQueryDto, siteId: string) {
-    return from(
-      this.warehousetransactionRepository.paginate(paginateDto, {
-        where: { siteId },
-        orderBy: {
-          createdAt: 'desc',
-        },
-        include: {
-          cage: true,
-          site: true,
-          createdBy: true,
-          items: true,
-          price: true,
-        },
-      }),
-    );
+    const { q } = paginateDto;
+
+    // Mapping untuk type dan category
+    const typeMapping: Record<string, WarehouseTransactionType> = {
+      masuk: 'IN',
+      keluar: 'OUT',
+    };
+
+    const categoryMapping: Record<string, WarehouseTransactionCategoryEnum> = {
+      telur: 'EGG',
+      ayam: 'CHICKEN',
+    };
+
+    // Mapping nilai pencarian
+    const mappedType =
+      typeMapping[q.toLowerCase().replace(/[^a-zA-Z0-9]/g, '')] || null;
+    const mappedCategory =
+      categoryMapping[q.toLowerCase().replace(/[^a-zA-Z0-9]/g, '')] || null;
+
+    // Filter `OR` conditions dynamically
+    const searchConditions: Prisma.WarehouseTransactionWhereInput[] = [];
+
+    if (mappedType) {
+      searchConditions.push({ type: { equals: mappedType } });
+    }
+
+    if (mappedCategory) {
+      searchConditions.push({ category: { equals: mappedCategory } });
+    }
+
+    if (q) {
+      searchConditions.push(
+        { site: { name: { contains: q, mode: 'insensitive' } } },
+        { cage: { name: { contains: q, mode: 'insensitive' } } },
+        { createdBy: { fullName: { contains: q, mode: 'insensitive' } } },
+      );
+    }
+
+    const where: Prisma.WarehouseTransactionWhereInput = {
+      siteId,
+      ...(searchConditions.length > 0 && { OR: searchConditions }),
+    };
+
+    // Debugging untuk `where` (Opsional)
+    console.log('Generated Where Clause:', JSON.stringify(where, null, 2));
+
+    // Mengembalikan hasil paginasi
+    return this.warehousetransactionRepository.paginate(paginateDto, {
+      where,
+      include: {
+        cage: true,
+        site: true,
+        createdBy: true,
+        items: true,
+        price: true,
+      },
+      orderBy: {
+        createdAt: 'desc',
+      },
+    });
   }
 
   public detail(id: string) {

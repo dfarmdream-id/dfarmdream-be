@@ -118,5 +118,5 @@ export class CreateUsersDto {
 
   @ApiProperty()
   @IsOptional()
-  imageId?:string
+  imageId?: string;
 }

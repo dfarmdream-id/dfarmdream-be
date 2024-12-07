@@ -1,1 +1,1 @@
-export * from './cctv-camera.service'
+export * from './cctv-camera.service';

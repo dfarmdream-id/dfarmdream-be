@@ -16,22 +16,21 @@ enum UserStatus {
 }
 
 model User {
-  id                   String      @id @default(uuid())
-  nip                  String?
-  email                String?
-  username             String
-  fullName             String?
-  password             String
-  identityId           String?
-  phone                String?
-  address              String?
-  photoProfile         String?
-  position             Position?   @relation(fields: [positionId], references: [id])
-  status               UserStatus? @default(INACTIVE)
-  telegramVerification String?
-  telegramId           String?
-  telegramUsername     String?
-  lastSendNotification DateTime? @db.Timestamptz()
+  id           String      @id @default(uuid())
+  nip          String?
+  email        String?
+  username     String
+  fullName     String?
+  password     String
+  identityId   String?
+  phone        String?
+  address      String?
+  photoProfile String?
+  position     Position?   @relation(fields: [positionId], references: [id])
+  status       UserStatus? @default(INACTIVE)
+  lastSendNotification DateTime?
+  telegramId String?
+  telegramUsername String?
 
   deletedAt                 DateTime?
   createdAt                 DateTime                    @default(now())
@@ -187,6 +186,7 @@ model Site {
   PenerimaanModal      PenerimaanModal[]
   PersediaanPakanObat  PersediaanPakanObat[]
   KartuStokBarang      KartuStokBarang[]
+  CashFlowCategory     CashFlowCategory[]
 }
 
 model Position {
@@ -380,6 +380,8 @@ model CashFlowCategory {
   id        String     @id @default(uuid())
   code      String?    @default(cuid())
   name      String
+  site      Site?      @relation(fields: [siteId], references: [id])
+  siteId    String?
   deletedAt DateTime?
   createdAt DateTime   @default(now())
   updatedAt DateTime   @updatedAt
@@ -498,6 +500,7 @@ model IotSensor {
   lampStatus         Float?
   logs               SensorLog[]
   relayLog           RelayLog[]
+  telegramLog       TelegramMesasgeLog[]
   deletedAt          DateTime?
   createdAt          DateTime    @default(now())
   updatedAt          DateTime    @updatedAt
@@ -507,6 +510,22 @@ model SensorLog {
   id          String     @id @unique @default(uuid())
   sensorId    String?
   sensor      IotSensor? @relation(fields: [sensorId], references: [id])
+  temperature Float
+  humidity    Float
+  airQuality  Float
+  amonia      Float
+  ldrValue    Int
+  epoch       BigInt
+  createdAt   DateTime   @default(now())
+  updatedAt   DateTime   @updatedAt
+}
+
+model TelegramMesasgeLog {
+  id          String     @id @unique @default(uuid())
+  sensorId    String?
+  userId      String?
+  sensor      IotSensor? @relation(fields: [sensorId], references: [id])
+  message     String?
   temperature Float
   humidity    Float
   airQuality  Float

@@ -5,9 +5,8 @@ import { ScheduleModule } from '@nestjs/schedule';
 import { AbsenModule } from '../absen';
 
 @Module({
-  imports:[AbsenModule],
+  imports: [AbsenModule],
   controllers: [TaskController],
   providers: [TaskService],
-
 })
 export class TaskModule {}

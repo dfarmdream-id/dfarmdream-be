@@ -7,7 +7,7 @@ import { from, Observable } from 'rxjs';
 @Injectable()
 export class ProvincesService {
   constructor(private readonly provinceRepository: ProvincesRepository) {}
- 
+
   public paginate(paginateDto: PaginationQueryDto) {
     return from(this.provinceRepository.paginate(paginateDto));
   }
@@ -28,4 +28,3 @@ export class ProvincesService {
     return from(this.provinceRepository.update({ id }, updateProvincesDto));
   }
 }
-

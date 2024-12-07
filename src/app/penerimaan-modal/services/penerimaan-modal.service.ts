@@ -7,7 +7,9 @@ import { from } from 'rxjs';
 
 @Injectable()
 export class PenerimaanModalService {
-  constructor(private readonly penerimaanModalRepo:PenerimaanModalRepository){}
+  constructor(
+    private readonly penerimaanModalRepo: PenerimaanModalRepository,
+  ) {}
 
   create(payload: CreatePenerimaanModal) {
     return from(this.penerimaanModalRepo.create(payload));
@@ -22,7 +24,7 @@ export class PenerimaanModalService {
   }
 
   update(id: string, payload: UpdatePenerimaanModalDTO) {
-    return from(this.penerimaanModalRepo.update({id},payload))
+    return from(this.penerimaanModalRepo.update({ id }, payload));
   }
 
   destroy(id: string) {

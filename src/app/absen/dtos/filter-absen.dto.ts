@@ -1,28 +1,28 @@
-import { ApiPropertyOptional } from "@nestjs/swagger";
-import { IsOptional } from "class-validator";
+import { ApiPropertyOptional } from '@nestjs/swagger';
+import { IsOptional } from 'class-validator';
 
-export class FilterAbsenDTO{
-    @ApiPropertyOptional()
-    @IsOptional()
-    search?:string
+export class FilterAbsenDTO {
+  @ApiPropertyOptional()
+  @IsOptional()
+  search?: string;
 
-    @ApiPropertyOptional()
-    @IsOptional()
-    lokasi?:string
+  @ApiPropertyOptional()
+  @IsOptional()
+  lokasi?: string;
 
-    @ApiPropertyOptional()
-    @IsOptional()
-    kandang?:string
+  @ApiPropertyOptional()
+  @IsOptional()
+  kandang?: string;
 
-    @ApiPropertyOptional()
-    @IsOptional()
-    tanggal?:Date
+  @ApiPropertyOptional()
+  @IsOptional()
+  tanggal?: Date;
 
-    @ApiPropertyOptional({default:1})
-    @IsOptional()
-    page?:number
+  @ApiPropertyOptional({ default: 1 })
+  @IsOptional()
+  page?: number;
 
-    @ApiPropertyOptional({default:10})
-    @IsOptional()
-    limit?:number
+  @ApiPropertyOptional({ default: 10 })
+  @IsOptional()
+  limit?: number;
 }

@@ -1,10 +1,16 @@
 import { Controller, HttpStatus } from '@nestjs/common';
 import { MessagePattern, Payload, RpcException } from '@nestjs/microservices';
-import { GroupCoasRepository, type Filter } from 'src/app/group-coas/repositories';
+import {
+  GroupCoasRepository,
+  type Filter,
+} from 'src/app/group-coas/repositories';
 import { GroupCoasService } from 'src/app/group-coas/services';
 import { PaginationQueryDto } from 'src/common/dtos/pagination-query.dto';
 import { ResponseEntity } from 'src/common/entities/response.entity';
-import { CreateGroupCoasDto, UpdateGroupCoasDto } from 'src/app/group-coas/dtos';
+import {
+  CreateGroupCoasDto,
+  UpdateGroupCoasDto,
+} from 'src/app/group-coas/dtos';
 import { map, catchError, from } from 'rxjs';
 import { ApiTags } from '@nestjs/swagger';
 
@@ -22,15 +28,20 @@ export class GroupCoasMicroserviceController {
   @MessagePattern('groupcoa.create')
   public create(@Payload() createGroupCoasDto: CreateGroupCoasDto) {
     return from(this.groupcoaService.create(createGroupCoasDto)).pipe(
-      map(data => new ResponseEntity({
-        data,
-        message: 'success',
-      })),
-      catchError(error => { 
-        throw new RpcException(new ResponseEntity({
-          status: HttpStatus.BAD_REQUEST,
-          message: error.message
-        }));
+      map(
+        (data) =>
+          new ResponseEntity({
+            data,
+            message: 'success',
+          }),
+      ),
+      catchError((error) => {
+        throw new RpcException(
+          new ResponseEntity({
+            status: HttpStatus.BAD_REQUEST,
+            message: error.message,
+          }),
+        );
       }),
     );
   }
@@ -38,11 +49,13 @@ export class GroupCoasMicroserviceController {
   @MessagePattern('groupcoa.find')
   public find(@Payload() filter: Omit<Filter, 'include'>) {
     return from(this.groupcoaRepository.find(filter)).pipe(
-      catchError(error => {
-        throw new RpcException(new ResponseEntity({
-          status: HttpStatus.BAD_REQUEST,
-          message: error.message
-        }));
+      catchError((error) => {
+        throw new RpcException(
+          new ResponseEntity({
+            status: HttpStatus.BAD_REQUEST,
+            message: error.message,
+          }),
+        );
       }),
     );
   }
@@ -50,15 +63,20 @@ export class GroupCoasMicroserviceController {
   @MessagePattern('groupcoa.paginate')
   public index(@Payload() paginateDto: PaginationQueryDto) {
     return from(this.groupcoaService.paginate(paginateDto)).pipe(
-      map(data => new ResponseEntity({
-        data,
-        message: 'success',
-      })),
-      catchError(error => {
-        throw new RpcException(new ResponseEntity({
-          status: HttpStatus.BAD_REQUEST,
-          message: error.message
-        }));
+      map(
+        (data) =>
+          new ResponseEntity({
+            data,
+            message: 'success',
+          }),
+      ),
+      catchError((error) => {
+        throw new RpcException(
+          new ResponseEntity({
+            status: HttpStatus.BAD_REQUEST,
+            message: error.message,
+          }),
+        );
       }),
     );
   }
@@ -66,15 +84,20 @@ export class GroupCoasMicroserviceController {
   @MessagePattern('groupcoa.detail')
   public detail(@Payload('id') id: string) {
     return from(this.groupcoaService.detail(id)).pipe(
-      map(data => new ResponseEntity({
-        data,
-        message: 'success',
-      })),
-      catchError(error => {
-        throw new RpcException(new ResponseEntity({
-          status: HttpStatus.BAD_REQUEST,
-          message: error.message
-        }));
+      map(
+        (data) =>
+          new ResponseEntity({
+            data,
+            message: 'success',
+          }),
+      ),
+      catchError((error) => {
+        throw new RpcException(
+          new ResponseEntity({
+            status: HttpStatus.BAD_REQUEST,
+            message: error.message,
+          }),
+        );
       }),
     );
   }
@@ -82,15 +105,20 @@ export class GroupCoasMicroserviceController {
   @MessagePattern('groupcoa.destroy')
   public destroy(@Payload('id') id: string) {
     return from(this.groupcoaService.destroy(id)).pipe(
-      map(data => new ResponseEntity({
-        data,
-        message: 'success',
-      })),
-      catchError(error => {
-        throw new RpcException(new ResponseEntity({
-          status: HttpStatus.BAD_REQUEST,
-          message: error.message
-        }));
+      map(
+        (data) =>
+          new ResponseEntity({
+            data,
+            message: 'success',
+          }),
+      ),
+      catchError((error) => {
+        throw new RpcException(
+          new ResponseEntity({
+            status: HttpStatus.BAD_REQUEST,
+            message: error.message,
+          }),
+        );
       }),
     );
   }
@@ -101,17 +129,21 @@ export class GroupCoasMicroserviceController {
     @Payload() updateGroupCoasDto: UpdateGroupCoasDto,
   ) {
     return from(this.groupcoaService.update(id, updateGroupCoasDto)).pipe(
-      map(data => new ResponseEntity({
-        data,
-        message: 'success',
-      })),
-      catchError(error => {
-        throw new RpcException(new ResponseEntity({
-          status: HttpStatus.BAD_REQUEST,
-          message: error.message
-        }));
+      map(
+        (data) =>
+          new ResponseEntity({
+            data,
+            message: 'success',
+          }),
+      ),
+      catchError((error) => {
+        throw new RpcException(
+          new ResponseEntity({
+            status: HttpStatus.BAD_REQUEST,
+            message: error.message,
+          }),
+        );
       }),
     );
   }
 }
-
