@@ -1,23 +1,12 @@
-import { ApiProperty } from "@nestjs/swagger";
-import { IsOptional } from "class-validator";
+import { ApiProperty } from '@nestjs/swagger';
+import { SensorType } from '@prisma/client';
+import { IsOptional } from 'class-validator';
 
-export class SensorLogDTO{
-    @ApiProperty()
-    @IsOptional()
-    temperature:number
+export class SensorLogDTO {
+  @ApiProperty()
+  @IsOptional()
+  sensorType: SensorType;
 
-    @ApiProperty()
-    @IsOptional()
-    humidity:number
-
-    @ApiProperty()
-    @IsOptional()
-    airQuality:number
-
-    @ApiProperty()
-    amonia:number
-
-    @ApiProperty()
-    ldrValue:number
-
+  @ApiProperty()
+  value: number;
 }

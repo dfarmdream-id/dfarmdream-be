@@ -5,18 +5,161 @@ import { from } from 'rxjs';
 import { CreateSensorDTO, UpdateSensorDTO } from '../dtos';
 import { PrismaService } from '@src/platform/database/services/prisma.service';
 import { SensorLogDTO } from '../dtos/sensor-log.dto';
-import { Prisma } from '@prisma/client';
+import { Prisma, SensorType } from '@prisma/client';
 import {
   ChartFilterDTO,
   PaginatedChartFilterDTO,
 } from '../dtos/chart-filter.dto';
+import { MqttClient, connect } from 'mqtt';
+import { TelegramService } from '@src/app/telegram';
 
 @Injectable()
 export class SensorService {
+  public readonly mqtt: MqttClient;
+  public readonly topic: string;
+  public readonly sensorId: string;
   constructor(
     private readonly sensorRepository: SensorRepository,
     private readonly prismaService: PrismaService,
-  ) {}
+    private readonly telegramService: TelegramService,
+  ) {
+    const topics = process.env.MQTT_TOPICS;
+    this.sensorId = process.env.MQTT_SENSOR_ID || '8KVP701731';
+    const listTopic = topics ? topics.split(',') : [];
+    const MQTT_URL = process.env.MQTT_URL ?? '';
+    this.mqtt = connect(MQTT_URL, {
+      clientId: process.env.MQTT_CLIENT_ID || 'dfarmdream-nest-clientid',
+      clean: true,
+      connectTimeout: 10,
+      username: process.env.MQTT_USERNAME,
+      password: process.env.MQTT_PASSWORD,
+      reconnectPeriod: 10,
+    });
+
+    this.topic = process.env.MQTT_TOPIC || 'd-farm/sensor';
+    console.log(
+      `Connecting to MQTT server with IP: ${MQTT_URL} and topic: ${this.topic}`,
+    );
+
+    this.mqtt.on('connect', () => {
+      console.log('Connected to MQTT server');
+    });
+
+    for (const topic of listTopic) {
+      const theTopic = 'd-farm/' + topic + '_' + this.sensorId;
+      console.log(`Subscribing to topic: ${theTopic}`);
+      this.mqtt.subscribe(theTopic);
+    }
+
+    // this.mqtt.subscribe(this.topic);
+
+    this.mqtt.on('message', (topic, message) => {
+      this.saveLogBasedOnTopic(message.toString(), topic);
+    });
+  }
+
+  async mappingTopicToSensorType(msgJson: any, topic: string) {
+    let sensorType = '';
+    const topicSplit = topic.split('/');
+    if (topicSplit.length > 2) {
+      sensorType = topicSplit[1].replace(`_${this.sensorId}`, '').toUpperCase();
+    }
+    const iot = await this.prismaService.iotSensor.findFirstOrThrow({
+      where: {
+        code: this.sensorId,
+      },
+    });
+
+    const payload = new SensorLogDTO();
+    if (sensorType === 'LDR') {
+      if (msgJson.ldr && msgJson.ldr > 500) {
+        this.mqtt.publish('d-farm/' + this.sensorId, 'RELAY1_ON');
+      } else {
+        this.mqtt.publish('d-farm/' + this.sensorId, 'RELAY1_OFF');
+      }
+
+      await this.prismaService.iotSensor.update({
+        where: {
+          id: iot?.id,
+        },
+        data: {
+          lampStatus: msgJson.ldr ?? 0,
+        },
+      });
+
+      payload.sensorType = SensorType.LDR;
+      payload.value = msgJson.ldr;
+      this.saveLogData(payload, SensorType.LDR).catch((e) =>
+        console.log('Failed to save log data : ', e.message),
+      );
+    } else if (sensorType === 'AMONIA') {
+      let amonia: number = parseFloat(msgJson.amonia);
+      if (amonia && amonia > 100) {
+        amonia = 0;
+      }
+      await this.prismaService.iotSensor.update({
+        where: {
+          id: iot?.id,
+        },
+        data: {
+          currentAmonia: amonia,
+        },
+      });
+      // {"device_id":"8KVP701731","air_quality":43,"nilaiRO":null,"amonia":"0.55"}
+      payload.sensorType = SensorType.GAS;
+      payload.value = amonia;
+      this.saveLogData(payload, SensorType.GAS).catch((e) =>
+        console.log('Failed to save log data : ', e.message),
+      );
+    } else if (sensorType === 'SUHU') {
+      if (iot.tempThreshold && msgJson.temperature > iot.tempThreshold) {
+        this.mqtt.publish('d-farm/' + this.sensorId, 'RELAY2_ON');
+      } else {
+        this.mqtt.publish('d-farm/' + this.sensorId, 'RELAY2_OFF');
+      }
+      await this.prismaService.iotSensor.update({
+        where: {
+          id: iot?.id,
+        },
+        data: {
+          currentTemperature: msgJson.temperature ?? 0,
+        },
+      });
+      payload.sensorType = SensorType.TEMP;
+      payload.value = msgJson.temperature;
+      this.saveLogData(payload, SensorType.TEMP).catch((e) =>
+        console.log('Failed to save log data : ', e.message),
+      );
+
+      await this.prismaService.iotSensor.update({
+        where: {
+          id: iot?.id,
+        },
+        data: {
+          currentTemperature: msgJson.humidity ?? 0,
+        },
+      });
+      payload.sensorType = SensorType.HUMIDITY;
+      payload.value = msgJson.humidity;
+      this.saveLogData(payload, SensorType.HUMIDITY).catch((e) =>
+        console.log('Failed to save log data : ', e.message),
+      );
+    }
+  }
+
+  saveLogBasedOnTopic(message: string, topic: string) {
+    const msg = message.toString();
+    let msgJson: any = null;
+    try {
+      msgJson = msg ? JSON.parse(msg) : null;
+    } catch (e) {
+      console.log('Message : ', msg);
+      console.log('Failed to parse json data');
+    }
+    if (msgJson) {
+      this.mappingTopicToSensorType(msgJson, topic);
+    }
+  }
 
   paginate(paginateDto: PaginationQueryDto) {
     return from(this.sensorRepository.paginate(paginateDto));
@@ -38,10 +181,17 @@ export class SensorService {
     return from(this.sensorRepository.create(createSensorDto));
   }
 
-  async saveLogData(payload: SensorLogDTO) {
+  async saveLogData(payload: SensorLogDTO, type: SensorType) {
     try {
       const currentTime = new Date().getTime();
-      const sensor = await this.prismaService.iotSensor.findFirst({
+      const iot = await this.prismaService.iotSensor.findFirst({
+        where: { code: this.sensorId },
+        orderBy: {
+          id: 'asc',
+        },
+      });
+      const sensor = await this.prismaService.sensorDevice.findFirst({
+        where: { code: this.sensorId, type },
         orderBy: {
           id: 'asc',
         },
@@ -50,109 +200,88 @@ export class SensorService {
         // console.log(JSON.stringify(payload))
         await this.prismaService.sensorLog.create({
           data: {
-            airQuality: payload.airQuality ? payload.airQuality : 0,
-            amonia: payload.amonia ? payload.amonia : 0,
-            ldrValue: payload.ldrValue,
-            humidity: payload.humidity,
-            temperature: payload.temperature,
+            type: payload.sensorType,
+            value: payload.value,
             epoch: currentTime,
             sensorId: sensor?.id ?? '',
             createdAt: new Date(),
             updatedAt: new Date(),
           },
         });
-        await this.prismaService.iotSensor.update({
-          where: {
-            id: sensor.id,
-          },
-          data: {
-            currentAirQuality: payload.airQuality ?? 0,
-            currentAmonia: payload.amonia ?? 0,
-            currentTemperature: payload.temperature ?? 0,
-            currentHumidty: payload.humidity ?? 0,
-            lampStatus: payload.ldrValue ?? 0,
-          },
-        });
 
-        if (
-          payload.humidity >= sensor.humidityThreshold ||
-          payload.temperature >= sensor.tempThreshold ||
-          payload.amonia >= (sensor.amoniaThreshold ?? 30)
-        ) {
-          const lastStatus = await this.prismaService.relayLog.findFirst({
-            where: { sensorId: sensor.id, relayNumber: 2 },
-            orderBy: { createdAt: 'desc' },
-          });
+        if (type === SensorType.TEMP && iot) {
+          if (payload.value >= iot.tempThreshold) {
+            const lastStatus = await this.prismaService.relayLog.findFirst({
+              where: { sensorId: sensor.id, relayNumber: 2 },
+              orderBy: { createdAt: 'desc' },
+            });
 
-          if (!lastStatus || lastStatus.status === 0) {
-            await this.prismaService.relayLog.create({
-              data: {
-                sensorId: sensor.id,
-                relayNumber: 2,
-                humidity: payload.humidity,
-                temperature: payload.temperature,
-                amonia: payload.amonia,
-                status: 1,
-                relayDesc: `Kipas Menyala Kondisi Sensor Amonia : ${payload.amonia?payload.amonia:0} PPM, Humidity: ${payload.humidity}, Temperature: ${payload.temperature}`,
-              },
+            if (!lastStatus || lastStatus.status === 0) {
+              await this.prismaService.relayLog.create({
+                data: {
+                  sensorId: sensor.id,
+                  relayNumber: 2,
+                  humidity: iot.currentHumidty,
+                  temperature: payload.value,
+                  amonia: iot.currentAmonia,
+                  status: 1,
+                  relayDesc: `Kipas Menyala Kondisi Sensor Amonia : ${iot.currentAmonia ?? 0} PPM, Humidity: ${iot.currentHumidty}, Temperature: ${iot.currentTemperature}`,
+                },
+              });
+            }
+          } else {
+            const lastStatus = await this.prismaService.relayLog.findFirst({
+              where: { sensorId: sensor.id, relayNumber: 2 },
+              orderBy: { createdAt: 'desc' },
             });
-          }
-        } else {
-          const lastStatus = await this.prismaService.relayLog.findFirst({
-            where: { sensorId: sensor.id, relayNumber: 2 },
-            orderBy: { createdAt: 'desc' },
-          });
-          if (!lastStatus || lastStatus.status === 1) {
-            await this.prismaService.relayLog.create({
-              data: {
-                sensorId: sensor.id,
-                relayNumber: 2,
-                humidity: payload.humidity,
-                temperature: payload.temperature,
-                amonia: payload.amonia,
-                status: 0,
-                relayDesc: `Kipas Mati Kondisi Sensor Amonia : ${payload.amonia?payload.amonia:0} PPM, Humidity: ${payload.humidity}, Temperature: ${payload.temperature}`,
-              },
-            });
+            if (!lastStatus || lastStatus.status === 1) {
+              await this.prismaService.relayLog.create({
+                data: {
+                  sensorId: sensor.id,
+                  relayNumber: 2,
+                  humidity: iot.currentHumidty,
+                  temperature: payload.value,
+                  amonia: iot.currentAmonia,
+                  status: 0,
+                  relayDesc: `Kipas Mati Kondisi Sensor Amonia : ${iot.currentAmonia ?? 0} PPM, Humidity: ${iot.currentHumidty}, Temperature: ${iot.currentTemperature}`,
+                },
+              });
+            }
           }
         }
 
-        // Save status lampu mati
-        if (payload.ldrValue > 0) {
-          const lastStatus = await this.prismaService.relayLog.findFirst({
-            where: { sensorId: sensor.id, relayNumber: 1 },
-            orderBy: { createdAt: 'desc' },
-          });
-          if (!lastStatus || lastStatus.status === 0) {
-            await this.prismaService.relayLog.create({
-              data: {
-                sensorId: sensor.id,
-                relayNumber: 1,
-                humidity: payload.humidity,
-                temperature: payload.temperature,
-                amonia: payload.amonia,
-                status: 1,
-                relayDesc: `Lampu Menyala`,
-              },
+        if (type === SensorType.LDR) {
+          // Save status lampu mati
+          if (payload.value > 0) {
+            const lastStatus = await this.prismaService.relayLog.findFirst({
+              where: { sensorId: sensor.id, relayNumber: 1 },
+              orderBy: { createdAt: 'desc' },
             });
-          }
-        } else {
-          const lastStatus = await this.prismaService.relayLog.findFirst({
-            where: { sensorId: sensor.id, relayNumber: 1 },
-            orderBy: { createdAt: 'desc' },
-          });
-          if (!lastStatus || lastStatus.status === 1) {
-            await this.prismaService.relayLog.create({
-              data: {
-                sensorId: sensor.id,
-                relayNumber: 1,
-                humidity: payload.humidity,
-                temperature: payload.temperature,
-                amonia: payload.amonia,
-                status: 0,
-                relayDesc: `Lampu Mati`,
-              },
+            if (!lastStatus || lastStatus.status === 0) {
+              await this.prismaService.relayLog.create({
+                data: {
+                  sensorId: iot?.id,
+                  relayNumber: 1,
+                  status: 1,
+                  relayDesc: `Lampu Menyala`,
+                },
+              });
+            }
+          } else {
+            const lastStatus = await this.prismaService.relayLog.findFirst({
+              where: { sensorId: sensor.id, relayNumber: 1 },
+              orderBy: { createdAt: 'desc' },
             });
+            if (!lastStatus || lastStatus.status === 1) {
+              await this.prismaService.relayLog.create({
+                data: {
+                  sensorId: iot?.id,
+                  relayNumber: 1,
+                  status: 0,
+                  relayDesc: `Lampu Mati`,
+                },
+              });
+            }
           }
         }
       }
@@ -165,7 +294,9 @@ export class SensorService {
   }
 
   async getTemperatureChartDaily(filter: ChartFilterDTO) {
-    let filterTanggal = filter.tanggal ? new Date(filter.tanggal) : new Date();
+    const filterTanggal = filter.tanggal
+      ? new Date(filter.tanggal)
+      : new Date();
     const startOfDay = filterTanggal.setHours(0, 0, 0, 0);
     let cageIds: any = [];
     let where = {};
@@ -229,7 +360,9 @@ export class SensorService {
   }
 
   async getAmoniaChartDaily(filter: ChartFilterDTO) {
-    let filterTanggal = filter.tanggal ? new Date(filter.tanggal) : new Date();
+    const filterTanggal = filter.tanggal
+      ? new Date(filter.tanggal)
+      : new Date();
     const startOfDay = filterTanggal.setHours(0, 0, 0, 0);
     let cageIds: any = [];
     let where = {};
@@ -290,7 +423,9 @@ export class SensorService {
   }
 
   async getHumidityDaily(filter: ChartFilterDTO) {
-    let filterTanggal = filter.tanggal ? new Date(filter.tanggal) : new Date();
+    const filterTanggal = filter.tanggal
+      ? new Date(filter.tanggal)
+      : new Date();
     const startOfDay = filterTanggal.setHours(0, 0, 0, 0);
 
     let cageIds: any = [];
