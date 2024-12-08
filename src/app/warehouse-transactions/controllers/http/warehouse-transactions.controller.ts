@@ -68,6 +68,12 @@ export class WarehouseTransactionsHttpController {
   }
 
   @UseGuards(AuthGuard)
+  @Post('cashier/:id')
+  public submitToCashier(@Param('id') id: string) {
+    return this.warehousetransactionService.sendToCashier(id)
+  }
+
+  @UseGuards(AuthGuard)
   @Get(':id')
   public detail(@Param('id') id: string): Observable<ResponseEntity> {
     return this.warehousetransactionService.detail(id).pipe(

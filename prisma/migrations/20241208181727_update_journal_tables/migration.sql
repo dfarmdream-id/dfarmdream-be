@@ -17,7 +17,7 @@
 CREATE TYPE "LedgerEnum" AS ENUM ('DEBIT', 'CREDIT');
 
 -- AlterTable
-ALTER TABLE "CashFlowCategory" ADD COLUMN "siteId" TEXT;
+-- ALTER TABLE "CashFlowCategory" ADD COLUMN "siteId" TEXT;
 
 -- AlterTable
 ALTER TABLE "JournalHeader" DROP COLUMN "journalTypeId",
@@ -58,7 +58,7 @@ CREATE UNIQUE INDEX "Coa_code_key" ON "Coa"("code");
 CREATE UNIQUE INDEX "JournalTemplate_code_key" ON "JournalTemplate"("code");
 
 -- AddForeignKey
-ALTER TABLE "CashFlowCategory" ADD CONSTRAINT "CashFlowCategory_siteId_fkey" FOREIGN KEY ("siteId") REFERENCES "Site"("id") ON DELETE SET NULL ON UPDATE CASCADE;
+-- ALTER TABLE "CashFlowCategory" ADD CONSTRAINT "CashFlowCategory_siteId_fkey" FOREIGN KEY ("siteId") REFERENCES "Site"("id") ON DELETE SET NULL ON UPDATE CASCADE;
 
 -- AddForeignKey
 ALTER TABLE "JournalTemplate" ADD CONSTRAINT "JournalTemplate_jurnalTypeId_fkey" FOREIGN KEY ("jurnalTypeId") REFERENCES "JournalType"("id") ON DELETE RESTRICT ON UPDATE CASCADE;

@@ -482,6 +482,7 @@ model WarehouseTransaction {
   category    WarehouseTransactionCategoryEnum? @default(EGG)
   price       Price?                            @relation(fields: [priceId], references: [id])
   priceId     String?
+  CashierDeliveryAt    DateTime? @db.Timestamptz()
 }
 
 model IotSensor {
