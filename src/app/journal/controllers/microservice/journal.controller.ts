@@ -1,22 +1,22 @@
 import { Controller } from '@nestjs/common';
-import { JournalHeadersRepository } from 'src/app/journal-headers/repositories';
-import { JournalHeadersService } from 'src/app/journal-headers/services';
+import { JournalHeaderRepository } from '@app/journal/repositories';
+import { JournalService } from '@app/journal/services';
 import { ApiTags } from '@nestjs/swagger';
 
 @ApiTags('JournalHeaders')
 @Controller({
-  path: 'journalheader',
+  path: 'journal',
   version: '1',
 })
 export class JournalHeadersMicroserviceController {
   constructor(
-    private readonly journalheaderService: JournalHeadersService,
-    private readonly journalheaderRepository: JournalHeadersRepository,
+    private readonly journalService: JournalService,
+    private readonly journalRepository: JournalHeaderRepository,
   ) {}
 
-  // @MessagePattern('journalheader.create')
-  // public create(@Payload() createJournalHeadersDto: CreateJournalHeadersDto) {
-  //   return from(this.journalheaderService.create(createJournalHeadersDto)).pipe(
+  // @MessagePattern('journal.create')
+  // public create(@Payload() createJournalHeadersDto: CreateJournalDto) {
+  //   return from(this.journalService.create(createJournalHeadersDto)).pipe(
   //     map(
   //       (data) =>
   //         new ResponseEntity({
@@ -35,9 +35,9 @@ export class JournalHeadersMicroserviceController {
   //   );
   // }
 
-  // @MessagePattern('journalheader.find')
+  // @MessagePattern('journal.find')
   // public find(@Payload() filter: Omit<Filter, 'include'>) {
-  //   return from(this.journalheaderRepository.find(filter)).pipe(
+  //   return from(this.journalRepository.find(filter)).pipe(
   //     catchError((error) => {
   //       throw new RpcException(
   //         new ResponseEntity({
@@ -49,9 +49,9 @@ export class JournalHeadersMicroserviceController {
   //   );
   // }
 
-  // @MessagePattern('journalheader.paginate')
+  // @MessagePattern('journal.paginate')
   // public index(@Payload() paginateDto: PaginationQueryDto) {
-  //   return from(this.journalheaderService.paginate(paginateDto)).pipe(
+  //   return from(this.journalService.paginate(paginateDto)).pipe(
   //     map(
   //       (data) =>
   //         new ResponseEntity({
@@ -70,9 +70,9 @@ export class JournalHeadersMicroserviceController {
   //   );
   // }
 
-  // @MessagePattern('journalheader.detail')
+  // @MessagePattern('journal.detail')
   // public detail(@Payload('id') id: string) {
-  //   return from(this.journalheaderService.detail(id)).pipe(
+  //   return from(this.journalService.detail(id)).pipe(
   //     map(
   //       (data) =>
   //         new ResponseEntity({
@@ -91,9 +91,9 @@ export class JournalHeadersMicroserviceController {
   //   );
   // }
 
-  // @MessagePattern('journalheader.destroy')
+  // @MessagePattern('journal.destroy')
   // public destroy(@Payload('id') id: string) {
-  //   return from(this.journalheaderService.destroy(id)).pipe(
+  //   return from(this.journalService.destroy(id)).pipe(
   //     map(
   //       (data) =>
   //         new ResponseEntity({
@@ -115,10 +115,10 @@ export class JournalHeadersMicroserviceController {
   // @MessagePattern(':id')
   // public update(
   //   @Payload('id') id: string,
-  //   @Payload() updateJournalHeadersDto: UpdateJournalHeadersDto,
+  //   @Payload() updateJournalHeadersDto: UpdateJournalDto,
   // ) {
   //   return from(
-  //     this.journalheaderService.update(id, updateJournalHeadersDto),
+  //     this.journalService.update(id, updateJournalHeadersDto),
   //   ).pipe(
   //     map(
   //       (data) =>

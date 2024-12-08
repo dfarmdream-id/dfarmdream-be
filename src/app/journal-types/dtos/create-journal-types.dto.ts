@@ -8,9 +8,5 @@ export class CreateJournalTypesDto {
 
   @ApiProperty()
   @IsString()
-  code: string;
-
-  @ApiProperty()
-  @IsString()
   status: string;
 }
