@@ -12,6 +12,7 @@ import {
 } from '../dtos/chart-filter.dto';
 import { MqttClient, connect } from 'mqtt';
 import { JWTClaim } from '@src/app/auth/entity/jwt-claim.dto';
+import moment from 'moment';
 
 @Injectable()
 export class SensorService {
@@ -26,7 +27,7 @@ export class SensorService {
     this.sensorId = process.env.MQTT_SENSOR_ID || '8KVP701731';
     const listTopic = topics ? topics.split(',') : [];
     const MQTT_URL = process.env.MQTT_URL ?? '';
-     this.mqtt = connect(MQTT_URL, {
+    this.mqtt = connect(MQTT_URL, {
       clientId: '',
       // clean: true,
       connectTimeout: 10,
@@ -63,14 +64,14 @@ export class SensorService {
     const topicSplit = topic.split('/');
     if (topicSplit.length > 1) {
       sensorType = topicSplit[1].replace(`_${this.sensorId}`, '').toUpperCase();
-      sensorCode = topicSplit[1]
+      sensorCode = topicSplit[1];
     }
     const iot = await this.prismaService.iotSensor.findFirst({
       where: {
         code: this.sensorId,
       },
     });
-    if(iot){
+    if (iot) {
       const payload = new SensorLogDTO();
       // console.log("sensor type : ",sensorType);
       if (sensorType === 'LDR') {
@@ -81,36 +82,36 @@ export class SensorService {
         // }
         payload.sensorType = SensorType.LDR;
         payload.value = msgJson.ldr;
-        payload.sensorCode = sensorCode
+        payload.sensorCode = sensorCode;
         this.saveLogData(payload, SensorType.LDR).catch((e) =>
           console.log('Failed to save log data : ', e.message),
         );
       }
 
-      if(sensorCode.includes('suhu')){
-        const dataSuhu = new SensorLogDTO()
-        dataSuhu.sensorType = SensorType.TEMP
-        dataSuhu.sensorCode = sensorCode
-        dataSuhu.value = msgJson.temperature
-        this.saveLogData(dataSuhu, SensorType.TEMP).catch((e)=>{
-          console.log("Failed to save log data : ", e.message)
-        })
+      if (sensorCode.includes('suhu')) {
+        const dataSuhu = new SensorLogDTO();
+        dataSuhu.sensorType = SensorType.TEMP;
+        dataSuhu.sensorCode = sensorCode;
+        dataSuhu.value = msgJson.temperature;
+        this.saveLogData(dataSuhu, SensorType.TEMP).catch((e) => {
+          console.log('Failed to save log data : ', e.message);
+        });
 
-        const dataHumidity = new SensorLogDTO()
-        dataHumidity.sensorType = SensorType.HUMIDITY
-        dataHumidity.sensorCode = sensorCode.replace("suhu",'humi')
-        dataHumidity.value = msgJson.humidity
-        this.saveLogData(dataHumidity, SensorType.HUMIDITY).catch((e)=>{
-          console.log("Failed to save log data : ", e.message)
-        })
+        const dataHumidity = new SensorLogDTO();
+        dataHumidity.sensorType = SensorType.HUMIDITY;
+        dataHumidity.sensorCode = sensorCode.replace('suhu', 'humi');
+        dataHumidity.value = msgJson.humidity;
+        this.saveLogData(dataHumidity, SensorType.HUMIDITY).catch((e) => {
+          console.log('Failed to save log data : ', e.message);
+        });
       }
-      
-      if(sensorCode.includes('amonia')){
+
+      if (sensorCode.includes('amonia')) {
         let amonia: number = parseFloat(msgJson.amonia);
         if (amonia && amonia > 100) {
           amonia = 0;
         }
-        payload.sensorCode = sensorCode
+        payload.sensorCode = sensorCode;
         payload.sensorType = SensorType.GAS;
         payload.value = amonia;
         this.saveLogData(payload, SensorType.GAS).catch((e) =>
@@ -156,7 +157,7 @@ export class SensorService {
       //   this.saveLogData(payload, SensorType.TEMP).catch((e) =>
       //     console.log('Failed to save log data : ', e.message),
       //   );
-  
+
       //   await this.prismaService.iotSensor.update({
       //     where: {
       //       id: iot?.id,
@@ -172,8 +173,6 @@ export class SensorService {
       //   );
       // }
     }
-
-   
   }
 
   saveLogBasedOnTopic(message: string, topic: string) {
@@ -235,21 +234,21 @@ export class SensorService {
             value: payload.value,
             epoch: currentTime,
             sensorId: sensor?.id ?? '',
-            iotSensorId: sensor?.deviceId ??'',
+            iotSensorId: sensor?.deviceId ?? '',
             createdAt: new Date(),
             updatedAt: new Date(),
           },
         });
 
         await this.prismaService.sensorDevice.update({
-          where:{
-            id: sensor.id
+          where: {
+            id: sensor.id,
           },
-          data:{
+          data: {
             lastestValue: payload.value,
-            lastUpdatedAt: new Date().getTime()
-          }
-        })
+            lastUpdatedAt: new Date().getTime(),
+          },
+        });
       }
 
       return true;
@@ -260,143 +259,30 @@ export class SensorService {
   }
 
   async getTemperatureChartDaily(filter: ChartFilterDTO, user: JWTClaim) {
-    const filterTanggal = filter.tanggal
-      ? new Date(filter.tanggal)
-      : new Date();
-    const startOfDay = filterTanggal.setHours(0, 0, 0, 0);
-    let cageIds: any = [];
-    let where = {};
-
-    if (user.siteId) {
-      const cages = await this.prismaService.cage.findMany({
-        where: {
-          siteId: user.siteId,
-        },
-      });
-      cageIds = cages.map((x) => x.id);
-      where = {
-        ...where,
-        cageId: {
-          in: cageIds,
-        },
-      };
-    }
-
-    if (filter.cageId && filter.cageId != '') {
-      cageIds = [filter.cageId];
-      where = {
-        ...where,
-        cageId: filter.cageId,
-      };
-    }
-
-    const data: any = await this.prismaService.$queryRaw`
-    SELECT 
-      DATE_TRUNC('hour', "SensorLog"."createdAt") as hour,
-      AVG(temperature) as average_temperature
-    FROM "SensorLog" 
-    LEFT JOIN "IotSensor" on "IotSensor"."id" = "SensorLog"."sensorId"
-    WHERE "epoch" >= ${startOfDay}
-    ${cageIds.length > 0 ? Prisma.sql`AND "IotSensor"."cageId" IN (${Prisma.join(cageIds)})` : Prisma.empty}
-    GROUP BY DATE_TRUNC('hour', "SensorLog"."createdAt")
-    ORDER BY hour ASC`;
-
-    // Format data untuk ApexCharts
-    const formattedData = data.map((item) => {
-      const date = new Date(item.hour);
-      const hours = String(date.getHours()).padStart(2, '0');
-      const minutes = String(date.getMinutes()).padStart(2, '0');
-      return {
-        x: `${hours}:${minutes}`,
-        y: Number(item.average_temperature.toFixed(2)),
-      };
-    });
-
-    const sensors = await this.prismaService.iotSensor.findMany({
-      where,
-    });
-    return {
-      status: HttpStatus.OK,
-      message: 'Success get data',
-      data: {
-        chart: sensors && sensors.length > 0 ? formattedData : [],
-        sensors: sensors,
-      },
-    };
+    const type = SensorType.TEMP;
+    return await this.getSensorData(filter, user, type);
   }
 
-
   async getAmoniaChartDaily(filter: ChartFilterDTO, user: JWTClaim) {
-    const filterTanggal = filter.tanggal
-      ? new Date(filter.tanggal)
-      : new Date();
-    const startOfDay = filterTanggal.setHours(0, 0, 0, 0);
-    let cageIds: any = [];
-    let where = {};
-
-    if (user.siteId) {
-      const cages = await this.prismaService.cage.findMany({
-        where: {
-          siteId: user.siteId,
-        },
-      });
-      cageIds = cages.map((x) => x.id);
-      where = {
-        ...where,
-        cageId: {
-          in: cageIds,
-        },
-      };
-    }
-
-    if (filter.cageId && filter.cageId != '') {
-      cageIds = [filter.cageId];
-      where = {
-        ...where,
-        cageId: filter.cageId,
-      };
-    }
-
-    const data: any = await this.prismaService.$queryRaw`
-    SELECT 
-      DATE_TRUNC('hour', "SensorLog"."createdAt") as hour,
-      AVG(temperature) as average_amonia
-    FROM "SensorLog" 
-    LEFT JOIN "IotSensor" on "IotSensor"."id" = "SensorLog"."sensorId"
-    WHERE "epoch" >= ${startOfDay}
-    ${cageIds.length > 0 ? Prisma.sql`AND "IotSensor"."cageId" IN (${Prisma.join(cageIds)})` : Prisma.empty}
-    GROUP BY DATE_TRUNC('hour', "SensorLog"."createdAt")
-    ORDER BY hour ASC`;
-
-    // Format data untuk ApexCharts
-    const formattedData = data.map((item) => {
-      const date = new Date(item.hour);
-      const hours = String(date.getHours()).padStart(2, '0');
-      const minutes = String(date.getMinutes()).padStart(2, '0');
-      return {
-        x: `${hours}:${minutes}`,
-        y: Number(item.average_amonia.toFixed(2)),
-      };
-    });
-    const sensors = await this.prismaService.iotSensor.findMany({ where });
-    return {
-      status: HttpStatus.OK,
-      message: 'Success get data',
-      data: {
-        chart: sensors && sensors.length > 0 ? formattedData : [],
-        sensors: sensors,
-      },
-    };
+    const type = SensorType.GAS;
+    return await this.getSensorData(filter, user, type);
   }
 
   async getHumidityDaily(filter: ChartFilterDTO, user: JWTClaim) {
+    const type = SensorType.HUMIDITY;
+    return await this.getSensorData(filter, user, type);
+  }
+
+  async getSensorData(
+    filter: ChartFilterDTO,
+    user: JWTClaim,
+    type: SensorType,
+  ) {
     const filterTanggal = filter.tanggal
       ? new Date(filter.tanggal)
       : new Date();
     const startOfDay = filterTanggal.setHours(0, 0, 0, 0);
-
     let cageIds: any = [];
-    let where = {};
 
     if (user.siteId) {
       const cages = await this.prismaService.cage.findMany({
@@ -405,49 +291,55 @@ export class SensorService {
         },
       });
       cageIds = cages.map((x) => x.id);
-      where = {
-        ...where,
-        cageId: {
-          in: cageIds,
-        },
-      };
     }
 
     if (filter.cageId && filter.cageId != '') {
       cageIds = [filter.cageId];
-      where = {
-        ...where,
-        cageId: filter.cageId,
-      };
     }
 
     const data: any = await this.prismaService.$queryRaw`
     SELECT 
       DATE_TRUNC('hour', "SensorLog"."createdAt") as hour,
-      AVG(temperature) as average_humidity
+      AVG(value) as average_value
     FROM "SensorLog" 
-    LEFT JOIN "IotSensor" on "IotSensor"."id" = "SensorLog"."sensorId"
+    LEFT JOIN "SensorDevice" on "SensorDevice"."id" = "SensorLog"."sensorId"
+    LEFT JOIN "IotSensor" on "IotSensor"."id" = "SensorDevice"."deviceId"
     WHERE "epoch" >= ${startOfDay}
+    AND "SensorDevice"."type" = ${type}::"SensorType"
     ${cageIds.length > 0 ? Prisma.sql`AND "IotSensor"."cageId" IN (${Prisma.join(cageIds)})` : Prisma.empty}
     GROUP BY DATE_TRUNC('hour', "SensorLog"."createdAt")
     ORDER BY hour ASC`;
 
     // Format data untuk ApexCharts
     const formattedData = data.map((item) => {
-      const date = new Date(item.hour);
-      const hours = String(date.getHours()).padStart(2, '0');
-      const minutes = String(date.getMinutes()).padStart(2, '0');
+      const date = moment(item.hour);
       return {
-        x: `${hours}:${minutes}`,
-        y: Number(item.average_humidity.toFixed(2)),
+        x: `${date.format('HH:mm')}`,
+        y: Number(item.average_value.toFixed(2)),
       };
     });
-    const sensors = await this.prismaService.iotSensor.findMany({ where });
-
+    const sensors = await this.prismaService.sensorDevice.findMany({
+      where: {
+        type,
+      },
+      include: {
+        IotSensor: {
+          where: {
+            cageId: {
+              in: cageIds,
+            },
+          },
+        },
+      },
+    });
+    const average =
+      sensors.reduce((sum, temp) => sum + (temp.lastestValue ?? 0), 0) /
+      sensors.length;
     return {
       status: HttpStatus.OK,
       message: 'Success get data',
       data: {
+        average,
         chart: sensors && sensors.length > 0 ? formattedData : [],
         sensors: sensors,
       },

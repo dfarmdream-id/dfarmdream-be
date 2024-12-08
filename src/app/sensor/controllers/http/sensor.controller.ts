@@ -25,7 +25,7 @@ import {
 } from '../../dtos/chart-filter.dto';
 import { User } from '@src/app/auth/decorators';
 import { JWTClaim } from '@src/app/auth/entity/jwt-claim.dto';
-import { connect, MqttClient } from 'mqtt';
+import { MqttClient } from 'mqtt';
 
 @ApiSecurity('JWT')
 @ApiTags('IOT Sensors')
@@ -37,9 +37,9 @@ export class SensorHttpController {
   public readonly mqtt: MqttClient;
   public readonly topic: string;
   public readonly sensorId: string;
-  
+
   constructor(private readonly sensorService: SensorService) {}
-  
+
   @UseGuards(AuthGuard)
   @Post()
   public create(
