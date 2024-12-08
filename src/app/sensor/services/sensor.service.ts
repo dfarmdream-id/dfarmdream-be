@@ -357,6 +357,46 @@ export class SensorService {
     return await this.getSensorData(filter, user, type);
   }
 
+  async getLdrData(filter: ChartFilterDTO, user: JWTClaim) {
+    const filterTanggal = filter.tanggal
+      ? new Date(filter.tanggal)
+      : new Date();
+    let cageIds: any = [];
+
+    if (user.siteId) {
+      const cages = await this.prismaService.cage.findMany({
+        where: {
+          siteId: user.siteId,
+        },
+      });
+      cageIds = cages.map((x) => x.id);
+    }
+
+    if (filter.cageId && filter.cageId != '') {
+      cageIds = [filter.cageId];
+    }
+
+    const models = await this.prismaService.sensorDevice.findMany({
+      where: {
+        IotSensor: {
+          cageId: {
+            in: cageIds,
+          },
+        },
+        type: 'LDR',
+      },
+      include: {
+        IotSensor: true,
+      },
+    });
+
+    return {
+      status:HttpStatus.OK,
+      message:"Success get ldr status",
+      data: models
+    }
+  }
+
   async getSensorData(
     filter: ChartFilterDTO,
     user: JWTClaim,
@@ -404,23 +444,23 @@ export class SensorService {
     });
     const where = {
       type: type,
-    }
-    if(filter.cageId && filter.cageId!=''){
-      Object.assign(where,{
-        IotSensor:{
-          cageId: filter.cageId
-        }
-      })
+    };
+    if (filter.cageId && filter.cageId != '') {
+      Object.assign(where, {
+        IotSensor: {
+          cageId: filter.cageId,
+        },
+      });
     }
 
-    if(cageIds && cageIds.length>0){
-      Object.assign(where,{
-        IotSensor:{
+    if (cageIds && cageIds.length > 0) {
+      Object.assign(where, {
+        IotSensor: {
           cageId: {
             in: cageIds,
           },
-        }
-      })
+        },
+      });
     }
 
     const sensors = await this.prismaService.sensorDevice.findMany({

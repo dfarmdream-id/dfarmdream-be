@@ -39,7 +39,10 @@ export class GroupCoasRepository {
           skip: (+page - 1) * +limit,
           take: +limit,
           where: where,
-          orderBy: filter?.orderBy,
+          orderBy: {
+            ...filter?.orderBy,
+            code:'asc'
+          },
           cursor: filter?.cursor,
         }),
         this.prismaService.groupCoa.count({
