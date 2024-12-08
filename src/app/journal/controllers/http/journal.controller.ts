@@ -11,36 +11,36 @@ import {
   Query,
   UseGuards,
 } from '@nestjs/common';
-import { JournalTemplateDetailsService } from 'src/app/journal-template-details/services';
+import { JournalService } from '@app/journal/services';
 import { PaginationQueryDto } from 'src/common/dtos/pagination-query.dto';
 import { ResponseEntity } from 'src/common/entities/response.entity';
 import {
-  CreateJournalTemplateDetailsDto,
-  UpdateJournalTemplateDetailsDto,
-} from 'src/app/journal-template-details/dtos';
+  CreateJournalDto,
+  UpdateJournalDto,
+} from '@app/journal/dtos';
 import { ApiSecurity, ApiTags } from '@nestjs/swagger';
 import { catchError, map } from 'rxjs';
 import { Observable } from 'rxjs';
 import { AuthGuard } from '@src/app/auth';
+import { User } from '@src/app/auth/decorators';
 
 @ApiSecurity('JWT')
-@ApiTags('JournalTemplateDetails')
+@ApiTags('Journal')
 @Controller({
-  path: 'journal-template-detail',
+  path: 'journal',
   version: '1',
 })
-export class JournalTemplateDetailsHttpController {
-  constructor(
-    private readonly journaltemplatedetailService: JournalTemplateDetailsService,
-  ) {}
+export class JournalHttpController {
+  constructor(private readonly journalHeaderService: JournalService) {}
 
   @UseGuards(AuthGuard)
   @Post()
   public create(
-    @Body() createJournalTemplateDetailsDto: CreateJournalTemplateDetailsDto,
+    @Body() createJournalHeadersDto: CreateJournalDto,
+    @User() user: { id: string; siteId: string },
   ): Observable<ResponseEntity> {
-    return this.journaltemplatedetailService
-      .create(createJournalTemplateDetailsDto)
+    return this.journalHeaderService
+      .create(createJournalHeadersDto, user.id)
       .pipe(
         map((data) => new ResponseEntity({ data, message: 'success' })),
         catchError((error) => {
@@ -54,7 +54,7 @@ export class JournalTemplateDetailsHttpController {
   public index(
     @Query() paginateDto: PaginationQueryDto,
   ): Observable<ResponseEntity> {
-    return this.journaltemplatedetailService.paginate(paginateDto).pipe(
+    return this.journalHeaderService.paginate(paginateDto).pipe(
       map((data) => new ResponseEntity({ data, message: 'success' })),
       catchError((error) => {
         throw new HttpException(error.message, HttpStatus.NOT_FOUND);
@@ -65,7 +65,7 @@ export class JournalTemplateDetailsHttpController {
   @UseGuards(AuthGuard)
   @Get(':id')
   public detail(@Param('id') id: string): Observable<ResponseEntity> {
-    return this.journaltemplatedetailService.detail(id).pipe(
+    return this.journalHeaderService.detail(id).pipe(
       map((data) => new ResponseEntity({ data, message: 'success' })),
       catchError((error) => {
         throw new HttpException(error.message, HttpStatus.NOT_FOUND);
@@ -76,7 +76,7 @@ export class JournalTemplateDetailsHttpController {
   @UseGuards(AuthGuard)
   @Delete(':id')
   public destroy(@Param('id') id: string): Observable<ResponseEntity> {
-    return this.journaltemplatedetailService.destroy(id).pipe(
+    return this.journalHeaderService.destroy(id).pipe(
       map((data) => new ResponseEntity({ data, message: 'success' })),
       catchError((error) => {
         throw new HttpException(error.message, HttpStatus.BAD_REQUEST);
@@ -88,15 +88,13 @@ export class JournalTemplateDetailsHttpController {
   @Put(':id')
   public update(
     @Param('id') id: string,
-    @Body() updateJournalTemplateDetailsDto: UpdateJournalTemplateDetailsDto,
+    @Body() updateJournalHeadersDto: UpdateJournalDto,
   ): Observable<ResponseEntity> {
-    return this.journaltemplatedetailService
-      .update(id, updateJournalTemplateDetailsDto)
-      .pipe(
-        map((data) => new ResponseEntity({ data, message: 'success' })),
-        catchError((error) => {
-          throw new HttpException(error.message, HttpStatus.BAD_REQUEST);
-        }),
-      );
+    return this.journalHeaderService.update(id, updateJournalHeadersDto).pipe(
+      map((data) => new ResponseEntity({ data, message: 'success' })),
+      catchError((error) => {
+        throw new HttpException(error.message, HttpStatus.BAD_REQUEST);
+      }),
+    );
   }
 }

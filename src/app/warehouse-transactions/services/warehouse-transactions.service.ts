@@ -24,35 +24,37 @@ export class WarehouseTransactionsService {
   public paginate(paginateDto: PaginationQueryDto, siteId: string) {
     const { q } = paginateDto;
 
-    // Mapping untuk type dan category
-    const typeMapping: Record<string, WarehouseTransactionType> = {
-      masuk: 'IN',
-      keluar: 'OUT',
-    };
-
-    const categoryMapping: Record<string, WarehouseTransactionCategoryEnum> = {
-      telur: 'EGG',
-      ayam: 'CHICKEN',
-    };
-
-    // Mapping nilai pencarian
-    const mappedType =
-      typeMapping[q.toLowerCase().replace(/[^a-zA-Z0-9]/g, '')] || null;
-    const mappedCategory =
-      categoryMapping[q.toLowerCase().replace(/[^a-zA-Z0-9]/g, '')] || null;
-
-    // Filter `OR` conditions dynamically
     const searchConditions: Prisma.WarehouseTransactionWhereInput[] = [];
 
-    if (mappedType) {
-      searchConditions.push({ type: { equals: mappedType } });
-    }
+    if (q && q.length > 0) {
+      // Mapping untuk type dan category
+      const typeMapping: Record<string, WarehouseTransactionType> = {
+        masuk: 'IN',
+        keluar: 'OUT',
+      };
 
-    if (mappedCategory) {
-      searchConditions.push({ category: { equals: mappedCategory } });
-    }
+      const categoryMapping: Record<string, WarehouseTransactionCategoryEnum> =
+        {
+          telur: 'EGG',
+          ayam: 'CHICKEN',
+        };
 
-    if (q) {
+      // Mapping nilai pencarian
+      const mappedType =
+        typeMapping[q.toLowerCase().replace(/[^a-zA-Z0-9]/g, '')] || null;
+      const mappedCategory =
+        categoryMapping[q.toLowerCase().replace(/[^a-zA-Z0-9]/g, '')] || null;
+
+      // Filter `OR` conditions dynamically
+
+      if (mappedType) {
+        searchConditions.push({ type: { equals: mappedType } });
+      }
+
+      if (mappedCategory) {
+        searchConditions.push({ category: { equals: mappedCategory } });
+      }
+
       searchConditions.push(
         { site: { name: { contains: q, mode: 'insensitive' } } },
         { cage: { name: { contains: q, mode: 'insensitive' } } },
@@ -120,7 +122,14 @@ export class WarehouseTransactionsService {
     });
 
     return price.pipe(
-      map((data) => data[0]),
+      map((data) => {
+        if (!data[0]) {
+          throw new Error(
+            `Harga untuk kategori ${createWarehouseTransactionsDto.category} belum tersedia, silahkan tambahkan harga terlebih dahulu`,
+          );
+        }
+        return data[0];
+      }),
       concatMap((priceData) => {
         // Now that you have the price, proceed with creating the warehouse transaction
         return from(

@@ -7,16 +7,16 @@ import { PaginatedEntity } from 'src/common/entities/paginated.entity';
 import { PrismaService } from 'src/platform/database/services/prisma.service';
 
 export type Filter = {
-  where?: Prisma.JournalTemplateDetailWhereInput;
-  orderBy?: Prisma.JournalTemplateDetailOrderByWithRelationInput;
-  cursor?: Prisma.JournalTemplateDetailWhereUniqueInput;
+  where?: Prisma.JournalDetailWhereInput;
+  orderBy?: Prisma.JournalDetailOrderByWithRelationInput;
+  cursor?: Prisma.JournalDetailWhereUniqueInput;
   take?: number;
   skip?: number;
-  // include?: Prisma.JournalTemplateDetailInclude;
+  include?: Prisma.JournalDetailInclude;
 };
 
 @Injectable()
-export class JournalTemplateDetailsRepository {
+export class JournalDetailRepository {
   constructor(private readonly prismaService: PrismaService) {}
 
   public paginate(paginateDto: PaginationQueryDto, filter?: Filter) {
@@ -24,15 +24,15 @@ export class JournalTemplateDetailsRepository {
 
     return from(
       this.prismaService.$transaction([
-        this.prismaService.journalTemplateDetail.findMany({
+        this.prismaService.journalDetail.findMany({
           skip: (+page - 1) * +limit,
           take: +limit,
           where: filter?.where,
           orderBy: filter?.orderBy,
           cursor: filter?.cursor,
-          // include: filter?.include,
+          include: filter?.include,
         }),
-        this.prismaService.journalTemplateDetail.count({
+        this.prismaService.journalDetail.count({
           where: filter?.where,
         }),
       ]),
@@ -51,8 +51,8 @@ export class JournalTemplateDetailsRepository {
     );
   }
 
-  public create(data: Prisma.JournalTemplateDetailCreateInput) {
-    return from(this.prismaService.journalTemplateDetail.create({ data })).pipe(
+  public create(data: Prisma.JournalDetailCreateInput) {
+    return from(this.prismaService.journalDetail.create({ data })).pipe(
       catchError((error) => {
         throw error;
       }),
@@ -60,21 +60,19 @@ export class JournalTemplateDetailsRepository {
   }
 
   public update(
-    where: Prisma.JournalTemplateDetailWhereUniqueInput,
-    data: Prisma.JournalTemplateDetailUpdateInput,
+    where: Prisma.JournalDetailWhereUniqueInput,
+    data: Prisma.JournalDetailUpdateInput,
   ) {
-    return from(
-      this.prismaService.journalTemplateDetail.update({ where, data }),
-    ).pipe(
+    return from(this.prismaService.journalDetail.update({ where, data })).pipe(
       catchError((error) => {
         throw error;
       }),
     );
   }
 
-  public delete(where: Prisma.JournalTemplateDetailWhereUniqueInput) {
+  public delete(where: Prisma.JournalDetailWhereUniqueInput) {
     return from(
-      this.prismaService.journalTemplateDetail.update({
+      this.prismaService.journalDetail.update({
         where,
         data: { deletedAt: new Date() },
       }),
@@ -86,11 +84,11 @@ export class JournalTemplateDetailsRepository {
   }
 
   public first(
-    where: Prisma.JournalTemplateDetailWhereUniqueInput,
-    select?: Prisma.JournalTemplateDetailSelect,
+    where: Prisma.JournalDetailWhereUniqueInput,
+    select?: Prisma.JournalDetailSelect,
   ) {
     return from(
-      this.prismaService.journalTemplateDetail.findUnique({ where, select }),
+      this.prismaService.journalDetail.findUnique({ where, select }),
     ).pipe(
       catchError((error) => {
         throw error;
@@ -99,11 +97,11 @@ export class JournalTemplateDetailsRepository {
   }
 
   public firstOrThrow(
-    where: Prisma.JournalTemplateDetailWhereUniqueInput,
-    select?: Prisma.JournalTemplateDetailSelect,
+    where: Prisma.JournalDetailWhereUniqueInput,
+    select?: Prisma.JournalDetailSelect,
   ) {
     return from(
-      this.prismaService.journalTemplateDetail.findUnique({ where, select }),
+      this.prismaService.journalDetail.findUnique({ where, select }),
     ).pipe(
       catchError((error) => {
         throw error;
@@ -112,7 +110,7 @@ export class JournalTemplateDetailsRepository {
   }
 
   public find(filter: Filter) {
-    return from(this.prismaService.journalTemplateDetail.findMany(filter)).pipe(
+    return from(this.prismaService.journalDetail.findMany(filter)).pipe(
       catchError((error) => {
         throw error;
       }),
@@ -120,7 +118,7 @@ export class JournalTemplateDetailsRepository {
   }
 
   public count(filter: Omit<Filter, 'include'>) {
-    return from(this.prismaService.journalTemplateDetail.count(filter)).pipe(
+    return from(this.prismaService.journalDetail.count(filter)).pipe(
       catchError((error) => {
         throw error;
       }),
@@ -134,5 +132,17 @@ export class JournalTemplateDetailsRepository {
         throw error;
       }),
     );
+  }
+
+  async upsert(data: {
+    where: Prisma.JournalDetailWhereUniqueInput;
+    create: Prisma.JournalDetailCreateInput;
+    update: Prisma.JournalDetailUpdateInput;
+  }) {
+    return this.prismaService.journalDetail.upsert({
+      where: data.where,
+      create: data.create,
+      update: data.update,
+    });
   }
 }

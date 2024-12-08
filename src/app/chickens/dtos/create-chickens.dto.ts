@@ -5,4 +5,8 @@ export class CreateChickensDto {
   @ApiProperty()
   @IsString()
   name: string;
+
+  @ApiProperty()
+  @IsString()
+  rackId: string;
 }

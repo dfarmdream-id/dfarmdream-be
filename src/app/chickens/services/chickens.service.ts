@@ -59,7 +59,13 @@ export class ChickensService {
   }
 
   public create(createChickensDto: CreateChickensDto) {
-    return from(this.chickenRepository.create(createChickensDto));
+    const racks = createChickensDto.rackId.split(',');
+    const data = racks.map((rackId) => ({
+      ...createChickensDto,
+      rackId,
+    }));
+
+    return from(this.chickenRepository.createMany(data));
   }
 
   public update(id: string, updateChickensDto: UpdateChickensDto) {

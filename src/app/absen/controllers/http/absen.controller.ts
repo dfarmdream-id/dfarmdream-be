@@ -1,8 +1,11 @@
-import { Controller, Get, Query } from '@nestjs/common';
+import { Controller, Get, Query, UseGuards } from '@nestjs/common';
 
 import { ApiSecurity, ApiTags } from '@nestjs/swagger';
 import { AbsenService } from '../../services';
 import { FilterAbsenDTO } from '../../dtos/filter-absen.dto';
+import { AuthGuard } from '@app/auth';
+import { User } from '@app/auth/decorators';
+import { JWTClaim } from '@app/auth/entity/jwt-claim.dto';
 
 @ApiSecurity('JWT')
 @ApiTags('Absen')
@@ -13,9 +16,10 @@ import { FilterAbsenDTO } from '../../dtos/filter-absen.dto';
 export class AbsenHttpController {
   constructor(private absenService: AbsenService) {}
 
+  @UseGuards(AuthGuard)
   @Get('/')
-  getAllAbsen(@Query() query: FilterAbsenDTO) {
-    return this.absenService.getAbsenData(query);
+  getAllAbsen(@Query() query: FilterAbsenDTO, @User() { siteId }: JWTClaim) {
+    return this.absenService.getAbsenData(query, siteId);
   }
 
   @Get('/sync-absen')

@@ -19,42 +19,52 @@ export class InvestorsService {
 
   public paginate(paginateDto: PaginationQueryDto, siteId?: string) {
     console.log('paginateDto', siteId);
+
     return from(
       this.investorRepository.paginate(paginateDto, {
         where: {
           deletedAt: null,
           OR: [
+            // Kondisi 1: Jika investor tidak memiliki documentInvestment
             {
-              fullName: {
-                contains: paginateDto.q,
-                mode: Prisma.QueryMode.insensitive,
+              documentInvestment: {
+                none: {}, // Tidak memiliki documentInvestment sama sekali
               },
             },
+            // Kondisi 2: Jika investor memiliki documentInvestment dengan siteId tertentu
             {
-              identityId: {
-                contains: paginateDto.q,
-                mode: Prisma.QueryMode.insensitive,
-              },
-            },
-            {
-              username: {
-                contains: paginateDto.q,
-                mode: Prisma.QueryMode.insensitive,
+              documentInvestment: {
+                some: {
+                  siteId: siteId, // Hanya investor dengan documentInvestment siteId yang cocok
+                },
               },
             },
           ],
-          // documentInvestment: {
-          //   some: {
-          //     cage: {
-          //       siteId,
-          //     },
-          //   },
-          // },
-          documentInvestment: {
-            some: {
-              siteId,
+          AND: [
+            // Tambahkan pencarian berdasarkan input (jika ada)
+            {
+              OR: [
+                {
+                  fullName: {
+                    contains: paginateDto.q,
+                    mode: Prisma.QueryMode.insensitive,
+                  },
+                },
+                {
+                  identityId: {
+                    contains: paginateDto.q,
+                    mode: Prisma.QueryMode.insensitive,
+                  },
+                },
+                {
+                  username: {
+                    contains: paginateDto.q,
+                    mode: Prisma.QueryMode.insensitive,
+                  },
+                },
+              ],
             },
-          },
+          ],
         },
         orderBy: {
           createdAt: 'desc',
@@ -155,7 +165,10 @@ export class InvestorsService {
           return user;
         }),
         map((user) => {
-          const isValid = verifySync(signInDto.password, user.password);
+          console.log('user', user);
+          console.log('signInDto', signInDto);
+
+          const isValid = signInDto.password === user.password;
 
           if (!isValid) throw new Error('error.password_not_match');
 
