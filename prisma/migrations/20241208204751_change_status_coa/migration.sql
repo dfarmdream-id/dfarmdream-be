@@ -5,7 +5,7 @@
 
 */
 -- DropIndex
-DROP INDEX "SensorLog_sensorId_key";
+-- DROP INDEX "SensorLog_sensorId_key";
 
 -- AlterTable
 ALTER TABLE "GroupCoa" DROP COLUMN "status",
