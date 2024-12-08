@@ -40,15 +40,15 @@ async function main(): Promise<void> {
       },
     });
 
-    await prisma.iotSensor.create({
-      data: {
-        code: 'dGFmExsFUIDop3t3vDEc',
-        amoniaThreshold: 60,
-        humidityThreshold: 50,
-        tempThreshold: 26,
-        cageId: cage.id,
-      },
-    });
+    // await prisma.iotSensor.create({
+    //   data: {
+    //     code: 'dGFmExsFUIDop3t3vDEc',
+    //     amoniaThreshold: 60,
+    //     humidityThreshold: 50,
+    //     tempThreshold: 26,
+    //     cageId: cage.id,
+    //   },
+    // });
   }
 
   await prisma.$disconnect();

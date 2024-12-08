@@ -26,8 +26,8 @@ export class SensorService {
     this.sensorId = process.env.MQTT_SENSOR_ID || '8KVP701731';
     const listTopic = topics ? topics.split(',') : [];
     const MQTT_URL = process.env.MQTT_URL ?? '';
-    this.mqtt = connect(MQTT_URL, {
-      clientId: process.env.MQTT_CLIENT_ID || 'dfarmdream-nest-clientid',
+     this.mqtt = connect(MQTT_URL, {
+      clientId: '',
       clean: true,
       connectTimeout: 10,
       username: process.env.MQTT_USERNAME,
@@ -63,87 +63,90 @@ export class SensorService {
     if (topicSplit.length > 2) {
       sensorType = topicSplit[1].replace(`_${this.sensorId}`, '').toUpperCase();
     }
-    const iot = await this.prismaService.iotSensor.findFirstOrThrow({
+    const iot = await this.prismaService.iotSensor.findFirst({
       where: {
         code: this.sensorId,
       },
     });
-
-    const payload = new SensorLogDTO();
-    if (sensorType === 'LDR') {
-      if (msgJson.ldr && msgJson.ldr > 500) {
-        this.mqtt.publish('d-farm/' + this.sensorId, 'RELAY1_ON');
-      } else {
-        this.mqtt.publish('d-farm/' + this.sensorId, 'RELAY1_OFF');
+    if(iot){
+      const payload = new SensorLogDTO();
+      if (sensorType === 'LDR') {
+        if (msgJson.ldr && msgJson.ldr > 500) {
+          this.mqtt.publish('d-farm/' + this.sensorId, 'RELAY1_ON');
+        } else {
+          this.mqtt.publish('d-farm/' + this.sensorId, 'RELAY1_OFF');
+        }
+  
+        await this.prismaService.iotSensor.update({
+          where: {
+            id: iot?.id,
+          },
+          data: {
+            lampStatus: msgJson.ldr ?? 0,
+          },
+        });
+  
+        payload.sensorType = SensorType.LDR;
+        payload.value = msgJson.ldr;
+        this.saveLogData(payload, SensorType.LDR).catch((e) =>
+          console.log('Failed to save log data : ', e.message),
+        );
+      } else if (sensorType === 'AMONIA') {
+        let amonia: number = parseFloat(msgJson.amonia);
+        if (amonia && amonia > 100) {
+          amonia = 0;
+        }
+        await this.prismaService.iotSensor.update({
+          where: {
+            id: iot?.id,
+          },
+          data: {
+            currentAmonia: amonia,
+          },
+        });
+        // {"device_id":"8KVP701731","air_quality":43,"nilaiRO":null,"amonia":"0.55"}
+        payload.sensorType = SensorType.GAS;
+        payload.value = amonia;
+        this.saveLogData(payload, SensorType.GAS).catch((e) =>
+          console.log('Failed to save log data : ', e.message),
+        );
+      } else if (sensorType === 'SUHU') {
+        if (iot.tempThreshold && msgJson.temperature > iot.tempThreshold) {
+          this.mqtt.publish('d-farm/' + this.sensorId, 'RELAY2_ON');
+        } else {
+          this.mqtt.publish('d-farm/' + this.sensorId, 'RELAY2_OFF');
+        }
+        await this.prismaService.iotSensor.update({
+          where: {
+            id: iot?.id,
+          },
+          data: {
+            currentTemperature: msgJson.temperature ?? 0,
+          },
+        });
+        payload.sensorType = SensorType.TEMP;
+        payload.value = msgJson.temperature;
+        this.saveLogData(payload, SensorType.TEMP).catch((e) =>
+          console.log('Failed to save log data : ', e.message),
+        );
+  
+        await this.prismaService.iotSensor.update({
+          where: {
+            id: iot?.id,
+          },
+          data: {
+            currentTemperature: msgJson.humidity ?? 0,
+          },
+        });
+        payload.sensorType = SensorType.HUMIDITY;
+        payload.value = msgJson.humidity;
+        this.saveLogData(payload, SensorType.HUMIDITY).catch((e) =>
+          console.log('Failed to save log data : ', e.message),
+        );
       }
-
-      await this.prismaService.iotSensor.update({
-        where: {
-          id: iot?.id,
-        },
-        data: {
-          lampStatus: msgJson.ldr ?? 0,
-        },
-      });
-
-      payload.sensorType = SensorType.LDR;
-      payload.value = msgJson.ldr;
-      this.saveLogData(payload, SensorType.LDR).catch((e) =>
-        console.log('Failed to save log data : ', e.message),
-      );
-    } else if (sensorType === 'AMONIA') {
-      let amonia: number = parseFloat(msgJson.amonia);
-      if (amonia && amonia > 100) {
-        amonia = 0;
-      }
-      await this.prismaService.iotSensor.update({
-        where: {
-          id: iot?.id,
-        },
-        data: {
-          currentAmonia: amonia,
-        },
-      });
-      // {"device_id":"8KVP701731","air_quality":43,"nilaiRO":null,"amonia":"0.55"}
-      payload.sensorType = SensorType.GAS;
-      payload.value = amonia;
-      this.saveLogData(payload, SensorType.GAS).catch((e) =>
-        console.log('Failed to save log data : ', e.message),
-      );
-    } else if (sensorType === 'SUHU') {
-      if (iot.tempThreshold && msgJson.temperature > iot.tempThreshold) {
-        this.mqtt.publish('d-farm/' + this.sensorId, 'RELAY2_ON');
-      } else {
-        this.mqtt.publish('d-farm/' + this.sensorId, 'RELAY2_OFF');
-      }
-      await this.prismaService.iotSensor.update({
-        where: {
-          id: iot?.id,
-        },
-        data: {
-          currentTemperature: msgJson.temperature ?? 0,
-        },
-      });
-      payload.sensorType = SensorType.TEMP;
-      payload.value = msgJson.temperature;
-      this.saveLogData(payload, SensorType.TEMP).catch((e) =>
-        console.log('Failed to save log data : ', e.message),
-      );
-
-      await this.prismaService.iotSensor.update({
-        where: {
-          id: iot?.id,
-        },
-        data: {
-          currentTemperature: msgJson.humidity ?? 0,
-        },
-      });
-      payload.sensorType = SensorType.HUMIDITY;
-      payload.value = msgJson.humidity;
-      this.saveLogData(payload, SensorType.HUMIDITY).catch((e) =>
-        console.log('Failed to save log data : ', e.message),
-      );
     }
+
+   
   }
 
   saveLogBasedOnTopic(message: string, topic: string) {
