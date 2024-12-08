@@ -29,7 +29,7 @@ export class SensorService {
     const MQTT_URL = process.env.MQTT_URL ?? '';
     this.mqtt = connect(MQTT_URL, {
       clientId: '',
-      // clean: true,
+      clean: true,
       connectTimeout: 10,
       username: process.env.MQTT_USERNAME,
       password: process.env.MQTT_PASSWORD,
@@ -52,9 +52,9 @@ export class SensorService {
     }
     // this.mqtt.subscribe(this.topic);
 
-    this.mqtt.on('message', (topic, message) => {
+    this.mqtt.on('message', async (topic, message) => {
       // console.log(`TOPIC (${topic}) : `,JSON.stringify(message.toString()))
-      this.saveLogBasedOnTopic(message.toString(), topic);
+      await this.saveLogBasedOnTopic(message.toString(), topic);
     });
   }
 
@@ -119,59 +119,143 @@ export class SensorService {
         );
       }
 
-      // else if (sensorType === 'AMONIA') {
-      //   let amonia: number = parseFloat(msgJson.amonia);
-      //   if (amonia && amonia > 100) {
-      //     amonia = 0;
-      //   }
-      //   await this.prismaService.iotSensor.update({
-      //     where: {
-      //       id: iot?.id,
-      //     },
-      //     data: {
-      //       currentAmonia: amonia,
-      //     },
-      //   });
-      //   // {"device_id":"8KVP701731","air_quality":43,"nilaiRO":null,"amonia":"0.55"}
-      //   payload.sensorType = SensorType.GAS;
-      //   payload.value = amonia;
-      //   this.saveLogData(payload, SensorType.GAS).catch((e) =>
-      //     console.log('Failed to save log data : ', e.message),
-      //   );
-      // } else if (sensorType.includes('SUHU')) {
-      //   if (iot.tempThreshold && msgJson.temperature > iot.tempThreshold) {
-      //     this.mqtt.publish('d-farm/' + this.sensorId, 'RELAY2_ON');
-      //   } else {
-      //     this.mqtt.publish('d-farm/' + this.sensorId, 'RELAY2_OFF');
-      //   }
-      //   await this.prismaService.iotSensor.update({
-      //     where: {
-      //       id: iot?.id,
-      //     },
-      //     data: {
-      //       currentTemperature: msgJson.temperature ?? 0,
-      //     },
-      //   });
-      //   payload.sensorType = SensorType.TEMP;
-      //   payload.value = msgJson.temperature;
-      //   this.saveLogData(payload, SensorType.TEMP).catch((e) =>
-      //     console.log('Failed to save log data : ', e.message),
-      //   );
+      await this.checkRelay().catch((e) => {
+        console.log('Failed to check relay data : ', e);
+      });
+    }
+  }
 
-      //   await this.prismaService.iotSensor.update({
-      //     where: {
-      //       id: iot?.id,
-      //     },
-      //     data: {
-      //       currentHumidty: msgJson.humidity ?? 0,
-      //     },
-      //   });
-      //   payload.sensorType = SensorType.HUMIDITY;
-      //   payload.value = msgJson.humidity;
-      //   this.saveLogData(payload, SensorType.HUMIDITY).catch((e) =>
-      //     console.log('Failed to save log data : ', e.message),
-      //   );
-      // }
+  async checkRelay() {
+    const devices = await this.prismaService.iotSensor.findMany({
+      where: { deletedAt: null },
+    });
+    for (const device of devices) {
+      const result = await this.prismaService.sensorDevice.groupBy({
+        by: ['type'],
+        where: {
+          deviceId: device.id,
+        },
+        _max: {
+          lastestValue: true,
+        },
+      });
+
+      // Transform the result to match the desired format
+      const transformedResult = result.map((item) => ({
+        type: item.type,
+        value: item._max.lastestValue,
+      }));
+
+      const ldrEntry = transformedResult.find((item) => item.type === 'LDR');
+      const amoniaEntry = transformedResult.find((item) => item.type === 'GAS');
+      const tempEntry = transformedResult.find((item) => item.type === 'TEMP');
+      let relay1Condition = 0;
+      let relay2Condition = 0;
+      const humidityEntry = transformedResult.find(
+        (item) => item.type === 'HUMIDITY',
+      );
+      const lastRelay1Log = await this.prismaService.relayLog.findFirst({
+        where: {
+          sensorId: device.id,
+          relayNumber: 1,
+        },
+        orderBy: {
+          createdAt: 'desc',
+        },
+      });
+
+      const lastRelay2Log = await this.prismaService.relayLog.findFirst({
+        where: {
+          sensorId: device.id,
+          relayNumber: 2,
+        },
+        orderBy: {
+          createdAt: 'desc',
+        },
+      });
+
+      if (ldrEntry && ldrEntry.value! > 500) {
+        this.mqtt.publish('d-farm/' + this.sensorId, 'RELAY1_OFF');
+      } else {
+        this.mqtt.publish('d-farm/' + this.sensorId, 'RELAY1_ON');
+        relay1Condition = 1;
+      }
+      setTimeout(() => {}, 1000);
+      const amoniaValue = amoniaEntry ? amoniaEntry.value : 0;
+      const tempValue = tempEntry ? tempEntry.value : 0;
+      const humiValue = humidityEntry ? humidityEntry.value : 0;
+
+      if (
+        amoniaValue! > device.amoniaThreshold! ||
+        tempValue! > device.tempThreshold ||
+        humiValue! > device.humidityThreshold
+      ) {
+        this.mqtt.publish('d-farm/' + this.sensorId, 'RELAY2_ON');
+        relay2Condition = 1;
+      } else {
+        this.mqtt.publish('d-farm/' + this.sensorId, 'RELAY2_OFF');
+      }
+
+      // Save data relay log
+      if (!lastRelay1Log) {
+        await this.prismaService.relayLog.create({
+          data: {
+            relayNumber: 1,
+            sensorId: device.id,
+            amonia: amoniaValue,
+            humidity: humiValue,
+            temperature: tempValue,
+            ldrValue: ldrEntry?.value,
+            status: relay1Condition,
+            relayDesc: `Lampu ${relay1Condition == 0 ? 'Dimatikan' : 'Dinyalakan'}`,
+          },
+        });
+      } else {
+        if (relay1Condition != lastRelay1Log.status) {
+          await this.prismaService.relayLog.create({
+            data: {
+              relayNumber: 1,
+              sensorId: device.id,
+              amonia: amoniaValue,
+              humidity: humiValue,
+              temperature: tempValue,
+              ldrValue: ldrEntry?.value,
+              status: relay1Condition,
+              relayDesc: `Lampu ${relay1Condition == 0 ? 'Dimatikan' : 'Dinyalakan'}`,
+            },
+          });
+        }
+      }
+
+      if (!lastRelay2Log) {
+        await this.prismaService.relayLog.create({
+          data: {
+            relayNumber: 2,
+            sensorId: device.id,
+            amonia: amoniaValue,
+            humidity: humiValue,
+            temperature: tempValue,
+            ldrValue: ldrEntry?.value,
+            status: relay2Condition,
+            relayDesc: `Kipas ${relay2Condition == 0 ? 'Dimatikan' : 'Dinyalakan'} Suhu(${tempValue}, Humidity(${humiValue}), Amonia(${amoniaValue}))`,
+          },
+        });
+      } else {
+        if (relay2Condition != lastRelay2Log.status) {
+          await this.prismaService.relayLog.create({
+            data: {
+              relayNumber: 2,
+              sensorId: device.id,
+              amonia: amoniaValue,
+              humidity: humiValue,
+              temperature: tempValue,
+              ldrValue: ldrEntry?.value,
+              status: relay2Condition,
+              relayDesc: `Kipas ${relay2Condition == 0 ? 'Dimatikan' : 'Dinyalakan'} Suhu(${tempValue}, Humidity(${humiValue}), Amonia(${amoniaValue}))`,
+            },
+          });
+        }
+      }
     }
   }
 
