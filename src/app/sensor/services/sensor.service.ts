@@ -26,9 +26,9 @@ export class SensorService {
     this.sensorId = process.env.MQTT_SENSOR_ID || '8KVP701731';
     const listTopic = topics ? topics.split(',') : [];
     const MQTT_URL = process.env.MQTT_URL ?? '';
-     this.mqtt = connect(MQTT_URL, {
+    this.mqtt = connect(MQTT_URL, {
       clientId: '',
-      // clean: true,
+      clean: true,
       connectTimeout: 10,
       username: process.env.MQTT_USERNAME,
       password: process.env.MQTT_PASSWORD,
@@ -51,9 +51,9 @@ export class SensorService {
     }
     // this.mqtt.subscribe(this.topic);
 
-    this.mqtt.on('message', (topic, message) => {
+    this.mqtt.on('message', async (topic, message) => {
       // console.log(`TOPIC (${topic}) : `,JSON.stringify(message.toString()))
-      this.saveLogBasedOnTopic(message.toString(), topic);
+      await this.saveLogBasedOnTopic(message.toString(), topic);
     });
   }
 
@@ -63,14 +63,14 @@ export class SensorService {
     const topicSplit = topic.split('/');
     if (topicSplit.length > 1) {
       sensorType = topicSplit[1].replace(`_${this.sensorId}`, '').toUpperCase();
-      sensorCode = topicSplit[1]
+      sensorCode = topicSplit[1];
     }
     const iot = await this.prismaService.iotSensor.findFirst({
       where: {
         code: this.sensorId,
       },
     });
-    if(iot){
+    if (iot) {
       const payload = new SensorLogDTO();
       // console.log("sensor type : ",sensorType);
       if (sensorType === 'LDR') {
@@ -81,36 +81,36 @@ export class SensorService {
         // }
         payload.sensorType = SensorType.LDR;
         payload.value = msgJson.ldr;
-        payload.sensorCode = sensorCode
+        payload.sensorCode = sensorCode;
         this.saveLogData(payload, SensorType.LDR).catch((e) =>
           console.log('Failed to save log data : ', e.message),
         );
       }
 
-      if(sensorCode.includes('suhu')){
-        const dataSuhu = new SensorLogDTO()
-        dataSuhu.sensorType = SensorType.TEMP
-        dataSuhu.sensorCode = sensorCode
-        dataSuhu.value = msgJson.temperature
-        this.saveLogData(dataSuhu, SensorType.TEMP).catch((e)=>{
-          console.log("Failed to save log data : ", e.message)
-        })
+      if (sensorCode.includes('suhu')) {
+        const dataSuhu = new SensorLogDTO();
+        dataSuhu.sensorType = SensorType.TEMP;
+        dataSuhu.sensorCode = sensorCode;
+        dataSuhu.value = msgJson.temperature;
+        this.saveLogData(dataSuhu, SensorType.TEMP).catch((e) => {
+          console.log('Failed to save log data : ', e.message);
+        });
 
-        const dataHumidity = new SensorLogDTO()
-        dataHumidity.sensorType = SensorType.HUMIDITY
-        dataHumidity.sensorCode = sensorCode.replace("suhu",'humi')
-        dataHumidity.value = msgJson.humidity
-        this.saveLogData(dataHumidity, SensorType.HUMIDITY).catch((e)=>{
-          console.log("Failed to save log data : ", e.message)
-        })
+        const dataHumidity = new SensorLogDTO();
+        dataHumidity.sensorType = SensorType.HUMIDITY;
+        dataHumidity.sensorCode = sensorCode.replace('suhu', 'humi');
+        dataHumidity.value = msgJson.humidity;
+        this.saveLogData(dataHumidity, SensorType.HUMIDITY).catch((e) => {
+          console.log('Failed to save log data : ', e.message);
+        });
       }
-      
-      if(sensorCode.includes('amonia')){
+
+      if (sensorCode.includes('amonia')) {
         let amonia: number = parseFloat(msgJson.amonia);
         if (amonia && amonia > 100) {
           amonia = 0;
         }
-        payload.sensorCode = sensorCode
+        payload.sensorCode = sensorCode;
         payload.sensorType = SensorType.GAS;
         payload.value = amonia;
         this.saveLogData(payload, SensorType.GAS).catch((e) =>
@@ -118,56 +118,143 @@ export class SensorService {
         );
       }
 
-      this.checkRelay().catch((e)=>{
-        console.log("Failed to check relay data : ",e)
-      })
+      await this.checkRelay().catch((e) => {
+        console.log('Failed to check relay data : ', e);
+      });
     }
-
-   
   }
 
-  async checkRelay(){
-    const devices = await this.prismaService.iotSensor.findMany({where:{deletedAt:null}})
-    for(let device of devices){
+  async checkRelay() {
+    const devices = await this.prismaService.iotSensor.findMany({
+      where: { deletedAt: null },
+    });
+    for (let device of devices) {
       const result = await this.prismaService.sensorDevice.groupBy({
-        by: ['type'], 
+        by: ['type'],
         where: {
-          deviceId: device.id, 
+          deviceId: device.id,
         },
         _max: {
-          lastestValue: true, 
+          lastestValue: true,
         },
       });
-      
+
       // Transform the result to match the desired format
       const transformedResult = result.map((item) => ({
         type: item.type,
         value: item._max.lastestValue,
       }));
-      
+
       const ldrEntry = transformedResult.find((item) => item.type === 'LDR');
       const amoniaEntry = transformedResult.find((item) => item.type === 'GAS');
       const tempEntry = transformedResult.find((item) => item.type === 'TEMP');
-      const humidityEntry = transformedResult.find((item) => item.type === 'HUMIDITY');
+      let relay1Condition = 0;
+      let relay2Condition = 0;
+      const humidityEntry = transformedResult.find(
+        (item) => item.type === 'HUMIDITY',
+      );
+      const lastRelay1Log = await this.prismaService.relayLog.findFirst({
+        where: {
+          sensorId: device.id,
+          relayNumber: 1,
+        },
+        orderBy:{
+          createdAt:'desc'
+        }
+      });
+
+      const lastRelay2Log = await this.prismaService.relayLog.findFirst({
+        where: {
+          sensorId: device.id,
+          relayNumber: 2,
+        },
+        orderBy:{
+          createdAt:'desc'
+        }
+      });
 
       if (ldrEntry && ldrEntry.value! > 500) {
         this.mqtt.publish('d-farm/' + this.sensorId, 'RELAY1_OFF');
-      }else{
-          this.mqtt.publish('d-farm/' + this.sensorId, 'RELAY1_ON');
+      } else {
+        this.mqtt.publish('d-farm/' + this.sensorId, 'RELAY1_ON');
+        relay1Condition = 1
       }
-      setTimeout(()=>{
-
-      },1000)
-      const amoniaValue = amoniaEntry?amoniaEntry.value:0;
-      const tempValue = tempEntry?tempEntry.value:0;
-      const humiValue = humidityEntry?humidityEntry.value:0;
-
-      if((amoniaValue!>device.amoniaThreshold!) || (tempValue! > device.tempThreshold) || (humiValue!> device.humidityThreshold)){
+      setTimeout(() => {}, 1000);
+      const amoniaValue = amoniaEntry ? amoniaEntry.value : 0;
+      const tempValue = tempEntry ? tempEntry.value : 0;
+      const humiValue = humidityEntry ? humidityEntry.value : 0;
+      
+      if (
+        amoniaValue! > device.amoniaThreshold! ||
+        tempValue! > device.tempThreshold ||
+        humiValue! > device.humidityThreshold
+      ) {
         this.mqtt.publish('d-farm/' + this.sensorId, 'RELAY2_ON');
-      }else{
+        relay2Condition = 1
+      } else {
         this.mqtt.publish('d-farm/' + this.sensorId, 'RELAY2_OFF');
       }
 
+      // Save data relay log
+      if(!lastRelay1Log){
+        await this.prismaService.relayLog.create({
+          data:{
+            relayNumber: 1,
+            sensorId: device.id,
+            amonia: amoniaValue,
+            humidity: humiValue,
+            temperature: tempValue,
+            ldrValue: ldrEntry?.value,
+            status: relay1Condition,
+            relayDesc:`Lampu ${relay1Condition==0?'Dimatikan':'Dinyalakan'}`
+          }
+        })
+      }else{
+        if(relay1Condition != lastRelay1Log.status){
+          await this.prismaService.relayLog.create({
+            data:{
+              relayNumber: 1,
+              sensorId: device.id,
+              amonia: amoniaValue,
+              humidity: humiValue,
+              temperature: tempValue,
+              ldrValue: ldrEntry?.value,
+              status: relay1Condition,
+              relayDesc:`Lampu ${relay1Condition==0?'Dimatikan':'Dinyalakan'}`
+            }
+          })
+        }
+      }
+
+      if(!lastRelay2Log){
+        await this.prismaService.relayLog.create({
+          data:{
+            relayNumber: 2,
+            sensorId: device.id,
+            amonia: amoniaValue,
+            humidity: humiValue,
+            temperature: tempValue,
+            ldrValue: ldrEntry?.value,
+            status: relay2Condition,
+            relayDesc:`Kipas ${relay2Condition==0?'Dimatikan':'Dinyalakan'} Suhu(${tempValue}, Humidity(${humiValue}), Amonia(${amoniaValue}))`
+          }
+        })
+      }else{
+        if(relay2Condition != lastRelay2Log.status){
+          await this.prismaService.relayLog.create({
+            data:{
+              relayNumber: 2,
+              sensorId: device.id,
+              amonia: amoniaValue,
+              humidity: humiValue,
+              temperature: tempValue,
+              ldrValue: ldrEntry?.value,
+              status: relay2Condition,
+              relayDesc:`Kipas ${relay2Condition==0?'Dimatikan':'Dinyalakan'} Suhu(${tempValue}, Humidity(${humiValue}), Amonia(${amoniaValue}))`
+            }
+          })
+        }
+      }
     }
   }
 
@@ -230,21 +317,21 @@ export class SensorService {
             value: payload.value,
             epoch: currentTime,
             sensorId: sensor?.id ?? '',
-            iotSensorId: sensor?.deviceId ??'',
+            iotSensorId: sensor?.deviceId ?? '',
             createdAt: new Date(),
             updatedAt: new Date(),
           },
         });
 
         await this.prismaService.sensorDevice.update({
-          where:{
-            id: sensor.id
+          where: {
+            id: sensor.id,
           },
-          data:{
+          data: {
             lastestValue: payload.value,
-            lastUpdatedAt: new Date().getTime()
-          }
-        })
+            lastUpdatedAt: new Date().getTime(),
+          },
+        });
       }
 
       return true;
@@ -288,10 +375,11 @@ export class SensorService {
     const data: any = await this.prismaService.$queryRaw`
     SELECT 
       DATE_TRUNC('hour', "SensorLog"."createdAt") as hour,
-      AVG(temperature) as average_temperature
+      AVG(value) as average_temperature
     FROM "SensorLog" 
     LEFT JOIN "IotSensor" on "IotSensor"."id" = "SensorLog"."sensorId"
     WHERE "epoch" >= ${startOfDay}
+    AND type='TEMP'
     ${cageIds.length > 0 ? Prisma.sql`AND "IotSensor"."cageId" IN (${Prisma.join(cageIds)})` : Prisma.empty}
     GROUP BY DATE_TRUNC('hour', "SensorLog"."createdAt")
     ORDER BY hour ASC`;
@@ -319,7 +407,6 @@ export class SensorService {
       },
     };
   }
-
 
   async getAmoniaChartDaily(filter: ChartFilterDTO, user: JWTClaim) {
     const filterTanggal = filter.tanggal
@@ -355,10 +442,11 @@ export class SensorService {
     const data: any = await this.prismaService.$queryRaw`
     SELECT 
       DATE_TRUNC('hour', "SensorLog"."createdAt") as hour,
-      AVG(temperature) as average_amonia
+      AVG(value) as average_amonia
     FROM "SensorLog" 
     LEFT JOIN "IotSensor" on "IotSensor"."id" = "SensorLog"."sensorId"
     WHERE "epoch" >= ${startOfDay}
+    AND type='GAS'
     ${cageIds.length > 0 ? Prisma.sql`AND "IotSensor"."cageId" IN (${Prisma.join(cageIds)})` : Prisma.empty}
     GROUP BY DATE_TRUNC('hour', "SensorLog"."createdAt")
     ORDER BY hour ASC`;
@@ -423,6 +511,7 @@ export class SensorService {
     FROM "SensorLog" 
     LEFT JOIN "IotSensor" on "IotSensor"."id" = "SensorLog"."sensorId"
     WHERE "epoch" >= ${startOfDay}
+    AND type='HUMIDITY'
     ${cageIds.length > 0 ? Prisma.sql`AND "IotSensor"."cageId" IN (${Prisma.join(cageIds)})` : Prisma.empty}
     GROUP BY DATE_TRUNC('hour', "SensorLog"."createdAt")
     ORDER BY hour ASC`;
