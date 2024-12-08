@@ -17,11 +17,11 @@
 CREATE TYPE "LedgerEnum" AS ENUM ('DEBIT', 'CREDIT');
 
 -- AlterTable
-ALTER TABLE "CashFlowCategory" ADD COLUMN     "siteId" TEXT;
+ALTER TABLE "CashFlowCategory" ADD COLUMN "siteId" TEXT;
 
 -- AlterTable
 ALTER TABLE "JournalHeader" DROP COLUMN "journalTypeId",
-ADD COLUMN     "code" TEXT NOT NULL;
+ADD COLUMN     "code" INT NOT NULL;
 
 -- AlterTable
 ALTER TABLE "JournalTemplate" ADD COLUMN     "jurnalTypeId" TEXT NOT NULL;
@@ -29,7 +29,7 @@ ALTER TABLE "JournalTemplate" ADD COLUMN     "jurnalTypeId" TEXT NOT NULL;
 -- AlterTable
 ALTER TABLE "JournalTemplateDetail" DROP COLUMN "code",
 DROP COLUMN "name",
-ADD COLUMN     "coaCode" TEXT NOT NULL,
+ADD COLUMN     "coaCode" INT NOT NULL,
 ADD COLUMN     "jurnalTemplateCode" TEXT NOT NULL,
 ADD COLUMN     "typeLedger" "LedgerEnum" NOT NULL;
 
@@ -37,7 +37,7 @@ ADD COLUMN     "typeLedger" "LedgerEnum" NOT NULL;
 CREATE TABLE "JournalDetail" (
     "id" TEXT NOT NULL,
     "journalHeaderId" TEXT NOT NULL,
-    "coaCode" TEXT NOT NULL,
+    "coaCode" INT NOT NULL,
     "debit" INTEGER NOT NULL,
     "credit" INTEGER NOT NULL,
     "note" TEXT NOT NULL,
