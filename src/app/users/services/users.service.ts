@@ -249,47 +249,4 @@ export class UsersService {
       }),
     );
   }
-
-  public async generateToken(username: string) {
-    try {
-      const user = await this.userRepository.firstOrThrow({ username });
-      await this.userRepository.update(
-        {
-          id: user.id,
-        },
-        {
-          telegramVerification: (Math.random() + 1).toString(36).substring(6),
-        },
-      );
-      return user;
-    } catch (e) {
-      throw new Error(e);
-    }
-  }
-
-  public async validationTOken(
-    username: string,
-    token: string,
-    telegramId: string,
-    telegramUsername: string,
-  ) {
-    try {
-      const user = await this.userRepository.firstOrThrow({ username });
-      if (user.telegramVerification !== token)
-        throw new Error('error.token_not_match');
-
-      await this.userRepository.update(
-        {
-          id: user.id,
-        },
-        {
-          telegramId,
-          telegramUsername,
-        },
-      );
-      return user;
-    } catch (e) {
-      throw new Error(e);
-    }
-  }
 }
