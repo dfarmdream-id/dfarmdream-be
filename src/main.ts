@@ -12,7 +12,19 @@ import { ENV } from './config/env';
 import { MicroserviceOptions, Transport } from '@nestjs/microservices';
 import { ResponseEntity } from './common/entities/response.entity';
 
+declare global {
+  interface BigInt {
+    toJSON(): string;
+  }
+}
+
 async function bootstrap() {
+
+  BigInt.prototype.toJSON = function () {
+    const int:any = Number.parseInt(this.toString());
+    return int ?? this.toString();
+  };
+  
   const app = await NestFactory.create(MainModule, {
     logger: ['log', 'error', 'warn', 'debug', 'verbose'],
   });

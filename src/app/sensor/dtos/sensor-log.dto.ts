@@ -9,4 +9,8 @@ export class SensorLogDTO {
 
   @ApiProperty()
   value: number;
+
+  @ApiProperty()
+  @IsOptional()
+  sensorCode:string;
 }

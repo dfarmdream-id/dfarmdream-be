@@ -46,7 +46,9 @@ export class SensorDeviceRepository {
           skip: (+page - 1) * +limit,
           take: +limit,
           where: where,
-          orderBy: filter?.orderBy,
+          orderBy: (filter?.orderBy) ?? {
+            createdAt:'desc'
+          },
           cursor: filter?.cursor,
           include: {
             IotSensor: {

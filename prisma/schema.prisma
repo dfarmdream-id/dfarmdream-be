@@ -503,7 +503,7 @@ model IotSensor {
   deletedAt          DateTime?
   createdAt          DateTime             @default(now())
   updatedAt          DateTime             @updatedAt
-  SensorDevice       SensorDevice[]      
+  SensorDevice       SensorDevice[]
 }
 
 enum SensorType {
@@ -518,20 +518,20 @@ model SensorDevice {
   code          String      @unique
   deviceId      String?
   type          SensorType
-  lastestValue  Float? @default(0)
-  lastUpdatedAt BigInt? @default(0)
-  IotSensor     IotSensor? @relation(fields: [deviceId], references: [id])
+  lastestValue  Float?      @default(0)
+  lastUpdatedAt BigInt?     @default(0)
+  IotSensor     IotSensor?  @relation(fields: [deviceId], references: [id])
   SensorLog     SensorLog[]
-  createdAt          DateTime             @default(now())
-  updatedAt          DateTime             @updatedAt
+  createdAt     DateTime    @default(now())
+  updatedAt     DateTime    @updatedAt
 }
 
 model SensorLog {
   id          String        @id @unique @default(uuid())
-  sensorId    String?       @unique
+  sensorId    String?       
   sensor      SensorDevice? @relation(fields: [sensorId], references: [id])
-  type        SensorType @default(HUMIDITY)
-  value       Float @default(0)
+  type        SensorType    @default(HUMIDITY)
+  value       Float         @default(0)
   epoch       BigInt
   createdAt   DateTime      @default(now())
   updatedAt   DateTime      @updatedAt
@@ -596,7 +596,6 @@ model Attendance {
   updatedAt       DateTime  @default(now()) @updatedAt
 }
 
-
 model KategoriBiaya {
   id           String    @id @unique @default(uuid())
   namaKategori String
@@ -652,7 +651,7 @@ model Coa {
   isBalanceSheet     Boolean
   isRetainedEarnings Boolean
   groupId            String
-  group              GroupCoa @relation(fields: [groupId], references: [id])
+  group              GroupCoa  @relation(fields: [groupId], references: [id])
   deletedAt          DateTime?
   createdAt          DateTime  @default(now())
   updatedAt          DateTime  @updatedAt
