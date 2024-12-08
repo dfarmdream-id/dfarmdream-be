@@ -503,7 +503,7 @@ model IotSensor {
   deletedAt          DateTime?
   createdAt          DateTime             @default(now())
   updatedAt          DateTime             @updatedAt
-  SensorDevice       SensorDevice?        @relation(fields: [code], references: [code])
+  SensorDevice       SensorDevice[]      
 }
 
 enum SensorType {
@@ -516,19 +516,22 @@ enum SensorType {
 model SensorDevice {
   id            String      @id @unique @default(uuid())
   code          String      @unique
+  deviceId      String?
   type          SensorType
-  lastestValue  Float
-  lastUpdatedAt BigInt
-  IotSensor     IotSensor?
+  lastestValue  Float? @default(0)
+  lastUpdatedAt BigInt? @default(0)
+  IotSensor     IotSensor? @relation(fields: [deviceId], references: [id])
   SensorLog     SensorLog[]
+  createdAt          DateTime             @default(now())
+  updatedAt          DateTime             @updatedAt
 }
 
 model SensorLog {
   id          String        @id @unique @default(uuid())
   sensorId    String?       @unique
   sensor      SensorDevice? @relation(fields: [sensorId], references: [id])
-  type        SensorType
-  value       Float
+  type        SensorType @default(HUMIDITY)
+  value       Float @default(0)
   epoch       BigInt
   createdAt   DateTime      @default(now())
   updatedAt   DateTime      @updatedAt
@@ -593,28 +596,6 @@ model Attendance {
   updatedAt       DateTime  @default(now()) @updatedAt
 }
 
-// COA
-model akuncoa {
-  kodeakun    String @id @unique
-  namaakun    String
-  kodegroup   Int
-  level       Int
-  isneraca    Int
-  islabatahan Int
-  status      Int
-}
-
-// model biaya {
-//   kodekategoribiaya String   @id
-//   kodebiaya         String
-//   biaya             Decimal  @db.Money
-//   tanggal           DateTime @db.Timestamp()
-//   idlokasi          String
-//   idkandang         String
-//   idkaryawan        String
-//   keterangan        String
-//   status            Int
-// }
 
 model KategoriBiaya {
   id           String    @id @unique @default(uuid())
@@ -665,7 +646,7 @@ model PenerimaanModal {
 
 model Coa {
   id                 String    @id @unique @default(uuid())
-  code               String
+  code               Int
   name               String
   level              Int
   isBalanceSheet     Boolean
@@ -679,7 +660,7 @@ model Coa {
 
 model GroupCoa {
   id        String    @id @unique @default(uuid())
-  code      String
+  code      Int
   name      String
   status    String
   coa       Coa[]
