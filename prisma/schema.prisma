@@ -16,21 +16,21 @@ enum UserStatus {
 }
 
 model User {
-  id           String      @id @default(uuid())
-  nip          String?
-  email        String?
-  username     String
-  fullName     String?
-  password     String
-  identityId   String?
-  phone        String?
-  address      String?
-  photoProfile String?
-  position     Position?   @relation(fields: [positionId], references: [id])
-  status       UserStatus? @default(INACTIVE)
+  id                   String      @id @default(uuid())
+  nip                  String?
+  email                String?
+  username             String
+  fullName             String?
+  password             String
+  identityId           String?
+  phone                String?
+  address              String?
+  photoProfile         String?
+  position             Position?   @relation(fields: [positionId], references: [id])
+  status               UserStatus? @default(INACTIVE)
   lastSendNotification DateTime?
-  telegramId String?
-  telegramUsername String?
+  telegramId           String?
+  telegramUsername     String?
 
   deletedAt                 DateTime?
   createdAt                 DateTime                    @default(now())
@@ -485,10 +485,10 @@ model WarehouseTransaction {
 }
 
 model IotSensor {
-  id                 String      @id @unique @default(uuid())
-  name               String?     @default("")
-  code               String
-  cage               Cage?       @relation(fields: [cageId], references: [id])
+  id                 String               @id @unique @default(uuid())
+  name               String?              @default("")
+  code               String               @unique
+  cage               Cage?                @relation(fields: [cageId], references: [id])
   cageId             String?
   tempThreshold      Float
   humidityThreshold  Float
@@ -498,26 +498,41 @@ model IotSensor {
   currentAmonia      Float?
   currentAirQuality  Float?
   lampStatus         Float?
-  logs               SensorLog[]
   relayLog           RelayLog[]
-  telegramLog       TelegramMesasgeLog[]
+  telegramLog        TelegramMesasgeLog[]
   deletedAt          DateTime?
-  createdAt          DateTime    @default(now())
-  updatedAt          DateTime    @updatedAt
+  createdAt          DateTime             @default(now())
+  updatedAt          DateTime             @updatedAt
+  SensorDevice       SensorDevice?        @relation(fields: [code], references: [code])
+}
+
+enum SensorType {
+  TEMP
+  HUMIDITY
+  GAS
+  LDR
+}
+
+model SensorDevice {
+  id            String      @id @unique @default(uuid())
+  code          String      @unique
+  type          SensorType
+  lastestValue  Float
+  lastUpdatedAt BigInt
+  IotSensor     IotSensor?
+  SensorLog     SensorLog[]
 }
 
 model SensorLog {
-  id          String     @id @unique @default(uuid())
-  sensorId    String?
-  sensor      IotSensor? @relation(fields: [sensorId], references: [id])
-  temperature Float
-  humidity    Float
-  airQuality  Float
-  amonia      Float
-  ldrValue    Int
+  id          String        @id @unique @default(uuid())
+  sensorId    String?       @unique
+  sensor      SensorDevice? @relation(fields: [sensorId], references: [id])
+  type        SensorType
+  value       Float
   epoch       BigInt
-  createdAt   DateTime   @default(now())
-  updatedAt   DateTime   @updatedAt
+  createdAt   DateTime      @default(now())
+  updatedAt   DateTime      @updatedAt
+  iotSensorId String?
 }
 
 model TelegramMesasgeLog {
