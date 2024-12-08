@@ -12,6 +12,7 @@ import {
 } from '../dtos/chart-filter.dto';
 import { MqttClient, connect } from 'mqtt';
 import { JWTClaim } from '@src/app/auth/entity/jwt-claim.dto';
+import moment from 'moment';
 
 @Injectable()
 export class SensorService {
@@ -128,7 +129,7 @@ export class SensorService {
     const devices = await this.prismaService.iotSensor.findMany({
       where: { deletedAt: null },
     });
-    for (let device of devices) {
+    for (const device of devices) {
       const result = await this.prismaService.sensorDevice.groupBy({
         by: ['type'],
         where: {
@@ -158,9 +159,9 @@ export class SensorService {
           sensorId: device.id,
           relayNumber: 1,
         },
-        orderBy:{
-          createdAt:'desc'
-        }
+        orderBy: {
+          createdAt: 'desc',
+        },
       });
 
       const lastRelay2Log = await this.prismaService.relayLog.findFirst({
@@ -168,37 +169,37 @@ export class SensorService {
           sensorId: device.id,
           relayNumber: 2,
         },
-        orderBy:{
-          createdAt:'desc'
-        }
+        orderBy: {
+          createdAt: 'desc',
+        },
       });
 
       if (ldrEntry && ldrEntry.value! > 500) {
         this.mqtt.publish('d-farm/' + this.sensorId, 'RELAY1_OFF');
       } else {
         this.mqtt.publish('d-farm/' + this.sensorId, 'RELAY1_ON');
-        relay1Condition = 1
+        relay1Condition = 1;
       }
       setTimeout(() => {}, 1000);
       const amoniaValue = amoniaEntry ? amoniaEntry.value : 0;
       const tempValue = tempEntry ? tempEntry.value : 0;
       const humiValue = humidityEntry ? humidityEntry.value : 0;
-      
+
       if (
         amoniaValue! > device.amoniaThreshold! ||
         tempValue! > device.tempThreshold ||
         humiValue! > device.humidityThreshold
       ) {
         this.mqtt.publish('d-farm/' + this.sensorId, 'RELAY2_ON');
-        relay2Condition = 1
+        relay2Condition = 1;
       } else {
         this.mqtt.publish('d-farm/' + this.sensorId, 'RELAY2_OFF');
       }
 
       // Save data relay log
-      if(!lastRelay1Log){
+      if (!lastRelay1Log) {
         await this.prismaService.relayLog.create({
-          data:{
+          data: {
             relayNumber: 1,
             sensorId: device.id,
             amonia: amoniaValue,
@@ -206,13 +207,13 @@ export class SensorService {
             temperature: tempValue,
             ldrValue: ldrEntry?.value,
             status: relay1Condition,
-            relayDesc:`Lampu ${relay1Condition==0?'Dimatikan':'Dinyalakan'}`
-          }
-        })
-      }else{
-        if(relay1Condition != lastRelay1Log.status){
+            relayDesc: `Lampu ${relay1Condition == 0 ? 'Dimatikan' : 'Dinyalakan'}`,
+          },
+        });
+      } else {
+        if (relay1Condition != lastRelay1Log.status) {
           await this.prismaService.relayLog.create({
-            data:{
+            data: {
               relayNumber: 1,
               sensorId: device.id,
               amonia: amoniaValue,
@@ -220,15 +221,15 @@ export class SensorService {
               temperature: tempValue,
               ldrValue: ldrEntry?.value,
               status: relay1Condition,
-              relayDesc:`Lampu ${relay1Condition==0?'Dimatikan':'Dinyalakan'}`
-            }
-          })
+              relayDesc: `Lampu ${relay1Condition == 0 ? 'Dimatikan' : 'Dinyalakan'}`,
+            },
+          });
         }
       }
 
-      if(!lastRelay2Log){
+      if (!lastRelay2Log) {
         await this.prismaService.relayLog.create({
-          data:{
+          data: {
             relayNumber: 2,
             sensorId: device.id,
             amonia: amoniaValue,
@@ -236,13 +237,13 @@ export class SensorService {
             temperature: tempValue,
             ldrValue: ldrEntry?.value,
             status: relay2Condition,
-            relayDesc:`Kipas ${relay2Condition==0?'Dimatikan':'Dinyalakan'} Suhu(${tempValue}, Humidity(${humiValue}), Amonia(${amoniaValue}))`
-          }
-        })
-      }else{
-        if(relay2Condition != lastRelay2Log.status){
+            relayDesc: `Kipas ${relay2Condition == 0 ? 'Dimatikan' : 'Dinyalakan'} Suhu(${tempValue}, Humidity(${humiValue}), Amonia(${amoniaValue}))`,
+          },
+        });
+      } else {
+        if (relay2Condition != lastRelay2Log.status) {
           await this.prismaService.relayLog.create({
-            data:{
+            data: {
               relayNumber: 2,
               sensorId: device.id,
               amonia: amoniaValue,
@@ -250,9 +251,9 @@ export class SensorService {
               temperature: tempValue,
               ldrValue: ldrEntry?.value,
               status: relay2Condition,
-              relayDesc:`Kipas ${relay2Condition==0?'Dimatikan':'Dinyalakan'} Suhu(${tempValue}, Humidity(${humiValue}), Amonia(${amoniaValue}))`
-            }
-          })
+              relayDesc: `Kipas ${relay2Condition == 0 ? 'Dimatikan' : 'Dinyalakan'} Suhu(${tempValue}, Humidity(${humiValue}), Amonia(${amoniaValue}))`,
+            },
+          });
         }
       }
     }
@@ -342,144 +343,30 @@ export class SensorService {
   }
 
   async getTemperatureChartDaily(filter: ChartFilterDTO, user: JWTClaim) {
-    const filterTanggal = filter.tanggal
-      ? new Date(filter.tanggal)
-      : new Date();
-    const startOfDay = filterTanggal.setHours(0, 0, 0, 0);
-    let cageIds: any = [];
-    let where = {};
-
-    if (user.siteId) {
-      const cages = await this.prismaService.cage.findMany({
-        where: {
-          siteId: user.siteId,
-        },
-      });
-      cageIds = cages.map((x) => x.id);
-      where = {
-        ...where,
-        cageId: {
-          in: cageIds,
-        },
-      };
-    }
-
-    if (filter.cageId && filter.cageId != '') {
-      cageIds = [filter.cageId];
-      where = {
-        ...where,
-        cageId: filter.cageId,
-      };
-    }
-
-    const data: any = await this.prismaService.$queryRaw`
-    SELECT 
-      DATE_TRUNC('hour', "SensorLog"."createdAt") as hour,
-      AVG(value) as average_temperature
-    FROM "SensorLog" 
-    LEFT JOIN "IotSensor" on "IotSensor"."id" = "SensorLog"."sensorId"
-    WHERE "epoch" >= ${startOfDay}
-    AND type='TEMP'
-    ${cageIds.length > 0 ? Prisma.sql`AND "IotSensor"."cageId" IN (${Prisma.join(cageIds)})` : Prisma.empty}
-    GROUP BY DATE_TRUNC('hour', "SensorLog"."createdAt")
-    ORDER BY hour ASC`;
-
-    // Format data untuk ApexCharts
-    const formattedData = data.map((item) => {
-      const date = new Date(item.hour);
-      const hours = String(date.getHours()).padStart(2, '0');
-      const minutes = String(date.getMinutes()).padStart(2, '0');
-      return {
-        x: `${hours}:${minutes}`,
-        y: Number(item.average_temperature.toFixed(2)),
-      };
-    });
-
-    const sensors = await this.prismaService.iotSensor.findMany({
-      where,
-    });
-    return {
-      status: HttpStatus.OK,
-      message: 'Success get data',
-      data: {
-        chart: sensors && sensors.length > 0 ? formattedData : [],
-        sensors: sensors,
-      },
-    };
+    const type = SensorType.TEMP;
+    return await this.getSensorData(filter, user, type);
   }
 
   async getAmoniaChartDaily(filter: ChartFilterDTO, user: JWTClaim) {
-    const filterTanggal = filter.tanggal
-      ? new Date(filter.tanggal)
-      : new Date();
-    const startOfDay = filterTanggal.setHours(0, 0, 0, 0);
-    let cageIds: any = [];
-    let where = {};
-
-    if (user.siteId) {
-      const cages = await this.prismaService.cage.findMany({
-        where: {
-          siteId: user.siteId,
-        },
-      });
-      cageIds = cages.map((x) => x.id);
-      where = {
-        ...where,
-        cageId: {
-          in: cageIds,
-        },
-      };
-    }
-
-    if (filter.cageId && filter.cageId != '') {
-      cageIds = [filter.cageId];
-      where = {
-        ...where,
-        cageId: filter.cageId,
-      };
-    }
-
-    const data: any = await this.prismaService.$queryRaw`
-    SELECT 
-      DATE_TRUNC('hour', "SensorLog"."createdAt") as hour,
-      AVG(value) as average_amonia
-    FROM "SensorLog" 
-    LEFT JOIN "IotSensor" on "IotSensor"."id" = "SensorLog"."sensorId"
-    WHERE "epoch" >= ${startOfDay}
-    AND type='GAS'
-    ${cageIds.length > 0 ? Prisma.sql`AND "IotSensor"."cageId" IN (${Prisma.join(cageIds)})` : Prisma.empty}
-    GROUP BY DATE_TRUNC('hour', "SensorLog"."createdAt")
-    ORDER BY hour ASC`;
-
-    // Format data untuk ApexCharts
-    const formattedData = data.map((item) => {
-      const date = new Date(item.hour);
-      const hours = String(date.getHours()).padStart(2, '0');
-      const minutes = String(date.getMinutes()).padStart(2, '0');
-      return {
-        x: `${hours}:${minutes}`,
-        y: Number(item.average_amonia.toFixed(2)),
-      };
-    });
-    const sensors = await this.prismaService.iotSensor.findMany({ where });
-    return {
-      status: HttpStatus.OK,
-      message: 'Success get data',
-      data: {
-        chart: sensors && sensors.length > 0 ? formattedData : [],
-        sensors: sensors,
-      },
-    };
+    const type = SensorType.GAS;
+    return await this.getSensorData(filter, user, type);
   }
 
   async getHumidityDaily(filter: ChartFilterDTO, user: JWTClaim) {
+    const type = SensorType.HUMIDITY;
+    return await this.getSensorData(filter, user, type);
+  }
+
+  async getSensorData(
+    filter: ChartFilterDTO,
+    user: JWTClaim,
+    type: SensorType,
+  ) {
     const filterTanggal = filter.tanggal
       ? new Date(filter.tanggal)
       : new Date();
     const startOfDay = filterTanggal.setHours(0, 0, 0, 0);
-
     let cageIds: any = [];
-    let where = {};
 
     if (user.siteId) {
       const cages = await this.prismaService.cage.findMany({
@@ -488,50 +375,74 @@ export class SensorService {
         },
       });
       cageIds = cages.map((x) => x.id);
-      where = {
-        ...where,
-        cageId: {
-          in: cageIds,
-        },
-      };
     }
 
     if (filter.cageId && filter.cageId != '') {
       cageIds = [filter.cageId];
-      where = {
-        ...where,
-        cageId: filter.cageId,
-      };
     }
 
     const data: any = await this.prismaService.$queryRaw`
     SELECT 
       DATE_TRUNC('hour', "SensorLog"."createdAt") as hour,
-      AVG(temperature) as average_humidity
+      AVG(value) as average_value
     FROM "SensorLog" 
-    LEFT JOIN "IotSensor" on "IotSensor"."id" = "SensorLog"."sensorId"
+    LEFT JOIN "SensorDevice" on "SensorDevice"."id" = "SensorLog"."sensorId"
+    LEFT JOIN "IotSensor" on "IotSensor"."id" = "SensorDevice"."deviceId"
     WHERE "epoch" >= ${startOfDay}
-    AND type='HUMIDITY'
+    AND "SensorDevice"."type" = ${type}::"SensorType"
     ${cageIds.length > 0 ? Prisma.sql`AND "IotSensor"."cageId" IN (${Prisma.join(cageIds)})` : Prisma.empty}
     GROUP BY DATE_TRUNC('hour', "SensorLog"."createdAt")
     ORDER BY hour ASC`;
 
     // Format data untuk ApexCharts
     const formattedData = data.map((item) => {
-      const date = new Date(item.hour);
-      const hours = String(date.getHours()).padStart(2, '0');
-      const minutes = String(date.getMinutes()).padStart(2, '0');
+      const date = moment(item.hour);
       return {
-        x: `${hours}:${minutes}`,
-        y: Number(item.average_humidity.toFixed(2)),
+        x: `${date.format('HH:mm')}`,
+        y: Number(item.average_value.toFixed(2)),
       };
     });
-    const sensors = await this.prismaService.iotSensor.findMany({ where });
+    const where = {
+      type: type,
+    }
+    if(filter.cageId && filter.cageId!=''){
+      Object.assign(where,{
+        IotSensor:{
+          cageId: filter.cageId
+        }
+      })
+    }
 
+    if(cageIds && cageIds.length>0){
+      Object.assign(where,{
+        IotSensor:{
+          cageId: {
+            in: cageIds,
+          },
+        }
+      })
+    }
+
+    const sensors = await this.prismaService.sensorDevice.findMany({
+      where,
+      include: {
+        IotSensor: {
+          where: {
+            cageId: {
+              in: cageIds,
+            },
+          },
+        },
+      },
+    });
+    const average =
+      sensors.reduce((sum, temp) => sum + (temp.lastestValue ?? 0), 0) /
+      sensors.length;
     return {
       status: HttpStatus.OK,
       message: 'Success get data',
       data: {
+        average,
         chart: sensors && sensors.length > 0 ? formattedData : [],
         sensors: sensors,
       },

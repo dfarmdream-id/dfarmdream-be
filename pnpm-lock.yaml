@@ -83,6 +83,9 @@ importers:
       mime:
         specifier: ^4.0.4
         version: 4.0.4
+      moment:
+        specifier: ^2.30.1
+        version: 2.30.1
       mqtt:
         specifier: ^5.10.2
         version: 5.10.2
@@ -3916,6 +3919,9 @@ packages:
   modify-values@1.0.1:
     resolution: {integrity: sha512-xV2bxeN6F7oYjZWTe/YPAy6MN2M+sL4u/Rlm2AHCIVGfo2p1yGmBHQ6vHehl4bRTZBdHu3TSkWdYgkwpYzAGSw==}
     engines: {node: '>=0.10.0'}
+
+  moment@2.30.1:
+    resolution: {integrity: sha512-uEmtNhbDOrWPFS+hdjFCBfy9f2YoyzRpwcl+DqpC6taX21FzsTLQVbMV/W7PzNSX6x/bhC1zA3c2UQ5NzH6how==}
 
   mqtt-packet@9.0.1:
     resolution: {integrity: sha512-koZF1V/X2RZUI6uD9wN5OK1JxxcG1ofAR4H3LjCw1FkeKzruZQ26aAA6v2m1lZyWONZIR5wMMJFrZJDRNzbiQw==}
@@ -10117,6 +10123,8 @@ snapshots:
       obliterator: 2.0.4
 
   modify-values@1.0.1: {}
+
+  moment@2.30.1: {}
 
   mqtt-packet@9.0.1:
     dependencies:
