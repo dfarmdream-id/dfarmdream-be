@@ -35,6 +35,7 @@ export class ChickensHttpController {
   public create(
     @Body() createChickensDto: CreateChickensDto,
   ): Observable<ResponseEntity> {
+    console.log(createChickensDto);
     return this.chickenService.create(createChickensDto).pipe(
       map((data) => new ResponseEntity({ data, message: 'success' })),
       catchError((error) => {

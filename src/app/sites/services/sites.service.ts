@@ -4,10 +4,14 @@ import { PaginationQueryDto } from 'src/common/dtos/pagination-query.dto';
 import { CreateSitesDto, UpdateSitesDto } from '../dtos';
 import { from } from 'rxjs';
 import { Prisma } from '@prisma/client';
+import { PrismaService } from 'src/platform/database/services/prisma.service';
 
 @Injectable()
 export class SitesService {
-  constructor(private readonly siteRepository: SitesRepository) {}
+  constructor(
+    private readonly siteRepository: SitesRepository,
+    private readonly prisma: PrismaService,
+  ) {}
 
   public paginate(paginateDto: PaginationQueryDto) {
     const where: Prisma.SiteWhereInput = {
@@ -41,9 +45,24 @@ export class SitesService {
   }
 
   public destroy(id: string) {
-    return from(this.siteRepository.delete({ id }));
-  }
+    return from(
+      this.prisma.$transaction(async (prisma) => {
+        // Hapus data dari userSites yang terkait dengan site
+        await prisma.userSite.deleteMany({
+          where: {
+            siteId: id, // Menghapus userSites dengan siteId yang cocok
+          },
+        });
 
+        // Hapus data dari sites
+        return prisma.site.delete({
+          where: {
+            id, // Hapus site berdasarkan id
+          },
+        });
+      }),
+    );
+  }
   public create(createSitesDto: CreateSitesDto) {
     const payload = {
       name: createSitesDto.name,

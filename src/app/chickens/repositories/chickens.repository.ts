@@ -129,4 +129,30 @@ export class ChickensRepository {
       }),
     );
   }
+
+  public createMany(data: Prisma.ChickenCreateManyInput[]) {
+    const formattedData = data.map((item) => {
+      const dateNow = item.createdAt
+        ? new Date(item.createdAt).toLocaleString('en-US', {
+            timeZone: 'Asia/Jakarta',
+          })
+        : new Date().toLocaleString('en-US', {
+            timeZone: 'Asia/Jakarta',
+          });
+
+      return {
+        ...item,
+        createdAt: new Date(dateNow).toISOString(), // Konversi ke ISO-8601
+        updatedAt: new Date(dateNow).toISOString(), // Konversi ke ISO-8601
+      };
+    });
+
+    return from(
+      this.prismaService.chicken.createMany({ data: formattedData }),
+    ).pipe(
+      catchError((error) => {
+        throw error;
+      }),
+    );
+  }
 }

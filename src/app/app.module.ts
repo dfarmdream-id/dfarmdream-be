@@ -35,9 +35,8 @@ import { BiayaModule } from './biaya';
 import { PenerimaanModalModule } from './penerimaan-modal/penerimaan-modal.module';
 import { PersediaanBarangModule } from './persediaan-barang';
 import { GroupCoasModule } from './group-coas';
-import { JournalHeadersModule } from './journal-headers';
+import { JournalModule } from './journal';
 import { JournalTemplatesModule } from './journal-templates';
-import { JournalTemplateDetailsModule } from './journal-template-details';
 import { JournalTypesModule } from './journal-types';
 import { CoasModule } from './coas';
 
@@ -104,9 +103,8 @@ class AppController {
     PenerimaanModalModule,
     PersediaanBarangModule,
     GroupCoasModule,
-    JournalHeadersModule,
+    JournalModule,
     JournalTemplatesModule,
-    JournalTemplateDetailsModule,
     JournalTypesModule,
   ],
   controllers: [AppController],

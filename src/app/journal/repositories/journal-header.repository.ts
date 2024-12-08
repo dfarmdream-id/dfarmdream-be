@@ -16,7 +16,7 @@ export type Filter = {
 };
 
 @Injectable()
-export class JournalHeadersRepository {
+export class JournalHeaderRepository {
   constructor(private readonly prismaService: PrismaService) {}
 
   public paginate(paginateDto: PaginationQueryDto, filter?: Filter) {

@@ -9,4 +9,8 @@ export class CreateChickenCageRacksDto {
   @ApiProperty()
   @IsString()
   cageId: string;
+  
+  @ApiProperty()
+  @IsString()
+  createdAt: string;
 }
