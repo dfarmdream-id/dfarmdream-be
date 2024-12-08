@@ -7,6 +7,7 @@ import {
   IsString,
   IsUUID,
   ValidateNested,
+  IsNumber,
 } from 'class-validator';
 import { Type } from 'class-transformer';
 
@@ -20,8 +21,8 @@ export class CreateJournalDetailDto {
   id?: string;
 
   @ApiProperty({ description: 'Code of the COA' })
-  @IsString()
-  coaCode: string;
+  @IsNumber()
+  coaCode: number;
 
   @ApiProperty({ description: 'Debit amount' })
   @IsInt()

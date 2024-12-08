@@ -17,35 +17,31 @@ import { ApiSecurity, ApiTags } from '@nestjs/swagger';
 import { catchError, map } from 'rxjs';
 import { Observable } from 'rxjs';
 import { AuthGuard } from '@src/app/auth';
-import { SensorService } from '../../services';
-import { CreateSensorDTO, UpdateSensorDTO } from '../../dtos';
-import {
-  ChartFilterDTO,
-  PaginatedChartFilterDTO,
-} from '../../dtos/chart-filter.dto';
 import { User } from '@src/app/auth/decorators';
 import { JWTClaim } from '@src/app/auth/entity/jwt-claim.dto';
-import { MqttClient } from 'mqtt';
+import { connect, MqttClient } from 'mqtt';
+import { SensorDeviceService } from '../../services';
+import { CreateSensorDevice, UpdateSensorDevice } from '../../dtos';
 
 @ApiSecurity('JWT')
-@ApiTags('IOT Sensors')
+@ApiTags('IOT Sensor Device')
 @Controller({
-  path: 'sensor',
+  path: 'sensor-device',
   version: '1',
 })
-export class SensorHttpController {
+export class SensorDeviceHttpController {
   public readonly mqtt: MqttClient;
   public readonly topic: string;
   public readonly sensorId: string;
-
-  constructor(private readonly sensorService: SensorService) {}
-
+  
+  constructor(private readonly sensorDeviceService:SensorDeviceService) {}
+  
   @UseGuards(AuthGuard)
   @Post()
   public create(
-    @Body() createSensorDTO: CreateSensorDTO,
+    @Body() body: CreateSensorDevice,
   ): Observable<ResponseEntity> {
-    return this.sensorService.create(createSensorDTO).pipe(
+    return this.sensorDeviceService.create(body).pipe(
       map((data) => new ResponseEntity({ data, message: 'success' })),
       catchError((error) => {
         throw new HttpException(error.message, HttpStatus.BAD_REQUEST);
@@ -59,7 +55,7 @@ export class SensorHttpController {
     @Query() paginateDto: PaginationQueryDto,
     @User() user: JWTClaim,
   ): Observable<ResponseEntity> {
-    return this.sensorService.paginate(paginateDto, user).pipe(
+    return this.sensorDeviceService.paginate(paginateDto, user).pipe(
       map((data) => new ResponseEntity({ data, message: 'success' })),
       catchError((error) => {
         throw new HttpException(error.message, HttpStatus.NOT_FOUND);
@@ -67,37 +63,11 @@ export class SensorHttpController {
     );
   }
 
-  @UseGuards(AuthGuard)
-  @Get('/temperature')
-  getTemperatureData(@Query() filter: ChartFilterDTO, @User() user: JWTClaim) {
-    return this.sensorService.getTemperatureChartDaily(filter, user);
-  }
-
-  @UseGuards(AuthGuard)
-  @Get('/amonia')
-  getAmoniaData(@Query() filter: ChartFilterDTO, @User() user: JWTClaim) {
-    return this.sensorService.getAmoniaChartDaily(filter, user);
-  }
-
-  @UseGuards(AuthGuard)
-  @Get('/humidity')
-  getHumidityData(@Query() filter: ChartFilterDTO, @User() user: JWTClaim) {
-    return this.sensorService.getHumidityDaily(filter, user);
-  }
-
-  @UseGuards(AuthGuard)
-  @Get('/relay-log')
-  getRelayLog(
-    @Query() filter: PaginatedChartFilterDTO,
-    @User() user: JWTClaim,
-  ) {
-    return this.sensorService.getRelayLog(filter, user);
-  }
 
   @UseGuards(AuthGuard)
   @Get(':id')
   public detail(@Param('id') id: string): Observable<ResponseEntity> {
-    return this.sensorService.detail(id).pipe(
+    return this.sensorDeviceService.detail(id).pipe(
       map((data) => new ResponseEntity({ data, message: 'success' })),
       catchError((error) => {
         throw new HttpException(error.message, HttpStatus.NOT_FOUND);
@@ -109,7 +79,7 @@ export class SensorHttpController {
   @Delete(':id')
   public destroy(@Param('id') id: string): Observable<ResponseEntity> {
     console.log('Delete Sensor');
-    return this.sensorService.destroy(id).pipe(
+    return this.sensorDeviceService.destroy(id).pipe(
       map((data) => new ResponseEntity({ data, message: 'success' })),
       catchError((error) => {
         throw new HttpException(error.message, HttpStatus.BAD_REQUEST);
@@ -121,9 +91,9 @@ export class SensorHttpController {
   @Put(':id')
   public update(
     @Param('id') id: string,
-    @Body() updateSensorDTO: UpdateSensorDTO,
+    @Body() payload: UpdateSensorDevice,
   ): Observable<ResponseEntity> {
-    return this.sensorService.update(id, updateSensorDTO).pipe(
+    return this.sensorDeviceService.update(id, payload).pipe(
       map((data) => new ResponseEntity({ data, message: 'success' })),
       catchError((error) => {
         throw new HttpException(error.message, HttpStatus.BAD_REQUEST);

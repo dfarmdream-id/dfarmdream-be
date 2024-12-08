@@ -28,10 +28,9 @@ model User {
   photoProfile         String?
   position             Position?   @relation(fields: [positionId], references: [id])
   status               UserStatus? @default(INACTIVE)
-  telegramVerification String?
+  lastSendNotification DateTime?
   telegramId           String?
   telegramUsername     String?
-  lastSendNotification DateTime?   @db.Timestamptz()
 
   deletedAt                 DateTime?
   createdAt                 DateTime                    @default(now())
@@ -486,10 +485,10 @@ model WarehouseTransaction {
 }
 
 model IotSensor {
-  id                 String      @id @unique @default(uuid())
-  name               String?     @default("")
-  code               String
-  cage               Cage?       @relation(fields: [cageId], references: [id])
+  id                 String               @id @unique @default(uuid())
+  name               String?              @default("")
+  code               String               @unique
+  cage               Cage?                @relation(fields: [cageId], references: [id])
   cageId             String?
   tempThreshold      Float
   humidityThreshold  Float
@@ -499,17 +498,52 @@ model IotSensor {
   currentAmonia      Float?
   currentAirQuality  Float?
   lampStatus         Float?
-  logs               SensorLog[]
   relayLog           RelayLog[]
+  telegramLog        TelegramMesasgeLog[]
   deletedAt          DateTime?
-  createdAt          DateTime    @default(now())
-  updatedAt          DateTime    @updatedAt
+  createdAt          DateTime             @default(now())
+  updatedAt          DateTime             @updatedAt
+  SensorDevice       SensorDevice[]
+}
+
+enum SensorType {
+  TEMP
+  HUMIDITY
+  GAS
+  LDR
+}
+
+model SensorDevice {
+  id            String      @id @unique @default(uuid())
+  code          String      @unique
+  deviceId      String?
+  type          SensorType
+  lastestValue  Float?      @default(0)
+  lastUpdatedAt BigInt?     @default(0)
+  IotSensor     IotSensor?  @relation(fields: [deviceId], references: [id])
+  SensorLog     SensorLog[]
+  createdAt     DateTime    @default(now())
+  updatedAt     DateTime    @updatedAt
 }
 
 model SensorLog {
+  id          String        @id @unique @default(uuid())
+  sensorId    String?       
+  sensor      SensorDevice? @relation(fields: [sensorId], references: [id])
+  type        SensorType    @default(HUMIDITY)
+  value       Float         @default(0)
+  epoch       BigInt
+  createdAt   DateTime      @default(now())
+  updatedAt   DateTime      @updatedAt
+  iotSensorId String?
+}
+
+model TelegramMesasgeLog {
   id          String     @id @unique @default(uuid())
   sensorId    String?
+  userId      String?
   sensor      IotSensor? @relation(fields: [sensorId], references: [id])
+  message     String?
   temperature Float
   humidity    Float
   airQuality  Float
@@ -562,29 +596,6 @@ model Attendance {
   updatedAt       DateTime  @default(now()) @updatedAt
 }
 
-// COA
-model akuncoa {
-  kodeakun    String @id @unique
-  namaakun    String
-  kodegroup   Int
-  level       Int
-  isneraca    Int
-  islabatahan Int
-  status      Int
-}
-
-// model biaya {
-//   kodekategoribiaya String   @id
-//   kodebiaya         String
-//   biaya             Decimal  @db.Money
-//   tanggal           DateTime @db.Timestamp()
-//   idlokasi          String
-//   idkandang         String
-//   idkaryawan        String
-//   keterangan        String
-//   status            Int
-// }
-
 model KategoriBiaya {
   id           String    @id @unique @default(uuid())
   namaKategori String
@@ -634,13 +645,13 @@ model PenerimaanModal {
 
 model Coa {
   id                 String    @id @unique @default(uuid())
-  code               String @unique
+  code               Int @unique
   name               String
   level              Int
   isBalanceSheet     Boolean
   isRetainedEarnings Boolean
   groupId            String
-  group              GroupCoa @relation(fields: [groupId], references: [id])
+  group              GroupCoa  @relation(fields: [groupId], references: [id])
   deletedAt          DateTime?
   createdAt          DateTime  @default(now())
   updatedAt          DateTime  @updatedAt
@@ -652,7 +663,7 @@ model Coa {
 
 model GroupCoa {
   id        String    @id @unique @default(uuid())
-  code      String
+  code      Int
   name      String
   status    String
   coa       Coa[]
@@ -679,7 +690,7 @@ model JournalTemplateDetail {
   id        String    @id @unique @default(uuid())
   jurnalTemplateCode String
   jurnalTemplate     JournalTemplate @relation(fields: [jurnalTemplateCode], references: [code])
-  coaCode   String
+  coaCode   Int
   coa       Coa @relation(fields: [coaCode], references: [code])
   typeLedger LedgerEnum
   status    String
@@ -727,7 +738,7 @@ model JournalDetail {
   id            String      @id @unique @default(uuid())
   journalHeader JournalHeader @relation(fields: [journalHeaderId], references: [id])
   journalHeaderId String
-  coaCode       String
+  coaCode       Int
   coa           Coa         @relation(fields: [coaCode], references: [code])
   debit         Int
   credit        Int

@@ -39,6 +39,7 @@ import { JournalModule } from './journal';
 import { JournalTemplatesModule } from './journal-templates';
 import { JournalTypesModule } from './journal-types';
 import { CoasModule } from './coas';
+import { SensorDeviceModule } from './sensor-device';
 
 @ApiTags('App Spec')
 @Controller()
@@ -87,16 +88,6 @@ class AppController {
     AbsenModule,
     TaskModule,
     CoasModule,
-    // TelegramModule,
-    // TelegrafModule.forRootAsync({
-    //   useFactory: async () => {
-    //     return {
-    //       token: ENV.TELEGRAM_TOKEN ?? '',
-    //       middlewares: [session()],
-    //       include: [TelegramModule],
-    //     };
-    //   },
-    // }),
     KategoriBiayaModule,
     BiayaModule,
     ScheduleModule.forRoot(),
@@ -106,6 +97,7 @@ class AppController {
     JournalModule,
     JournalTemplatesModule,
     JournalTypesModule,
+    SensorDeviceModule
   ],
   controllers: [AppController],
   exports: [FilesModule],

@@ -1,5 +1,11 @@
 import { ApiProperty } from '@nestjs/swagger';
-import { IsString, IsNotEmpty, IsEnum, IsOptional } from 'class-validator';
+import {
+  IsNumber,
+  IsString,
+  IsNotEmpty,
+  IsEnum,
+  IsOptional,
+} from 'class-validator';
 
 enum LedgerEnum {
   DEBIT = 'DEBIT',
@@ -18,9 +24,9 @@ export class CreateJournalTemplateDetailsDto {
   @ApiProperty({
     description: 'The code for the Chart of Accounts (COA)',
   })
-  @IsString()
+  @IsNumber()
   @IsNotEmpty()
-  coaCode: string;
+  coaCode: number;
 
   @ApiProperty({
     description: 'The status of the journal detail (e.g., active, inactive)',
