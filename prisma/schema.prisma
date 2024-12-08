@@ -690,6 +690,7 @@ model JournalTemplateDetail {
 
 model JournalType {
   id            String          @id @unique @default(uuid())
+  code Int
   name          String
   status        String
   deletedAt     DateTime?

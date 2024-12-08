@@ -21,19 +21,25 @@ export class JournalTypesRepository {
 
   public paginate(paginateDto: PaginationQueryDto, filter?: Filter) {
     const { limit = 10, page = 1 } = paginateDto;
-
+    const where = {
+      ...filter?.where,
+      deletedAt:null
+    }
     return from(
       this.prismaService.$transaction([
         this.prismaService.journalType.findMany({
           skip: (+page - 1) * +limit,
           take: +limit,
-          where: filter?.where,
-          orderBy: filter?.orderBy,
+          where: where,
+          orderBy: {
+            ...filter?.orderBy,
+            code: 'asc'
+          },
           cursor: filter?.cursor,
           include: filter?.include,
         }),
         this.prismaService.journalType.count({
-          where: filter?.where,
+          where: where,
         }),
       ]),
     ).pipe(
