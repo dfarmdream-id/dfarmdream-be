@@ -402,10 +402,29 @@ export class SensorService {
         y: Number(item.average_value.toFixed(2)),
       };
     });
+    const where = {
+      type: type,
+    }
+    if(filter.cageId && filter.cageId!=''){
+      Object.assign(where,{
+        IotSensor:{
+          cageId: filter.cageId
+        }
+      })
+    }
+
+    if(cageIds && cageIds.length>0){
+      Object.assign(where,{
+        IotSensor:{
+          cageId: {
+            in: cageIds,
+          },
+        }
+      })
+    }
+
     const sensors = await this.prismaService.sensorDevice.findMany({
-      where: {
-        type,
-      },
+      where,
       include: {
         IotSensor: {
           where: {
