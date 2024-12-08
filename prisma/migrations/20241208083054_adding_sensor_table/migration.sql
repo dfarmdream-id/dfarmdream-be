@@ -46,7 +46,7 @@ ALTER TABLE "User" DROP COLUMN "telegramVerification",
 ALTER COLUMN "lastSendNotification" SET DATA TYPE TIMESTAMP(3);
 
 -- DropTable
-DROP TABLE "akuncoa";
+DROP TABLE IF EXISTS "akuncoa";
 
 -- CreateTable
 CREATE TABLE "SensorDevice" (
