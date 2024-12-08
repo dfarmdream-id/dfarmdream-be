@@ -85,6 +85,13 @@ export class SensorHttpController {
     return this.sensorService.getHumidityDaily(filter, user);
   }
 
+
+  @UseGuards(AuthGuard)
+  @Get('/ldr')
+  getLdrData(@Query() filter:ChartFilterDTO, @User() user:JWTClaim){
+    return this.sensorService.getLdrData(filter,user)
+  }
+
   @UseGuards(AuthGuard)
   @Get('/relay-log')
   getRelayLog(

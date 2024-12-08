@@ -11,6 +11,6 @@ export class CreateGroupCoasDto {
   code: number;
 
   @ApiProperty()
-  @IsString()
-  status: string;
+  @IsNotEmpty()
+  status: number;
 }
