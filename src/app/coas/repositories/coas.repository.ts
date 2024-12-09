@@ -27,11 +27,19 @@ export class CoasRepository {
     };
 
     if (q && q != '') {
+      const orArray:any = [
+        { name: { contains: q, mode: 'insensitive' } },
+        { group: { name: { contains: q, mode: 'insensitive' } } },
+      ]
+      if(!isNaN(parseInt(q))){
+        orArray.push({
+          code: parseInt(q)
+        })
+      }
       Object.assign(where, {
         OR: [
-          { code: { contains: q, mode: 'insensitive' } },
-          { name: { contains: q, mode: 'insensitive' } },
-          { group: { name: { contains: q, mode: 'insensitive' } } },
+         ...orArray
+          
         ],
       });
     }
@@ -41,7 +49,10 @@ export class CoasRepository {
           skip: (+page - 1) * +limit,
           take: +limit,
           where: where,
-          orderBy: filter?.orderBy,
+          orderBy:{
+            ...filter?.orderBy,
+            code:'asc'
+          },
           cursor: filter?.cursor,
           include: {
             group: true,
