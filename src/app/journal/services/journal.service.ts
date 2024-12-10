@@ -5,12 +5,14 @@ import { CreateJournalDto, UpdateJournalDto } from '../dtos';
 import { forkJoin, from, map, switchMap } from 'rxjs';
 import { JournalDetailRepository } from '@app/journal/repositories/journal-detail.repository';
 import { DateTime } from 'luxon';
+import { PrismaService } from 'src/platform/database/services/prisma.service';
 
 @Injectable()
 export class JournalService {
   constructor(
     private readonly journalHeaderRepository: JournalHeaderRepository,
     private readonly journalDetailRepository: JournalDetailRepository,
+    private readonly prismaService: PrismaService,
   ) {}
 
   public paginate(paginateDto: PaginationQueryDto) {
@@ -44,6 +46,9 @@ export class JournalService {
             },
           },
           user: true,
+        },
+        orderBy: {
+          createdAt: 'desc',
         },
       }),
     );
@@ -237,5 +242,63 @@ export class JournalService {
         details,
       })),
     );
+  }
+
+  // balanceSheet
+  async getTrialBalance() {
+    // Step 1: GroupBy untuk mendapatkan debit dan kredit
+    const groupedData = await this.prismaService.journalDetail.groupBy({
+      by: ['coaCode'],
+      _sum: {
+        debit: true,
+        credit: true,
+      },
+      orderBy: [
+        {
+          coaCode: 'asc',
+        },
+      ],
+    });
+
+    // Step 2: Ambil data Coa dan pilih field yang relevan
+    const result = await Promise.all(
+      groupedData.map(async (group) => {
+        const coa = await this.prismaService.coa.findUnique({
+          where: { code: group.coaCode }, // Ambil berdasarkan coaCode
+          select: {
+            code: true,
+            name: true,
+            level: true,
+            isBalanceSheet: true,
+            isRetainedEarnings: true,
+          },
+        });
+
+        return {
+          ...group,
+          coa, // Hanya menyimpan data Coa yang diperlukan
+        };
+      }),
+    );
+
+    // Step 3: Hitung total debit dan kredit
+    const totalDebit = result.reduce(
+      (sum, item) => sum + (item._sum.debit || 0),
+      0,
+    );
+    const totalCredit = result.reduce(
+      (sum, item) => sum + (item._sum.credit || 0),
+      0,
+    );
+
+    // Step 4: Format hasil dengan status neraca
+    return {
+      trialBalance: result.map(({ coaCode, ...rest }) => ({
+        ...rest,
+      })), // Menghapus coaCode dari hasil akhir
+      totalDebit,
+      totalCredit,
+      isBalanced: totalDebit === totalCredit,
+    };
   }
 }

@@ -145,4 +145,17 @@ export class JournalDetailRepository {
       update: data.update,
     });
   }
+
+  public balanceSheet() {
+    return this.prismaService.journalDetail.groupBy({
+      by: ['coaCode'], // Group by coaCode
+      _sum: {
+        debit: true, // Sum of debit
+        credit: true, // Sum of credit
+      },
+      orderBy: {
+        coaCode: 'asc', // Order results by coaCode
+      },
+    });
+  }
 }

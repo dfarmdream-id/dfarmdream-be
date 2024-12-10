@@ -23,8 +23,8 @@ export class JournalTypesRepository {
     const { limit = 10, page = 1 } = paginateDto;
     const where = {
       ...filter?.where,
-      deletedAt:null
-    }
+      deletedAt: null,
+    };
     return from(
       this.prismaService.$transaction([
         this.prismaService.journalType.findMany({
@@ -33,7 +33,7 @@ export class JournalTypesRepository {
           where: where,
           orderBy: {
             ...filter?.orderBy,
-            code: 'asc'
+            code: 'asc',
           },
           cursor: filter?.cursor,
           include: filter?.include,
