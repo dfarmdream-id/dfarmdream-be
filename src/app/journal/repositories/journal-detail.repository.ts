@@ -7,16 +7,16 @@ import { PaginatedEntity } from 'src/common/entities/paginated.entity';
 import { PrismaService } from 'src/platform/database/services/prisma.service';
 
 export type Filter = {
-  where?: Prisma.ChickenWhereInput;
-  orderBy?: Prisma.ChickenOrderByWithRelationInput;
-  cursor?: Prisma.ChickenWhereUniqueInput;
+  where?: Prisma.JournalDetailWhereInput;
+  orderBy?: Prisma.JournalDetailOrderByWithRelationInput;
+  cursor?: Prisma.JournalDetailWhereUniqueInput;
   take?: number;
   skip?: number;
-  include?: Prisma.ChickenInclude;
+  include?: Prisma.JournalDetailInclude;
 };
 
 @Injectable()
-export class ChickensRepository {
+export class JournalDetailRepository {
   constructor(private readonly prismaService: PrismaService) {}
 
   public paginate(paginateDto: PaginationQueryDto, filter?: Filter) {
@@ -24,7 +24,7 @@ export class ChickensRepository {
 
     return from(
       this.prismaService.$transaction([
-        this.prismaService.chicken.findMany({
+        this.prismaService.journalDetail.findMany({
           skip: (+page - 1) * +limit,
           take: +limit,
           where: filter?.where,
@@ -32,7 +32,7 @@ export class ChickensRepository {
           cursor: filter?.cursor,
           include: filter?.include,
         }),
-        this.prismaService.chicken.count({
+        this.prismaService.journalDetail.count({
           where: filter?.where,
         }),
       ]),
@@ -51,8 +51,8 @@ export class ChickensRepository {
     );
   }
 
-  public create(data: Prisma.ChickenCreateInput) {
-    return from(this.prismaService.chicken.create({ data })).pipe(
+  public create(data: Prisma.JournalDetailCreateInput) {
+    return from(this.prismaService.journalDetail.create({ data })).pipe(
       catchError((error) => {
         throw error;
       }),
@@ -60,19 +60,19 @@ export class ChickensRepository {
   }
 
   public update(
-    where: Prisma.ChickenWhereUniqueInput,
-    data: Prisma.ChickenUpdateInput,
+    where: Prisma.JournalDetailWhereUniqueInput,
+    data: Prisma.JournalDetailUpdateInput,
   ) {
-    return from(this.prismaService.chicken.update({ where, data })).pipe(
+    return from(this.prismaService.journalDetail.update({ where, data })).pipe(
       catchError((error) => {
         throw error;
       }),
     );
   }
 
-  public delete(where: Prisma.ChickenWhereUniqueInput) {
+  public delete(where: Prisma.JournalDetailWhereUniqueInput) {
     return from(
-      this.prismaService.chicken.update({
+      this.prismaService.journalDetail.update({
         where,
         data: { deletedAt: new Date() },
       }),
@@ -84,10 +84,12 @@ export class ChickensRepository {
   }
 
   public first(
-    where: Prisma.ChickenWhereUniqueInput,
-    select?: Prisma.ChickenSelect,
+    where: Prisma.JournalDetailWhereUniqueInput,
+    select?: Prisma.JournalDetailSelect,
   ) {
-    return from(this.prismaService.chicken.findUnique({ where, select })).pipe(
+    return from(
+      this.prismaService.journalDetail.findUnique({ where, select }),
+    ).pipe(
       catchError((error) => {
         throw error;
       }),
@@ -95,10 +97,12 @@ export class ChickensRepository {
   }
 
   public firstOrThrow(
-    where: Prisma.ChickenWhereUniqueInput,
-    select?: Prisma.ChickenSelect,
+    where: Prisma.JournalDetailWhereUniqueInput,
+    select?: Prisma.JournalDetailSelect,
   ) {
-    return from(this.prismaService.chicken.findUnique({ where, select })).pipe(
+    return from(
+      this.prismaService.journalDetail.findUnique({ where, select }),
+    ).pipe(
       catchError((error) => {
         throw error;
       }),
@@ -106,7 +110,7 @@ export class ChickensRepository {
   }
 
   public find(filter: Filter) {
-    return from(this.prismaService.chicken.findMany(filter)).pipe(
+    return from(this.prismaService.journalDetail.findMany(filter)).pipe(
       catchError((error) => {
         throw error;
       }),
@@ -114,7 +118,7 @@ export class ChickensRepository {
   }
 
   public count(filter: Omit<Filter, 'include'>) {
-    return from(this.prismaService.chicken.count(filter)).pipe(
+    return from(this.prismaService.journalDetail.count(filter)).pipe(
       catchError((error) => {
         throw error;
       }),
@@ -130,29 +134,15 @@ export class ChickensRepository {
     );
   }
 
-  public createMany(data: Prisma.ChickenCreateManyInput[]) {
-    const formattedData = data.map((item) => {
-      const dateNow = item.createdAt
-        ? new Date(item.createdAt).toLocaleString('en-US', {
-            timeZone: 'Asia/Jakarta',
-          })
-        : new Date().toLocaleString('en-US', {
-            timeZone: 'Asia/Jakarta',
-          });
-
-      return {
-        ...item,
-        createdAt: new Date(dateNow).toISOString(), // Konversi ke ISO-8601
-        updatedAt: new Date(dateNow).toISOString(), // Konversi ke ISO-8601
-      };
+  async upsert(data: {
+    where: Prisma.JournalDetailWhereUniqueInput;
+    create: Prisma.JournalDetailCreateInput;
+    update: Prisma.JournalDetailUpdateInput;
+  }) {
+    return this.prismaService.journalDetail.upsert({
+      where: data.where,
+      create: data.create,
+      update: data.update,
     });
-
-    return from(
-      this.prismaService.chicken.createMany({ data: formattedData }),
-    ).pipe(
-      catchError((error) => {
-        throw error;
-      }),
-    );
   }
 }

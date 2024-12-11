@@ -26,10 +26,17 @@ export class GroupCoasRepository {
     }
 
     if(q && q!=''){
+      const orArray:any = [
+        { name: { contains: q, mode: 'insensitive' } },
+      ]
+      if(!isNaN(parseInt(q))){
+        orArray.push({
+          code: parseInt(q)
+        })
+      }
       Object.assign(where,{
         OR: [
-          { code: { contains: q, mode: 'insensitive' } },
-          { name: { contains: q, mode: 'insensitive' } },
+          ...orArray
         ]
       })
     }
@@ -39,7 +46,10 @@ export class GroupCoasRepository {
           skip: (+page - 1) * +limit,
           take: +limit,
           where: where,
-          orderBy: filter?.orderBy,
+          orderBy: {
+            ...filter?.orderBy,
+            code:'asc'
+          },
           cursor: filter?.cursor,
         }),
         this.prismaService.groupCoa.count({

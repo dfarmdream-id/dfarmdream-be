@@ -1,5 +1,5 @@
-import { ApiProperty } from '@nestjs/swagger';
-import { IsString } from 'class-validator';
+import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
+import { IsNumber, IsString } from 'class-validator';
 
 export class CreateJournalTypesDto {
   @ApiProperty()
@@ -7,10 +7,10 @@ export class CreateJournalTypesDto {
   name: string;
 
   @ApiProperty()
-  @IsString()
-  code: string;
-
-  @ApiProperty()
+  @IsNumber()
+  code:number;
+  
+  @ApiPropertyOptional()
   @IsString()
   status: string;
 }

@@ -23,17 +23,25 @@ export class CoasRepository {
     const { limit = 10, page = 1, q } = paginateDto;
     const where = {
       ...filter?.where,
-      deletedAt:null,
-    }
+      deletedAt: null,
+    };
 
-    if(q && q!=''){
-      Object.assign(where,{
+    if (q && q != '') {
+      const orArray:any = [
+        { name: { contains: q, mode: 'insensitive' } },
+        { group: { name: { contains: q, mode: 'insensitive' } } },
+      ]
+      if(!isNaN(parseInt(q))){
+        orArray.push({
+          code: parseInt(q)
+        })
+      }
+      Object.assign(where, {
         OR: [
-          { code: { contains: q, mode: 'insensitive' } },
-          { name: { contains: q, mode: 'insensitive' } },
-          { group: { name:{contains: q, mode: 'insensitive'} } },
-        ]
-      })
+         ...orArray
+          
+        ],
+      });
     }
     return from(
       this.prismaService.$transaction([
@@ -41,11 +49,14 @@ export class CoasRepository {
           skip: (+page - 1) * +limit,
           take: +limit,
           where: where,
-          orderBy: filter?.orderBy,
+          orderBy:{
+            ...filter?.orderBy,
+            code:'asc'
+          },
           cursor: filter?.cursor,
-          include:{
-            group:true
-          }
+          include: {
+            group: true,
+          },
         }),
         this.prismaService.coa.count({
           where: where,
@@ -74,13 +85,15 @@ export class CoasRepository {
     );
   }
 
-  public update(
-    where: Prisma.CoaWhereUniqueInput,
-    data: UpdateCoasDto,
-  ) {
-    return from(this.prismaService.coa.update({ where, data:{
-      ...data,
-    } })).pipe(
+  public update(where: Prisma.CoaWhereUniqueInput, data: UpdateCoasDto) {
+    return from(
+      this.prismaService.coa.update({
+        where,
+        data: {
+          ...data,
+        },
+      }),
+    ).pipe(
       catchError((error) => {
         throw error;
       }),

@@ -19,8 +19,7 @@ import {
   UpdateWarehouseTransactionsDto,
 } from 'src/app/warehouse-transactions/dtos';
 import { ApiSecurity, ApiTags } from '@nestjs/swagger';
-import { catchError, map } from 'rxjs';
-import { Observable } from 'rxjs';
+import { catchError, map, Observable } from 'rxjs';
 import { AuthGuard } from '@src/app/auth';
 import { User } from '@src/app/auth/decorators';
 
@@ -66,6 +65,12 @@ export class WarehouseTransactionsHttpController {
           throw new HttpException(error.message, HttpStatus.NOT_FOUND);
         }),
       );
+  }
+
+  @UseGuards(AuthGuard)
+  @Post('cashier/:id')
+  public submitToCashier(@Param('id') id: string) {
+    return this.warehousetransactionService.sendToCashier(id)
   }
 
   @UseGuards(AuthGuard)
@@ -117,6 +122,7 @@ export class WarehouseTransactionsPublicHttpController {
   constructor(
     private readonly warehousetransactionService: WarehouseTransactionsService,
   ) {}
+
   @Get(':id')
   public detail(@Param('id') id: string): Observable<ResponseEntity> {
     return this.warehousetransactionService.detail(id).pipe(

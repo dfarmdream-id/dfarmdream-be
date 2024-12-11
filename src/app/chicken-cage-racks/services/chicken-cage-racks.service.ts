@@ -54,7 +54,7 @@ export class ChickenCageRacksService {
           },
         },
         orderBy: {
-          createdAt: 'desc',
+          name: 'asc',
         },
       }),
     );
@@ -69,6 +69,13 @@ export class ChickenCageRacksService {
   }
 
   public create(createChickenCageRacksDto: CreateChickenCageRacksDto) {
+    const dateNow = createChickenCageRacksDto.createdAt
+      ? new Date(createChickenCageRacksDto.createdAt).toLocaleString('en-US', {
+          timeZone: 'Asia/Jakarta',
+        })
+      : new Date().toLocaleString('en-US', {
+          timeZone: 'Asia/Jakarta',
+        });
     return from(
       this.chickencagerackRepository.create({
         name: createChickenCageRacksDto.name,
@@ -77,6 +84,8 @@ export class ChickenCageRacksService {
             id: createChickenCageRacksDto.cageId,
           },
         },
+        createdAt: new Date(dateNow).toISOString(), // Konversi ke ISO-8601
+        updatedAt: new Date(dateNow).toISOString(), // Konversi ke ISO-8601
       }),
     );
   }

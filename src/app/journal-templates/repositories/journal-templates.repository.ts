@@ -12,6 +12,7 @@ export type Filter = {
   cursor?: Prisma.JournalTemplateWhereUniqueInput;
   take?: number;
   skip?: number;
+  include?: Prisma.JournalTemplateInclude;
 };
 
 @Injectable()
@@ -29,6 +30,7 @@ export class JournalTemplatesRepository {
           where: filter?.where,
           orderBy: filter?.orderBy,
           cursor: filter?.cursor,
+          include: filter?.include,
         }),
         this.prismaService.journalTemplate.count({
           where: filter?.where,
