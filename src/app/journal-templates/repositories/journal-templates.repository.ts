@@ -135,4 +135,28 @@ export class JournalTemplatesRepository {
       }),
     );
   }
+
+  public findFirst(where: Prisma.JournalTemplateWhereInput) {
+    return this.prismaService.journalTemplate.findFirst({
+      where,
+      include: {
+        journalTemplateDetails: {
+          where: {
+            deletedAt: null, // Filter hanya yang tidak terhapus
+          },
+          select: {
+            id: true,
+            typeLedger: true,
+            status: true,
+            coa: {
+              select: {
+                code: true,
+                name: true,
+              },
+            },
+          },
+        },
+      },
+    });
+  }
 }

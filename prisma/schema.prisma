@@ -187,6 +187,8 @@ model Site {
   PersediaanPakanObat  PersediaanPakanObat[]
   KartuStokBarang      KartuStokBarang[]
   CashFlowCategory     CashFlowCategory[]
+
+  JournalHeader JournalHeader[]
 }
 
 model Position {
@@ -269,6 +271,8 @@ model Cage {
   PenerimaanModal      PenerimaanModal[]
   PersediaanPakanObat  PersediaanPakanObat[]
   KartuStokBarang      KartuStokBarang[]
+
+  JournalHeader JournalHeader[]
 }
 
 model CageRack {
@@ -729,6 +733,13 @@ model JournalHeader {
   debtTotal     Int
   creditTotal   Int
   status        String
+  
+  siteId        String?
+  site          Site?       @relation(fields: [siteId], references: [id])
+  
+  cageId        String?
+  cage          Cage?       @relation(fields: [cageId], references: [id])
+  
   deletedAt     DateTime?
   createdAt     DateTime    @default(now())
   updatedAt     DateTime    @updatedAt
@@ -798,4 +809,5 @@ model KartuStokBarang {
 enum TipeBarang {
   PAKAN
   OBAT
+  ASSET
 }

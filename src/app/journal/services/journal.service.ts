@@ -102,6 +102,9 @@ export class JournalService {
 
   public create(createJournalHeadersDto: CreateJournalDto, userId: string) {
     // Create the journal header
+
+    console.log('createJournalHeadersDto', createJournalHeadersDto);
+
     const createHeader$ = from(
       this.journalHeaderRepository.create({
         code: createJournalHeadersDto.code,
@@ -118,6 +121,20 @@ export class JournalService {
         },
         status: createJournalHeadersDto.status,
         user: { connect: { id: userId } },
+        ...(createJournalHeadersDto.cageId && {
+          cage: {
+            connect: {
+              id: createJournalHeadersDto.cageId,
+            },
+          },
+        }),
+        ...(createJournalHeadersDto.siteId && {
+          site: {
+            connect: {
+              id: createJournalHeadersDto.siteId,
+            },
+          },
+        }),
       }),
     );
 

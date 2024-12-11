@@ -104,10 +104,13 @@ export class JournalTypesRepository {
 
   public firstOrThrow(
     where: Prisma.JournalTypeWhereUniqueInput,
-    select?: Prisma.JournalTypeSelect,
+    include?: Prisma.JournalTypeInclude,
   ) {
     return from(
-      this.prismaService.journalType.findUnique({ where, select }),
+      this.prismaService.journalType.findUnique({
+        where,
+        include, // Gunakan hanya include
+      }),
     ).pipe(
       catchError((error) => {
         throw error;
