@@ -348,6 +348,7 @@ model DocumentInvestment {
   investorId String?
   site       Site?     @relation(fields: [siteId], references: [id])
   siteId     String?
+  url       String?
   amount     Int?      @default(0)
   deletedAt  DateTime?
   createdAt  DateTime  @default(now())
@@ -410,6 +411,7 @@ model Price {
   value  Int          @default(0)
   site   Site?        @relation(fields: [siteId], references: [id])
   siteId String?
+  date  DateTime?
 
   deletedAt            DateTime?
   createdAt            DateTime               @default(now())
