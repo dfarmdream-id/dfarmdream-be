@@ -5,6 +5,8 @@ ENV PATH="$PNPM_HOME:$PATH"
 ENV APP_PORT 3000
 RUN corepack enable
 
+RUN apk add --no-cache libssl1.1
+
 FROM base AS dependencies
 
 WORKDIR /app
