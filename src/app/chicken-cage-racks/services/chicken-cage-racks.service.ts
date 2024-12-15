@@ -12,7 +12,10 @@ export class ChickenCageRacksService {
   ) {}
 
   public paginate(paginateDto: GetCageRackDto, siteId: string) {
-    const { q, cageId } = paginateDto;
+    const { q, cageId, sort } = paginateDto;
+    const sortSlice = sort.split(':');
+    const sortKey = sortSlice[0];
+    const sortDirection = sortSlice[1];
 
     // Base filter
     const w: Prisma.CageRackWhereInput = {
@@ -38,8 +41,6 @@ export class ChickenCageRacksService {
       });
     }
 
-    console.log('Generated Where Clause:', JSON.stringify(w, null, 2));
-
     return from(
       this.chickencagerackRepository.paginate(paginateDto, {
         where: {
@@ -54,7 +55,7 @@ export class ChickenCageRacksService {
           },
         },
         orderBy: {
-          name: 'asc',
+          [sortKey]: sortDirection as 'asc' | 'desc',
         },
       }),
     );

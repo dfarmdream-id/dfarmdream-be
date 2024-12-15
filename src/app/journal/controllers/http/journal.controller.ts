@@ -48,9 +48,15 @@ export class JournalHttpController {
 
   @UseGuards(AuthGuard)
   @Get('balance-sheets')
-  async balanceSheets() {
+  async balanceSheets(
+    @Query('month') month: string,
+    @Query('year') year: string,
+  ) {
     try {
-      const data = await this.journalHeaderService.getTrialBalance();
+      const data = await this.journalHeaderService.getTrialBalance(
+        month,
+        year,
+      );
       return {
         data,
         message: 'Balance sheet data retrieved successfully',

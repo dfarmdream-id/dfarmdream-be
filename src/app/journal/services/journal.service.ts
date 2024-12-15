@@ -16,11 +16,37 @@ export class JournalService {
   ) {}
 
   public paginate(paginateDto: PaginationQueryDto) {
+    const { q, dateRange } = paginateDto;
+
+    // Filter tambahan untuk rentang tanggal
+    const where: any = {
+      deletedAt: null, // Filter journal yang tidak terhapus
+    };
+
+    if (q) {
+      where.OR = [
+        { code: { contains: q, mode: 'insensitive' } },
+        {
+          journalType: {
+            name: {
+              contains: q,
+              mode: 'insensitive',
+            },
+          },
+        },
+      ];
+    }
+
+    if (dateRange?.start && dateRange?.end) {
+      where.createdAt = {
+        gte: new Date(dateRange.start),
+        lte: new Date(dateRange.end),
+      };
+    }
+
     return from(
       this.journalHeaderRepository.paginate(paginateDto, {
-        where: {
-          deletedAt: null, // Filter journal yang tidak terhapus
-        },
+        where,
         include: {
           journalType: {
             select: {
@@ -262,38 +288,72 @@ export class JournalService {
   }
 
   // balanceSheet
-  async getTrialBalance() {
-    // Step 1: GroupBy untuk mendapatkan debit dan kredit
-    const groupedData = await this.prismaService.journalDetail.groupBy({
-      by: ['coaCode'],
-      _sum: {
-        debit: true,
-        credit: true,
+  async getTrialBalance(month: string, year: string) {
+    // Step 1: Ambil semua data COA yang isBalanceSheet = true
+    const coaList = await this.prismaService.coa.findMany({
+      where: {
+        isBalanceSheet: true,
+      },
+      select: {
+        code: true,
+        name: true,
+        level: true,
+        isBalanceSheet: true,
+        isRetainedEarnings: true,
       },
       orderBy: [
         {
-          coaCode: 'asc',
+          code: 'asc',
         },
       ],
     });
 
-    // Step 2: Ambil data Coa dan pilih field yang relevan
+    // Step 2: Map COA dan cari jurnal terkait, sum debit dan kredit
     const result = await Promise.all(
-      groupedData.map(async (group) => {
-        const coa = await this.prismaService.coa.findUnique({
-          where: { code: group.coaCode }, // Ambil berdasarkan coaCode
-          select: {
-            code: true,
-            name: true,
-            level: true,
-            isBalanceSheet: true,
-            isRetainedEarnings: true,
-          },
-        });
+      coaList.map(async (coa) => {
+        let debit = 0;
+        let credit = 0;
+
+        if (month !== '0' && year !== '0') {
+          const journalSum = await this.prismaService.journalDetail.aggregate({
+            _sum: {
+              debit: true,
+              credit: true,
+            },
+            where: {
+              coaCode: coa.code, // Sum transaksi hanya untuk COA tertentu
+              journalHeader: {
+                createdAt: {
+                  gte: await this.getFirstJournalDate(), // Fungsi untuk mendapatkan tanggal pertama di journalHeader
+                  lte: new Date(
+                    new Date(`${year}-${month}-01`).setMonth(
+                      new Date(`${year}-${month}-01`).getMonth() + 1,
+                    ) - 1,
+                  ), // Tanggal akhir berdasarkan input pengguna
+                },
+              },
+            },
+          });
+
+          console.log({
+            gte: await this.getFirstJournalDate(), // Fungsi untuk mendapatkan tanggal pertama di journalHeader
+            lte: new Date(
+              new Date(`${year}-${month}-01`).setMonth(
+                new Date(`${year}-${month}-01`).getMonth() + 1,
+              ) - 1,
+            ), // Tanggal akhir berdasarkan input pengguna
+          });
+
+          debit = journalSum._sum.debit || 0;
+          credit = journalSum._sum.credit || 0;
+        }
 
         return {
-          ...group,
-          coa, // Hanya menyimpan data Coa yang diperlukan
+          _sum: {
+            debit,
+            credit,
+          },
+          coa, // Tambahkan data COA
         };
       }),
     );
@@ -310,12 +370,23 @@ export class JournalService {
 
     // Step 4: Format hasil dengan status neraca
     return {
-      trialBalance: result.map(({ coaCode, ...rest }) => ({
-        ...rest,
-      })), // Menghapus coaCode dari hasil akhir
+      trialBalance: result,
       totalDebit,
       totalCredit,
       isBalanced: totalDebit === totalCredit,
     };
+  }
+
+  async getFirstJournalDate(): Promise<Date> {
+    const firstJournal = await this.prismaService.journalHeader.findFirst({
+      orderBy: {
+        createdAt: 'asc',
+      },
+      select: {
+        createdAt: true,
+      },
+    });
+
+    return firstJournal?.createdAt || new Date(0); // Default ke Unix epoch jika tidak ada data
   }
 }
