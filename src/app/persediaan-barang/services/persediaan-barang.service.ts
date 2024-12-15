@@ -8,11 +8,14 @@ import { PrismaService } from '@src/platform/database/services/prisma.service';
 import { DateTime } from 'luxon';
 import { TransaksiBarangDTO } from '../dtos/transaksi.dto';
 import { FilterTransaksiBarangDTO } from '../dtos/filter-transaksi-barang.dto';
+import { CreateJournalDetailDto, CreateJournalDto } from '@app/journal/dtos';
+import { JournalService } from '@app/journal/services';
 @Injectable()
 export class PersediaanBarangService {
   constructor(
     private readonly persediaanBarangRepo: PersediaanBarangRepository,
     private readonly prismaService: PrismaService,
+    private readonly journalService: JournalService,
   ) {}
 
   paginate(paginateDto: FilterPersediaanBarangDTO) {
@@ -85,6 +88,57 @@ export class PersediaanBarangService {
     user: { as: 'user' | 'investor'; id: string } & { siteId: string },
   ) {
     try {
+      const journalTemplate =
+        await this.prismaService.journalTemplate.findFirst({
+          where: { jurnalTypeId: payload.journalTypeId },
+          include: {
+            journalTemplateDetails: {
+              where: { deletedAt: null },
+              select: {
+                id: true,
+                typeLedger: true,
+                status: true,
+                coa: { select: { code: true, name: true } },
+              },
+            },
+          },
+        });
+
+      if (journalTemplate) {
+        const multiplier = payload.qty * payload.harga;
+
+        const createJournalDetails: CreateJournalDetailDto[] =
+          journalTemplate.journalTemplateDetails.map((detail: any) => ({
+            coaCode: detail.coa.code,
+            credit: detail.typeLedger === 'CREDIT' ? multiplier : 0,
+            debit: detail.typeLedger === 'DEBIT' ? multiplier : 0,
+            note: `Persedian Barang - ${detail.coa.name}`,
+          }));
+
+        const countJournal = await this.prismaService.journalHeader.count();
+
+        const journalSell: CreateJournalDto = {
+          code: `JN-${DateTime.now().toFormat('yy-MM')}-${countJournal + 1}`, // Unique code
+          // date: new Date().toISOString(), format 2024-12-10 just date yyyy-mm-dd
+          date: DateTime.now().toFormat('yyyy-MM-dd'),
+          debtTotal: createJournalDetails.reduce(
+            (acc, item) => acc + item.debit,
+            0,
+          ),
+          creditTotal: createJournalDetails.reduce(
+            (acc, item) => acc + item.credit,
+            0,
+          ),
+          status: '1',
+          journalTypeId: payload.journalTypeId as string,
+          cageId: payload.cageId,
+          siteId: payload.siteId,
+          details: createJournalDetails,
+        };
+
+        from(this.journalService.create(journalSell, user.id)).subscribe();
+      }
+
       const currentDate = DateTime.now().toFormat('yyyy-MM-dd');
       const save = await this.prismaService.persediaanPakanObat.create({
         data: {
@@ -105,8 +159,8 @@ export class PersediaanBarangService {
           barangId: save.id,
           cageId: payload.cageId,
           siteId: payload.siteId,
-          qtyAsal: payload.qty,
-          qtyIn: 0,
+          qtyAsal: 0,
+          qtyIn: payload.qty,
           qtyAkhir: payload.qty,
           qtyOut: 0,
           keterangan: 'Create Barang',

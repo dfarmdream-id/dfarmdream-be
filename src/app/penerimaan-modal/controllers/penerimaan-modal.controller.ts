@@ -19,6 +19,8 @@ import { ResponseEntity } from '@src/common/entities/response.entity';
 import { AuthGuard } from '@src/app/auth';
 import { PaginationQueryDto } from '@src/common/dtos/pagination-query.dto';
 import { UpdatePenerimaanModalDTO } from '../dtos/update-penerimaan-modal.dto';
+import { User } from '@app/auth/decorators';
+import { JWTClaim } from '@app/auth/entity/jwt-claim.dto';
 
 @ApiSecurity('JWT')
 @ApiTags('Penerimaan Modal')
@@ -35,8 +37,9 @@ export class PenerimaanModalController {
   @Post()
   public create(
     @Body() payload: CreatePenerimaanModal,
+    @User() user: JWTClaim,
   ): Observable<ResponseEntity> {
-    return this.penerimaanModalService.create(payload).pipe(
+    return this.penerimaanModalService.create(payload, user).pipe(
       map((data) => new ResponseEntity({ data, message: 'success' })),
       catchError((error) => {
         throw new HttpException(error.message, HttpStatus.BAD_REQUEST);

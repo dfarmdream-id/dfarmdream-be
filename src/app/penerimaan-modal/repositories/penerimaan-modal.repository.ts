@@ -80,7 +80,15 @@ export class PenerimaanModalRepository {
   }
 
   public create(data: CreatePenerimaanModal) {
-    return from(this.prismaService.penerimaanModal.create({ data })).pipe(
+    // Destrukturisasi untuk menghilangkan journalTypeId dari data
+    const { journalTypeId, ...filteredData } = data;
+    journalTypeId;
+
+    return from(
+      this.prismaService.penerimaanModal.create({
+        data: filteredData, // Gunakan data tanpa journalTypeId
+      }),
+    ).pipe(
       catchError((error) => {
         throw error;
       }),

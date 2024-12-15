@@ -9,11 +9,70 @@ export class JournalTypesService {
   constructor(private readonly journaltypeRepository: JournalTypesRepository) {}
 
   public paginate(paginateDto: PaginationQueryDto) {
-    return from(this.journaltypeRepository.paginate(paginateDto));
+    return from(
+      this.journaltypeRepository.paginate(paginateDto, {
+        include: {
+          JournalTemplate: {
+            where: {
+              deletedAt: null,
+            },
+            select: {
+              id: true,
+              name: true,
+              journalTemplateDetails: {
+                where: {
+                  deletedAt: null,
+                },
+                select: {
+                  coaCode: true,
+                  typeLedger: true,
+                  coa: {
+                    select: {
+                      code: true,
+                      name: true,
+                    },
+                  },
+                },
+              },
+            },
+          },
+        },
+      }),
+    );
   }
 
   public detail(id: string) {
-    return from(this.journaltypeRepository.firstOrThrow({ id }));
+    return from(
+      this.journaltypeRepository.firstOrThrow(
+        { id },
+        {
+          JournalTemplate: {
+            where: {
+              deletedAt: null,
+            },
+            select: {
+              id: true,
+              name: true,
+              journalTemplateDetails: {
+                where: {
+                  deletedAt: null,
+                },
+                select: {
+                  coaCode: true,
+                  typeLedger: true,
+                  coa: {
+                    select: {
+                      code: true,
+                      name: true,
+                    },
+                  },
+                },
+              },
+            },
+          },
+        },
+      ),
+    );
   }
 
   public destroy(id: string) {

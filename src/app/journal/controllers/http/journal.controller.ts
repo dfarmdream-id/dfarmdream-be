@@ -14,10 +14,7 @@ import {
 import { JournalService } from '@app/journal/services';
 import { PaginationQueryDto } from 'src/common/dtos/pagination-query.dto';
 import { ResponseEntity } from 'src/common/entities/response.entity';
-import {
-  CreateJournalDto,
-  UpdateJournalDto,
-} from '@app/journal/dtos';
+import { CreateJournalDto, UpdateJournalDto } from '@app/journal/dtos';
 import { ApiSecurity, ApiTags } from '@nestjs/swagger';
 import { catchError, map } from 'rxjs';
 import { Observable } from 'rxjs';
@@ -47,6 +44,29 @@ export class JournalHttpController {
           throw new HttpException(error.message, HttpStatus.BAD_REQUEST);
         }),
       );
+  }
+
+  @UseGuards(AuthGuard)
+  @Get('balance-sheets')
+  async balanceSheets(
+    @Query('month') month: string,
+    @Query('year') year: string,
+  ) {
+    try {
+      const data = await this.journalHeaderService.getTrialBalance(
+        month,
+        year,
+      );
+      return {
+        data,
+        message: 'Balance sheet data retrieved successfully',
+      };
+    } catch (error) {
+      throw new HttpException(
+        error.message || 'Failed to retrieve balance sheet data',
+        HttpStatus.INTERNAL_SERVER_ERROR,
+      );
+    }
   }
 
   @UseGuards(AuthGuard)
