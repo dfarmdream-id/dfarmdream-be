@@ -50,6 +50,7 @@ model User {
   biaya                     Biaya[]
   JournalHeader             JournalHeader[]
   KartuStokBarang           KartuStokBarang[]
+  AttendanceLog             AttendanceLog[]
 
   @@index([email, username, identityId])
 }
@@ -187,6 +188,7 @@ model Site {
   PersediaanPakanObat  PersediaanPakanObat[]
   KartuStokBarang      KartuStokBarang[]
   CashFlowCategory     CashFlowCategory[]
+  AttendanceLog        AttendanceLog[]
 }
 
 model Position {
@@ -269,6 +271,7 @@ model Cage {
   PenerimaanModal      PenerimaanModal[]
   PersediaanPakanObat  PersediaanPakanObat[]
   KartuStokBarang      KartuStokBarang[]
+  AttendanceLog        AttendanceLog[]
 }
 
 model CageRack {
@@ -464,25 +467,25 @@ enum WarehouseTransactionType {
 }
 
 model WarehouseTransaction {
-  id          String                            @id @unique @default(uuid())
-  site        Site?                             @relation(fields: [siteId], references: [id])
-  siteId      String
-  code        String                            @default(cuid())
-  cage        Cage                              @relation(fields: [cageId], references: [id])
-  cageId      String
-  qty         Int
-  weight      Int
-  type        WarehouseTransactionType          @default(IN)
-  createdBy   User                              @relation(fields: [createdById], references: [id])
-  createdById String
-  deletedAt   DateTime?
-  createdAt   DateTime                          @default(now())
-  updatedAt   DateTime                          @updatedAt
-  items       WarehouseTransactionItems[]
-  category    WarehouseTransactionCategoryEnum? @default(EGG)
-  price       Price?                            @relation(fields: [priceId], references: [id])
-  priceId     String?
-  CashierDeliveryAt    DateTime? @db.Timestamptz()
+  id                String                            @id @unique @default(uuid())
+  site              Site?                             @relation(fields: [siteId], references: [id])
+  siteId            String
+  code              String                            @default(cuid())
+  cage              Cage                              @relation(fields: [cageId], references: [id])
+  cageId            String
+  qty               Int
+  weight            Int
+  type              WarehouseTransactionType          @default(IN)
+  createdBy         User                              @relation(fields: [createdById], references: [id])
+  createdById       String
+  deletedAt         DateTime?
+  createdAt         DateTime                          @default(now())
+  updatedAt         DateTime                          @updatedAt
+  items             WarehouseTransactionItems[]
+  category          WarehouseTransactionCategoryEnum? @default(EGG)
+  price             Price?                            @relation(fields: [priceId], references: [id])
+  priceId           String?
+  CashierDeliveryAt DateTime?                         @db.Timestamptz()
 }
 
 model IotSensor {
@@ -529,7 +532,7 @@ model SensorDevice {
 
 model SensorLog {
   id          String        @id @unique @default(uuid())
-  sensorId    String?       
+  sensorId    String?
   sensor      SensorDevice? @relation(fields: [sensorId], references: [id])
   type        SensorType    @default(HUMIDITY)
   value       Float         @default(0)
@@ -568,6 +571,18 @@ model RelayLog {
   ldrValue    Int?
   createdAt   DateTime   @default(now())
   updatedAt   DateTime   @updatedAt
+}
+
+model AttendanceLog {
+  id        String   @id @unique @default(uuid())
+  userId    String
+  cageId    String
+  siteId    String
+  checkInAt DateTime
+  tanggal   String
+  user      User?    @relation(fields: [userId], references: [id])
+  cage      Cage?    @relation(fields: [cageId], references: [id])
+  site      Site?    @relation(fields: [siteId], references: [id])
 }
 
 model CctvCamera {
@@ -646,7 +661,7 @@ model PenerimaanModal {
 
 model Coa {
   id                 String    @id @unique @default(uuid())
-  code               Int @unique
+  code               Int       @unique
   name               String
   level              Int
   isBalanceSheet     Boolean
@@ -674,30 +689,30 @@ model GroupCoa {
 }
 
 model JournalTemplate {
-  id        String    @id @unique @default(uuid())
-  code      String @unique
-  name      String
+  id           String    @id @unique @default(uuid())
+  code         String    @unique
+  name         String
   jurnalTypeId String
-  status    String
-  deletedAt DateTime?
-  createdAt DateTime  @default(now())
-  updatedAt DateTime  @updatedAt
+  status       String
+  deletedAt    DateTime?
+  createdAt    DateTime  @default(now())
+  updatedAt    DateTime  @updatedAt
 
-  jurnalType   JournalType @relation(fields: [jurnalTypeId], references: [id])
+  jurnalType             JournalType             @relation(fields: [jurnalTypeId], references: [id])
   journalTemplateDetails JournalTemplateDetail[]
 }
 
 model JournalTemplateDetail {
-  id        String    @id @unique @default(uuid())
+  id                 String          @id @unique @default(uuid())
   jurnalTemplateCode String
   jurnalTemplate     JournalTemplate @relation(fields: [jurnalTemplateCode], references: [code])
-  coaCode   Int
-  coa       Coa @relation(fields: [coaCode], references: [code])
-  typeLedger LedgerEnum
-  status    String
-  deletedAt DateTime?
-  createdAt DateTime  @default(now())
-  updatedAt DateTime  @updatedAt
+  coaCode            Int
+  coa                Coa             @relation(fields: [coaCode], references: [code])
+  typeLedger         LedgerEnum
+  status             String
+  deletedAt          DateTime?
+  createdAt          DateTime        @default(now())
+  updatedAt          DateTime        @updatedAt
 }
 
 enum LedgerEnum {
@@ -707,7 +722,7 @@ enum LedgerEnum {
 
 model JournalType {
   id            String          @id @unique @default(uuid())
-  code Int
+  code          Int
   name          String
   status        String
   deletedAt     DateTime?
@@ -719,35 +734,35 @@ model JournalType {
 }
 
 model JournalHeader {
-  id            String      @id @unique @default(uuid())
+  id           String      @id @unique @default(uuid())
   code         String
-  date          DateTime
-  userId        String
-  user          User        @relation(fields: [userId], references: [id])
-  journalType   JournalType @relation(fields: [jurnalTypeId], references: [id])
-  jurnalTypeId  String
-  debtTotal     Int
-  creditTotal   Int
-  status        String
-  deletedAt     DateTime?
-  createdAt     DateTime    @default(now())
-  updatedAt     DateTime    @updatedAt
+  date         DateTime
+  userId       String
+  user         User        @relation(fields: [userId], references: [id])
+  journalType  JournalType @relation(fields: [jurnalTypeId], references: [id])
+  jurnalTypeId String
+  debtTotal    Int
+  creditTotal  Int
+  status       String
+  deletedAt    DateTime?
+  createdAt    DateTime    @default(now())
+  updatedAt    DateTime    @updatedAt
 
   journalDetails JournalDetail[]
 }
 
 model JournalDetail {
-  id            String      @id @unique @default(uuid())
-  journalHeader JournalHeader @relation(fields: [journalHeaderId], references: [id])
+  id              String        @id @unique @default(uuid())
+  journalHeader   JournalHeader @relation(fields: [journalHeaderId], references: [id])
   journalHeaderId String
-  coaCode       Int
-  coa           Coa         @relation(fields: [coaCode], references: [code])
-  debit         Int
-  credit        Int
-  note          String
-  deletedAt     DateTime?
-  createdAt     DateTime    @default(now())
-  updatedAt     DateTime    @updatedAt
+  coaCode         Int
+  coa             Coa           @relation(fields: [coaCode], references: [code])
+  debit           Int
+  credit          Int
+  note            String
+  deletedAt       DateTime?
+  createdAt       DateTime      @default(now())
+  updatedAt       DateTime      @updatedAt
 }
 
 model PersediaanPakanObat {

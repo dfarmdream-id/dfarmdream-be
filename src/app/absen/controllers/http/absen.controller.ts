@@ -22,6 +22,12 @@ export class AbsenHttpController {
     return this.absenService.getAbsenData(query, siteId);
   }
 
+  @UseGuards(AuthGuard)
+  @Get('/log')
+  getAllLog(@Query() query: FilterAbsenDTO, @User() { siteId }: JWTClaim) {
+    return this.absenService.getAttendanceLog(query, siteId);
+  }
+
   @Get('/sync-absen')
   syncDataAbsen() {
     return this.absenService.syncDataAbsen();
