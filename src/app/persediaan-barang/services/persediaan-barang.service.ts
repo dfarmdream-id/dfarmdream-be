@@ -18,8 +18,10 @@ export class PersediaanBarangService {
     private readonly journalService: JournalService,
   ) {}
 
-  paginate(paginateDto: FilterPersediaanBarangDTO) {
-    return from(this.persediaanBarangRepo.paginate(paginateDto));
+  paginate(paginateDto: FilterPersediaanBarangDTO, siteId: string) {
+    return from(
+      this.persediaanBarangRepo.paginate(paginateDto, { where: { siteId } }),
+    );
   }
 
   detail(id: string) {

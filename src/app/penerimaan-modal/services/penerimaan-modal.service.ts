@@ -8,7 +8,7 @@ import { JournalService } from '@app/journal/services';
 import { JWTClaim } from '@app/auth/entity/jwt-claim.dto';
 import { JournalTemplatesService } from '@app/journal-templates/services';
 import { CreateJournalDetailDto, CreateJournalDto } from '@app/journal/dtos';
-import {DateTime} from "luxon";
+import { DateTime } from 'luxon';
 
 @Injectable()
 export class PenerimaanModalService {
@@ -63,8 +63,14 @@ export class PenerimaanModalService {
     );
   }
 
-  paginate(paginateDto: PaginationQueryDto) {
-    return from(this.penerimaanModalRepo.paginate(paginateDto));
+  paginate(paginateDto: PaginationQueryDto, siteId: string) {
+    return from(
+      this.penerimaanModalRepo.paginate(paginateDto, {
+        where: {
+          siteId,
+        },
+      }),
+    );
   }
 
   detail(id: string) {

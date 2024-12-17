@@ -7,12 +7,15 @@ import { PrismaService } from '@src/platform/database/services/prisma.service';
 
 @Injectable()
 export class BiayaService {
-  constructor(private readonly biayaRepository: BiayaRepository,
-    private readonly prismaService:PrismaService
+  constructor(
+    private readonly biayaRepository: BiayaRepository,
+    private readonly prismaService: PrismaService,
   ) {}
 
-  paginate(paginateDto: PaginationQueryDto) {
-    return from(this.biayaRepository.paginate(paginateDto));
+  paginate(paginateDto: PaginationQueryDto, siteId: string) {
+    return from(
+      this.biayaRepository.paginate(paginateDto, { where: { siteId } }),
+    );
   }
 
   detail(id: string) {
@@ -28,37 +31,37 @@ export class BiayaService {
   }
 
   async create(payload: CreateBiayaDTO) {
-    try{
+    try {
       const saved = await this.prismaService.biaya.create({
-        data:{
+        data: {
           tanggal: payload.tanggal,
-          kategoriBiaya:{
-            connect:{id:payload.kategoriId}
+          kategoriBiaya: {
+            connect: { id: payload.kategoriId },
           },
-          cage:{
-            connect:{id:payload.cageId}
+          cage: {
+            connect: { id: payload.cageId },
           },
-          site:{
-            connect:{id:payload.siteId}
+          site: {
+            connect: { id: payload.siteId },
           },
-          goods:{
-            connect:{id:payload.goodsId}
+          goods: {
+            connect: { id: payload.goodsId },
           },
-          user:{
-            connect:{id:payload.userId}
+          user: {
+            connect: { id: payload.userId },
           },
           biaya: payload.biaya,
-          status:payload.status
-        }
-      })
+          status: payload.status,
+        },
+      });
       return {
-        status:HttpStatus.OK,
-        message:"Success create biaya",
-        data:saved
-      }
-    }catch(e){
-      console.log("Failed to create biaya : ",e)
-      throw new HttpException("Failed to create biaya", HttpStatus.BAD_REQUEST)
+        status: HttpStatus.OK,
+        message: 'Success create biaya',
+        data: saved,
+      };
+    } catch (e) {
+      console.log('Failed to create biaya : ', e);
+      throw new HttpException('Failed to create biaya', HttpStatus.BAD_REQUEST);
     }
   }
 }

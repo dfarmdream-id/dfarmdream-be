@@ -19,7 +19,7 @@ import { Observable } from 'rxjs';
 import { AuthGuard } from '@src/app/auth';
 import { User } from '@src/app/auth/decorators';
 import { JWTClaim } from '@src/app/auth/entity/jwt-claim.dto';
-import { connect, MqttClient } from 'mqtt';
+import { MqttClient } from 'mqtt';
 import { SensorDeviceService } from '../../services';
 import { CreateSensorDevice, UpdateSensorDevice } from '../../dtos';
 
@@ -33,14 +33,12 @@ export class SensorDeviceHttpController {
   public readonly mqtt: MqttClient;
   public readonly topic: string;
   public readonly sensorId: string;
-  
-  constructor(private readonly sensorDeviceService:SensorDeviceService) {}
-  
+
+  constructor(private readonly sensorDeviceService: SensorDeviceService) {}
+
   @UseGuards(AuthGuard)
   @Post()
-  public create(
-    @Body() body: CreateSensorDevice,
-  ): Observable<ResponseEntity> {
+  public create(@Body() body: CreateSensorDevice): Observable<ResponseEntity> {
     return this.sensorDeviceService.create(body).pipe(
       map((data) => new ResponseEntity({ data, message: 'success' })),
       catchError((error) => {
@@ -62,7 +60,6 @@ export class SensorDeviceHttpController {
       }),
     );
   }
-
 
   @UseGuards(AuthGuard)
   @Get(':id')
