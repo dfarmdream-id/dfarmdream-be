@@ -1,5 +1,5 @@
 -- DropIndex
-DROP INDEX "SensorLog_sensorId_key";
+-- DROP INDEX "SensorLog_sensorId_key";
 
 -- CreateTable
 CREATE TABLE "Goods" (
