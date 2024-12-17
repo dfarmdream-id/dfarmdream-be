@@ -51,6 +51,7 @@ model User {
   JournalHeader             JournalHeader[]
   KartuStokBarang           KartuStokBarang[]
   AttendanceLog             AttendanceLog[]
+  PriceLog PriceLog[]
 
   @@index([email, username, identityId])
 }
@@ -190,6 +191,7 @@ model Site {
   CashFlowCategory     CashFlowCategory[]
   AttendanceLog        AttendanceLog[]
   JournalHeader JournalHeader[]
+  PriceLog PriceLog[]
 }
 
 model Position {
@@ -274,6 +276,7 @@ model Cage {
   KartuStokBarang      KartuStokBarang[]
   AttendanceLog        AttendanceLog[]
   JournalHeader JournalHeader[]
+  PriceLog PriceLog[]
 }
 
 model CageRack {
@@ -838,4 +841,18 @@ model Goods{
   createdAt DateTime  @default(now())
   updatedAt DateTime  @updatedAt
   biaya Biaya[]
+}
+
+model PriceLog{
+  id String @id @unique @default(uuid())
+  siteId String?
+  cageId String?
+  type PriceType
+  userId String?
+  price Int
+  site       Site?    @relation(fields: [siteId], references: [id])
+  cage       Cage?   @relation(fields: [cageId], references: [id])
+  user User? @relation(fields: [userId], references: [id])
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
 }

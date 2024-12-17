@@ -4,10 +4,15 @@ import { CreatePricesDto, UpdatePricesDto } from '../dtos';
 import { from, switchMap } from 'rxjs';
 import { Prisma } from '@prisma/client';
 import { GetPricesDto } from '../dtos/get-prices.dto';
+import { PrismaService } from '@src/platform/database/services/prisma.service';
 
 @Injectable()
 export class PricesService {
-  constructor(private readonly priceRepository: PricesRepository) {}
+ 
+  constructor(
+    private readonly priceRepository: PricesRepository,
+    private readonly prismaService: PrismaService,
+  ) {}
 
   public paginate(paginateDto: GetPricesDto) {
     const where = {
@@ -41,7 +46,33 @@ export class PricesService {
         include: {
           site: true,
         },
-        where: where,
+        where: {
+          ...where,
+          status:'ACTIVE'
+        },
+        orderBy: {
+          createdAt: 'desc',
+        },
+      }),
+    );
+  }
+
+  getLogData(paginateDto: GetPricesDto) {
+    const where = {}
+
+
+    if (paginateDto.siteId) {
+      Object.assign(where, {
+        siteId: paginateDto.siteId,
+      });
+    }
+
+    return from(
+      this.priceRepository.paginateLog(paginateDto, {
+        include: {
+          site: true,
+        },
+        where,
         orderBy: {
           createdAt: 'desc',
         },
@@ -57,42 +88,86 @@ export class PricesService {
     return from(this.priceRepository.delete({ id }));
   }
 
-  public create(createPricesDto: CreatePricesDto) {
-    return from(
-      this.priceRepository.create({
-        name: createPricesDto.name,
-        status: createPricesDto.status,
-        type: createPricesDto.type,
-        value: createPricesDto.value,
-        site: {
-          connect: {
-            id: createPricesDto.siteId,
-          },
-        },
-      }),
-    ).pipe(
-      switchMap(async (data) => {
-        this.priceRepository
-          .updateMany(
-            {
-              NOT: {
-                id: data.id,
-                siteId: data.siteId,
-                type: data.type,
-              },
-              status: 'ACTIVE',
-            },
-            {
-              status: 'INACTIVE',
-            },
-          )
-          .subscribe();
-        return data;
-      }),
-    );
-  }
+  // public create(createPricesDto: CreatePricesDto) {
+  //   return from(
+  //     this.priceRepository.create({
+  //       name: createPricesDto.name,
+  //       status: createPricesDto.status,
+  //       type: createPricesDto.type,
+  //       value: createPricesDto.value,
+  //       site: {
+  //         connect: {
+  //           id: createPricesDto.siteId,
+  //         },
+  //       },
+  //     }),
+  //   ).pipe(
+  //     switchMap(async (data) => {
+  //       this.priceRepository
+  //         .updateMany(
+  //           {
+  //             NOT: {
+  //               id: data.id,
+  //               siteId: data.siteId,
+  //               type: data.type,
+  //             },
+  //             status: 'ACTIVE',
+  //           },
+  //           {
+  //             status: 'INACTIVE',
+  //           },
+  //         )
+  //         .subscribe();
+  //       return data;
+  //     }),
+  //   );
+  // }
 
-  public update(id: string, updatePricesDto: UpdatePricesDto) {
-    return from(this.priceRepository.update({ id }, updatePricesDto));
+  public async create(createPricesDto: CreatePricesDto) {
+      const savedData = await this.prismaService.price.create({
+        data:{
+          name: createPricesDto.name,
+          status:createPricesDto.status,
+          type: createPricesDto.type,
+          value: createPricesDto.value,
+          site:{
+            connect:{
+              id: createPricesDto.siteId
+            }
+          }
+        }
+      })
+
+      await this.prismaService.price.updateMany({ where:{
+          NOT: {
+            id: savedData.id,
+            siteId: createPricesDto.siteId,
+            type: createPricesDto.type,
+          },
+          status: 'ACTIVE',
+      }, data:{
+        status: 'INACTIVE',
+      }, })
+      return savedData
+    }
+
+  public async update(id: string, updatePricesDto: UpdatePricesDto, userId:string) {
+    await this.prismaService.price.update({
+      where: {
+        id: id,
+      },
+      data: {
+        ...updatePricesDto,
+      },
+    });
+    await this.prismaService.priceLog.create({
+      data:{
+        siteId: updatePricesDto.siteId,
+        type: updatePricesDto.type!,
+        price: updatePricesDto.value!,
+        userId:userId,
+      }
+    })
+    return await this.priceRepository.update({ id }, updatePricesDto);
   }
 }
