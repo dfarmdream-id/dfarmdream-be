@@ -17,7 +17,45 @@ export type Filter = {
 
 @Injectable()
 export class PricesRepository {
+
   constructor(private readonly prismaService: PrismaService) {}
+
+  paginateLog(paginateDto: PaginationQueryDto, filter?: any) {
+    const { limit = 10, page = 1 } = paginateDto;
+
+    return from(
+      this.prismaService.$transaction([
+        this.prismaService.priceLog.findMany({
+          skip: (+page - 1) * +limit,
+          take: +limit,
+          where: filter?.where,
+          orderBy: {
+            createdAt:'desc'
+          },
+          cursor: filter?.cursor,
+          include: {
+            site:true,
+            user:true
+          },
+        }),
+        this.prismaService.price.count({
+          where: filter?.where,
+        }),
+      ]),
+    ).pipe(
+      map(
+        ([data, count]) =>
+          new PaginatedEntity(data, {
+            limit,
+            page,
+            totalData: count,
+          }),
+      ),
+      catchError((error) => {
+        throw error;
+      }),
+    );
+  }
 
   public paginate(paginateDto: PaginationQueryDto, filter?: Filter) {
     const { limit = 10, page = 1 } = paginateDto;
