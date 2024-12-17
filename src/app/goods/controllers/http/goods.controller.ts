@@ -17,32 +17,29 @@ import { ApiSecurity, ApiTags } from '@nestjs/swagger';
 import { catchError, map } from 'rxjs';
 import { Observable } from 'rxjs';
 import { AuthGuard } from '@src/app/auth';
-import { BiayaService } from '../../services';
-import { CreateBiayaDTO, UpdateBiayaDTO } from '../../dtos';
-import { User } from '@src/app/auth/decorators';
+import { GoodsService } from '../../services';
+import { CreateGoodsDTO, UpdateGoodsDto } from '../../dtos';
 
 @ApiSecurity('JWT')
-@ApiTags('Biaya')
+@ApiTags('Goods')
 @Controller({
-  path: 'biaya',
+  path: 'goods',
   version: '1',
 })
-export class BiayaController {
-  constructor(private readonly biayaService: BiayaService) {}
+export class GoodsController {
+  constructor(private readonly goodsService: GoodsService) {}
 
   @UseGuards(AuthGuard)
   @Post()
   public create(
-    @User() user: { id: string; siteId: string },
-    @Body() payload: CreateBiayaDTO){
-      payload.userId = user.id
-    // return this.biayaService.create(payload).pipe(
-    //   map((data) => new ResponseEntity({ data, message: 'success' })),
-    //   catchError((error) => {
-    //     throw new HttpException(error.message, HttpStatus.BAD_REQUEST);
-    //   }),
-    // );
-    return this.biayaService.create(payload)
+    @Body() body: CreateGoodsDTO,
+  ): Observable<ResponseEntity> {
+    return this.goodsService.create(body).pipe(
+      map((data) => new ResponseEntity({ data, message: 'success' })),
+      catchError((error) => {
+        throw new HttpException(error.message, HttpStatus.BAD_REQUEST);
+      }),
+    );
   }
 
   @UseGuards(AuthGuard)
@@ -50,7 +47,7 @@ export class BiayaController {
   public index(
     @Query() paginateDto: PaginationQueryDto,
   ): Observable<ResponseEntity> {
-    return this.biayaService.paginate(paginateDto).pipe(
+    return this.goodsService.paginate(paginateDto).pipe(
       map((data) => new ResponseEntity({ data, message: 'success' })),
       catchError((error) => {
         throw new HttpException(error.message, HttpStatus.NOT_FOUND);
@@ -61,7 +58,7 @@ export class BiayaController {
   @UseGuards(AuthGuard)
   @Get(':id')
   public detail(@Param('id') id: string): Observable<ResponseEntity> {
-    return this.biayaService.detail(id).pipe(
+    return this.goodsService.detail(id).pipe(
       map((data) => new ResponseEntity({ data, message: 'success' })),
       catchError((error) => {
         throw new HttpException(error.message, HttpStatus.NOT_FOUND);
@@ -72,7 +69,7 @@ export class BiayaController {
   @UseGuards(AuthGuard)
   @Delete(':id')
   public destroy(@Param('id') id: string): Observable<ResponseEntity> {
-    return this.biayaService.destroy(id).pipe(
+    return this.goodsService.destroy(id).pipe(
       map((data) => new ResponseEntity({ data, message: 'success' })),
       catchError((error) => {
         throw new HttpException(error.message, HttpStatus.BAD_REQUEST);
@@ -83,12 +80,10 @@ export class BiayaController {
   @UseGuards(AuthGuard)
   @Put(':id')
   public update(
-    @User() user: { id: string; siteId: string },
     @Param('id') id: string,
-    @Body() payload: UpdateBiayaDTO,
+    @Body() body: UpdateGoodsDto,
   ): Observable<ResponseEntity> {
-    payload.userId = user.id
-    return this.biayaService.update(id, payload).pipe(
+    return this.goodsService.update(id, body).pipe(
       map((data) => new ResponseEntity({ data, message: 'success' })),
       catchError((error) => {
         throw new HttpException(error.message, HttpStatus.BAD_REQUEST);

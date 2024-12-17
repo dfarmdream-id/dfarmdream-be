@@ -611,17 +611,19 @@ model KategoriBiaya {
 model Biaya {
   id            String        @id @unique @default(uuid())
   kategoriId    String
-  kategoriBiaya KategoriBiaya @relation(fields: [kategoriId], references: [id])
+  kategoriBiaya KategoriBiaya? @relation(fields: [kategoriId], references: [id])
   tanggal       String
   siteId        String
-  site          Site          @relation(fields: [siteId], references: [id])
+  site          Site?          @relation(fields: [siteId], references: [id])
   cageId        String
-  cage          Cage          @relation(fields: [cageId], references: [id])
+  cage          Cage?          @relation(fields: [cageId], references: [id])
   userId        String
-  user          User          @relation(fields: [userId], references: [id])
+  user          User?          @relation(fields: [userId], references: [id])
   keterangan    String?
   biaya         Int
   status        Int
+  goodsId       String?        
+  goods         Goods?  @relation(fields: [goodsId], references: [id])
   deletedAt     DateTime?
   createdAt     DateTime      @default(now())
   updatedAt     DateTime      @updatedAt
@@ -798,4 +800,15 @@ model KartuStokBarang {
 enum TipeBarang {
   PAKAN
   OBAT
+}
+
+model Goods{
+  id  String  @id @unique @default(uuid())
+  sku  String
+  name String
+  type TipeBarang @default(PAKAN)
+  deletedAt DateTime?
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+  biaya Biaya[]
 }
