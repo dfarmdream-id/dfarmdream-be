@@ -2,7 +2,15 @@ import { Injectable } from '@nestjs/common';
 import { JournalTemplatesRepository } from '../repositories';
 import { PaginationQueryDto } from 'src/common/dtos/pagination-query.dto';
 import { CreateJournalTemplatesDto, UpdateJournalTemplatesDto } from '../dtos';
-import { forkJoin, from, map, switchMap } from 'rxjs';
+import {
+  catchError,
+  forkJoin,
+  from,
+  map,
+  of,
+  switchMap,
+  throwError,
+} from 'rxjs';
 import { JournalTemplateDetailsRepository } from '@app/journal-templates/repositories/journal-template-details.repository';
 
 @Injectable()
@@ -79,6 +87,26 @@ export class JournalTemplatesService {
           },
         },
       ),
+    );
+  }
+
+  public findFirstByJournalTypeId(journalTypeId: string) {
+    return from(
+      this.journaltemplateRepository.findFirst({
+        jurnalType: {
+          id: journalTypeId,
+        },
+      }),
+    ).pipe(
+      switchMap((journalTemplate) => {
+        if (!journalTemplate) {
+          return throwError(() => new Error('Journal template not found'));
+        }
+        return of(journalTemplate);
+      }),
+      catchError((error) => {
+        throw new Error(`Failed to fetch journal template: ${error.message}`);
+      }),
     );
   }
 

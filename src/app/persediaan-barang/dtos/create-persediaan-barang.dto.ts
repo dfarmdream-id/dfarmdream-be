@@ -1,5 +1,5 @@
 import { ApiProperty } from '@nestjs/swagger';
-import { IsNotEmpty, IsOptional, IsString } from 'class-validator';
+import {IsNotEmpty, IsOptional, IsString, IsUUID} from 'class-validator';
 
 enum TipeBarangDTO {
   PAKAN,
@@ -34,4 +34,9 @@ export class CreatePersediaanBarang {
   @ApiProperty()
   @IsString()
   tipeBarang: TipeBarangDTO;
+
+  @ApiProperty()
+  @IsUUID()
+  @IsOptional()
+  journalTypeId?: string;
 }

@@ -1,5 +1,5 @@
-import { ApiPreconditionFailedResponse, ApiProperty } from '@nestjs/swagger';
-import { IsNotEmpty, IsOptional, IsString, IsUUID } from 'class-validator';
+import { ApiProperty } from '@nestjs/swagger';
+import { IsNotEmpty, IsString, IsUUID } from 'class-validator';
 
 export class CreatePenerimaanModal {
   @ApiProperty()
@@ -9,6 +9,10 @@ export class CreatePenerimaanModal {
   @ApiProperty()
   @IsUUID()
   investorId: string;
+
+  @ApiProperty()
+  @IsUUID()
+  journalTypeId: string;
 
   @ApiProperty()
   @IsNotEmpty()

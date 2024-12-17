@@ -22,6 +22,7 @@ import { ApiSecurity, ApiTags } from '@nestjs/swagger';
 import { catchError, map, Observable } from 'rxjs';
 import { AuthGuard } from '@src/app/auth';
 import { User } from '@src/app/auth/decorators';
+import { JWTClaim } from '@app/auth/entity/jwt-claim.dto';
 
 @ApiSecurity('JWT')
 @ApiTags('WarehouseTransactions')
@@ -69,8 +70,19 @@ export class WarehouseTransactionsHttpController {
 
   @UseGuards(AuthGuard)
   @Post('cashier/:id')
-  public submitToCashier(@Param('id') id: string) {
-    return this.warehousetransactionService.sendToCashier(id)
+  public submitToCashier(
+    @Param('id') id: string,
+    @Body() body: { typeSell: string; typeCash: string },
+    @User() user: JWTClaim,
+  ) {
+    return this.warehousetransactionService.sendToCashier(
+      id,
+      {
+        typeSell: body.typeSell,
+        typeCash: body.typeCash,
+      },
+      user,
+    );
   }
 
   @UseGuards(AuthGuard)

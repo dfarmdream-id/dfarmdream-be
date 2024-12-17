@@ -189,6 +189,7 @@ model Site {
   KartuStokBarang      KartuStokBarang[]
   CashFlowCategory     CashFlowCategory[]
   AttendanceLog        AttendanceLog[]
+  JournalHeader JournalHeader[]
 }
 
 model Position {
@@ -272,6 +273,7 @@ model Cage {
   PersediaanPakanObat  PersediaanPakanObat[]
   KartuStokBarang      KartuStokBarang[]
   AttendanceLog        AttendanceLog[]
+  JournalHeader JournalHeader[]
 }
 
 model CageRack {
@@ -347,6 +349,7 @@ model DocumentInvestment {
   investorId String?
   site       Site?     @relation(fields: [siteId], references: [id])
   siteId     String?
+  url       String?
   amount     Int?      @default(0)
   deletedAt  DateTime?
   createdAt  DateTime  @default(now())
@@ -409,6 +412,7 @@ model Price {
   value  Int          @default(0)
   site   Site?        @relation(fields: [siteId], references: [id])
   siteId String?
+  date  DateTime?
 
   deletedAt            DateTime?
   createdAt            DateTime               @default(now())
@@ -738,17 +742,24 @@ model JournalType {
 model JournalHeader {
   id           String      @id @unique @default(uuid())
   code         String
-  date         DateTime
-  userId       String
-  user         User        @relation(fields: [userId], references: [id])
-  journalType  JournalType @relation(fields: [jurnalTypeId], references: [id])
-  jurnalTypeId String
-  debtTotal    Int
-  creditTotal  Int
-  status       String
-  deletedAt    DateTime?
-  createdAt    DateTime    @default(now())
-  updatedAt    DateTime    @updatedAt
+  date          DateTime
+  userId        String
+  user          User        @relation(fields: [userId], references: [id])
+  journalType   JournalType @relation(fields: [jurnalTypeId], references: [id])
+  jurnalTypeId  String
+  debtTotal     Int
+  creditTotal   Int
+  status        String
+  
+  siteId        String?
+  site          Site?       @relation(fields: [siteId], references: [id])
+  
+  cageId        String?
+  cage          Cage?       @relation(fields: [cageId], references: [id])
+  
+  deletedAt     DateTime?
+  createdAt     DateTime    @default(now())
+  updatedAt     DateTime    @updatedAt
 
   journalDetails JournalDetail[]
 }
@@ -815,6 +826,7 @@ model KartuStokBarang {
 enum TipeBarang {
   PAKAN
   OBAT
+  ASSET
 }
 
 model Goods{

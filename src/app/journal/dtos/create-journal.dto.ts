@@ -70,4 +70,14 @@ export class CreateJournalDto {
   @ValidateNested({ each: true })
   @Type(() => CreateJournalDetailDto)
   details: CreateJournalDetailDto[];
+
+  @ApiProperty({ description: 'ID of the cage (UUID)' })
+  @IsUUID()
+  @IsOptional()
+  cageId?: string;
+
+  @ApiProperty({ description: 'ID of the site (UUID)' })
+  @IsUUID()
+  @IsOptional()
+  siteId?: string;
 }
