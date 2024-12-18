@@ -44,6 +44,9 @@ export class UsersRepository {
       this.prismaService.userSite.findMany({
         where: {
           userId,
+          site: {
+            deletedAt: null,
+          },
         },
         include: {
           site: true,

@@ -5,7 +5,7 @@ import {
 } from './controllers';
 import { JournalService } from './services';
 import { JournalHeaderRepository } from './repositories';
-import {JournalDetailRepository} from "@app/journal/repositories/journal-detail.repository";
+import { JournalDetailRepository } from '@app/journal/repositories/journal-detail.repository';
 
 @Module({
   controllers: [JournalHttpController, JournalHeadersMicroserviceController],

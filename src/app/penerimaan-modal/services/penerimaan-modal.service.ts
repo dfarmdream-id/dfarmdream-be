@@ -8,7 +8,7 @@ import { JournalService } from '@app/journal/services';
 import { JWTClaim } from '@app/auth/entity/jwt-claim.dto';
 import { JournalTemplatesService } from '@app/journal-templates/services';
 import { CreateJournalDetailDto, CreateJournalDto } from '@app/journal/dtos';
-import {DateTime} from "luxon";
+import { DateTime } from 'luxon';
 
 @Injectable()
 export class PenerimaanModalService {

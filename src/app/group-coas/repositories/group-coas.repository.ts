@@ -19,26 +19,22 @@ export class GroupCoasRepository {
   constructor(private readonly prismaService: PrismaService) {}
 
   public paginate(paginateDto: PaginationQueryDto, filter?: Filter) {
-    const { limit = 10, page = 1,q  } = paginateDto;
+    const { limit = 10, page = 1, q } = paginateDto;
     const where = {
       ...filter?.where,
-      deletedAt:null
-    }
+      deletedAt: null,
+    };
 
-    if(q && q!=''){
-      const orArray:any = [
-        { name: { contains: q, mode: 'insensitive' } },
-      ]
-      if(!isNaN(parseInt(q))){
+    if (q && q != '') {
+      const orArray: any = [{ name: { contains: q, mode: 'insensitive' } }];
+      if (!isNaN(parseInt(q))) {
         orArray.push({
-          code: parseInt(q)
-        })
+          code: parseInt(q),
+        });
       }
-      Object.assign(where,{
-        OR: [
-          ...orArray
-        ]
-      })
+      Object.assign(where, {
+        OR: [...orArray],
+      });
     }
     return from(
       this.prismaService.$transaction([
@@ -48,7 +44,7 @@ export class GroupCoasRepository {
           where: where,
           orderBy: {
             ...filter?.orderBy,
-            code:'asc'
+            code: 'asc',
           },
           cursor: filter?.cursor,
         }),

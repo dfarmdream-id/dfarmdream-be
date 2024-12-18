@@ -291,7 +291,11 @@ model CageRack {
 
 enum ChickenStatus {
   ALIVE
-  DEAD
+  DEAD // DEAD dianggap sebagai DEAD_WITHOUT_ILLNESS
+
+  ALIVE_IN_SICK
+  DEAD_DUE_TO_ILLNESS
+
   SPENT
 }
 
@@ -304,6 +308,9 @@ model Chicken {
   deletedAt DateTime?
   createdAt DateTime       @default(now())
   updatedAt DateTime       @updatedAt
+
+  diseaseId String?
+  disease   ChickenDisease? @relation(fields: [diseaseId], references: [id])
 }
 
 model Investor {
@@ -350,6 +357,7 @@ model DocumentInvestment {
   site       Site?     @relation(fields: [siteId], references: [id])
   siteId     String?
   url       String?
+  date       DateTime?
   amount     Int?      @default(0)
   deletedAt  DateTime?
   createdAt  DateTime  @default(now())
@@ -813,4 +821,17 @@ enum TipeBarang {
   PAKAN
   OBAT
   ASSET
+}
+
+model ChickenDisease {
+  id          String    @id @unique @default(uuid())
+  name        String    @unique // Nama penyakit, misal "Newcastle Disease"
+  description String?// Penjelasan penyakit (opsional)
+  symptoms    String?// Gejala penyakit (opsional)
+  treatment   String?// Pengobatan penyakit (opsional)
+  deletedAt   DateTime?
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+
+  Chicken Chicken[]
 }

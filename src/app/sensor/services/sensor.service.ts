@@ -391,10 +391,10 @@ export class SensorService {
     });
 
     return {
-      status:HttpStatus.OK,
-      message:"Success get ldr status",
-      data: models
-    }
+      status: HttpStatus.OK,
+      message: 'Success get ldr status',
+      data: models,
+    };
   }
 
   async getSensorData(

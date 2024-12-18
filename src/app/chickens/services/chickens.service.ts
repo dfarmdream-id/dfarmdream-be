@@ -42,6 +42,7 @@ export class ChickensService {
               cage: true,
             },
           },
+          disease: true,
         },
         orderBy: {
           createdAt: 'desc',
@@ -51,7 +52,28 @@ export class ChickensService {
   }
 
   public detail(id: string) {
-    return from(this.chickenRepository.firstOrThrow({ id }));
+    return from(
+      this.chickenRepository.firstOrThrow(
+        { id },
+        {
+          id: true,
+          name: true,
+          status: true,
+          rackId: true,
+          disease: {
+            select: {
+              id: true,
+              name: true,
+              description: true,
+              symptoms: true,
+              treatment: true,
+              createdAt: true,
+              updatedAt: true,
+            },
+          },
+        },
+      ),
+    );
   }
 
   public destroy(id: string) {

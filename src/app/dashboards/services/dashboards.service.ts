@@ -1,10 +1,12 @@
 import { Injectable } from '@nestjs/common';
+import { Prisma } from '@prisma/client';
 import { CagesRepository } from '@src/app/chicken-cages/repositories';
 import { ChickensRepository } from '@src/app/chickens/repositories';
 import { InvestorsRepository } from '@src/app/investors/repositories';
 import { UsersRepository } from '@src/app/users/repositories';
 import { WarehouseTransactionsRepository } from '@src/app/warehouse-transactions/repositories';
-import { firstValueFrom, forkJoin, map, of, switchMap } from 'rxjs';
+import { firstValueFrom, forkJoin, from, map, of, switchMap } from 'rxjs';
+import { PrismaService } from 'src/platform/database/services/prisma.service';
 
 @Injectable()
 export class DashboardsService {
@@ -14,6 +16,7 @@ export class DashboardsService {
     private readonly investorRepository: InvestorsRepository,
     private readonly chickendRepository: ChickensRepository,
     private readonly warehouseTransactionRepository: WarehouseTransactionsRepository,
+    private readonly prismaService: PrismaService,
   ) {}
 
   public summary(
@@ -152,5 +155,60 @@ export class DashboardsService {
     });
 
     return forkJoin({ alive, dead });
+  }
+
+  public chartEgg(
+    siteId: string,
+    groupBy: 'days' | 'weeks' | 'months' | 'years' = 'days',
+  ) {
+    // Map groupBy ke format PostgreSQL DATE_TRUNC
+    const groupByMap = {
+      days: Prisma.sql`'day'`,
+      weeks: Prisma.sql`'week'`,
+      months: Prisma.sql`'month'`,
+      years: Prisma.sql`'year'`,
+    };
+    const groupFormat = groupByMap[groupBy] || Prisma.sql`'day'`;
+
+    // Prisma query dalam raw SQL
+    const query = this.prismaService.$queryRaw<
+      {
+        grouped_date: string;
+        total_qty: number;
+        total_biaya: number;
+        total_harga: string;
+      }[]
+    >(
+      Prisma.sql`
+        SELECT
+          DATE_TRUNC(${groupFormat}, COALESCE(wt."updatedAt", b."createdAt")) AS grouped_date,
+          COALESCE(SUM(wt."qty"), 0) AS total_qty,
+          SUM(b."biaya") AS total_biaya,
+          COALESCE(SUM((wt."weight" * p."value")::BIGINT), 0) AS total_harga
+        FROM "Biaya" b
+               LEFT JOIN "WarehouseTransaction" wt
+                         ON DATE_TRUNC(${groupFormat}, wt."updatedAt") = DATE_TRUNC(${groupFormat}, b."createdAt")
+                           AND wt."siteId" = ${siteId}
+                           AND wt."deletedAt" IS NULL
+                           AND wt."CashierDeliveryAt" IS NOT NULL
+               LEFT JOIN "Price" p
+                         ON wt."priceId" = p."id"
+        WHERE b."siteId" = ${siteId}
+        GROUP BY DATE_TRUNC(${groupFormat}, COALESCE(wt."updatedAt", b."createdAt"))
+        ORDER BY grouped_date ASC
+      `,
+    );
+
+    // Bungkus Prisma query ke dalam Observable
+    return from(query).pipe(
+      map((results) =>
+        results.map((row) => ({
+          date: row.grouped_date,
+          total: row.total_qty,
+          totalBiaya: row.total_biaya,
+          totalHarga: Number(row.total_harga), // Konversi dari string ke number
+        })),
+      ),
+    );
   }
 }
