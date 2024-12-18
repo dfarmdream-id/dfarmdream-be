@@ -53,10 +53,7 @@ export class JournalHttpController {
     @Query('year') year: string,
   ) {
     try {
-      const data = await this.journalHeaderService.getTrialBalance(
-        month,
-        year,
-      );
+      const data = await this.journalHeaderService.getTrialBalance(month, year);
       return {
         data,
         message: 'Balance sheet data retrieved successfully',

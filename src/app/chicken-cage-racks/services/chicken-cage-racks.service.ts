@@ -13,9 +13,9 @@ export class ChickenCageRacksService {
 
   public paginate(paginateDto: GetCageRackDto, siteId: string) {
     const { q, cageId, sort } = paginateDto;
-    const sortSlice = sort.split(':');
-    const sortKey = sortSlice[0];
-    const sortDirection = sortSlice[1];
+    const sortSlice = sort?.split(':') || [];
+    const sortKey = sortSlice[0] || 'createdAt';
+    const sortDirection = sortSlice[1] || 'desc';
 
     // Base filter
     const w: Prisma.CageRackWhereInput = {

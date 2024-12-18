@@ -5,58 +5,33 @@ import { Prisma } from '@prisma/client';
 import { PaginationQueryDto } from 'src/common/dtos/pagination-query.dto';
 import { PaginatedEntity } from 'src/common/entities/paginated.entity';
 import { PrismaService } from 'src/platform/database/services/prisma.service';
-import { CreateCoasDto, UpdateCoasDto } from '../dtos';
 
 export type Filter = {
-  where?: Prisma.CoaWhereInput;
-  orderBy?: Prisma.CoaOrderByWithRelationInput;
-  cursor?: Prisma.CoaWhereUniqueInput;
+  where?: Prisma.ChickenDiseaseWhereInput;
+  orderBy?: Prisma.ChickenDiseaseOrderByWithRelationInput;
+  cursor?: Prisma.ChickenDiseaseWhereUniqueInput;
   take?: number;
   skip?: number;
 };
 
 @Injectable()
-export class CoasRepository {
+export class ChickenDiseasesRepository {
   constructor(private readonly prismaService: PrismaService) {}
 
   public paginate(paginateDto: PaginationQueryDto, filter?: Filter) {
-    const { limit = 10, page = 1, q } = paginateDto;
-    const where = {
-      ...filter?.where,
-      deletedAt: null,
-    };
+    const { limit = 10, page = 1 } = paginateDto;
 
-    if (q && q != '') {
-      const orArray: any = [
-        { name: { contains: q, mode: 'insensitive' } },
-        { group: { name: { contains: q, mode: 'insensitive' } } },
-      ];
-      if (!isNaN(parseInt(q))) {
-        orArray.push({
-          code: parseInt(q),
-        });
-      }
-      Object.assign(where, {
-        OR: [...orArray],
-      });
-    }
     return from(
       this.prismaService.$transaction([
-        this.prismaService.coa.findMany({
+        this.prismaService.chickenDisease.findMany({
           skip: (+page - 1) * +limit,
           take: +limit,
-          where: where,
-          orderBy: {
-            ...filter?.orderBy,
-            code: 'asc',
-          },
+          where: filter?.where,
+          orderBy: filter?.orderBy,
           cursor: filter?.cursor,
-          include: {
-            group: true,
-          },
         }),
-        this.prismaService.coa.count({
-          where: where,
+        this.prismaService.chickenDisease.count({
+          where: filter?.where,
         }),
       ]),
     ).pipe(
@@ -74,32 +49,28 @@ export class CoasRepository {
     );
   }
 
-  public create(data: CreateCoasDto) {
-    return from(this.prismaService.coa.create({ data })).pipe(
+  public create(data: Prisma.ChickenDiseaseCreateInput) {
+    return from(this.prismaService.chickenDisease.create({ data })).pipe(
       catchError((error) => {
         throw error;
       }),
     );
   }
 
-  public update(where: Prisma.CoaWhereUniqueInput, data: UpdateCoasDto) {
-    return from(
-      this.prismaService.coa.update({
-        where,
-        data: {
-          ...data,
-        },
-      }),
-    ).pipe(
+  public update(
+    where: Prisma.ChickenDiseaseWhereUniqueInput,
+    data: Prisma.ChickenDiseaseUpdateInput,
+  ) {
+    return from(this.prismaService.chickenDisease.update({ where, data })).pipe(
       catchError((error) => {
         throw error;
       }),
     );
   }
 
-  public delete(where: Prisma.CoaWhereUniqueInput) {
+  public delete(where: Prisma.ChickenDiseaseWhereUniqueInput) {
     return from(
-      this.prismaService.coa.update({
+      this.prismaService.chickenDisease.update({
         where,
         data: { deletedAt: new Date() },
       }),
@@ -110,8 +81,13 @@ export class CoasRepository {
     );
   }
 
-  public first(where: Prisma.CoaWhereUniqueInput, select?: Prisma.CoaSelect) {
-    return from(this.prismaService.coa.findUnique({ where, select })).pipe(
+  public first(
+    where: Prisma.ChickenDiseaseWhereUniqueInput,
+    select?: Prisma.ChickenDiseaseSelect,
+  ) {
+    return from(
+      this.prismaService.chickenDisease.findUnique({ where, select }),
+    ).pipe(
       catchError((error) => {
         throw error;
       }),
@@ -119,10 +95,12 @@ export class CoasRepository {
   }
 
   public firstOrThrow(
-    where: Prisma.CoaWhereUniqueInput,
-    select?: Prisma.CoaSelect,
+    where: Prisma.ChickenDiseaseWhereUniqueInput,
+    select?: Prisma.ChickenDiseaseSelect,
   ) {
-    return from(this.prismaService.coa.findUnique({ where, select })).pipe(
+    return from(
+      this.prismaService.chickenDisease.findUnique({ where, select }),
+    ).pipe(
       catchError((error) => {
         throw error;
       }),
@@ -130,7 +108,7 @@ export class CoasRepository {
   }
 
   public find(filter: Filter) {
-    return from(this.prismaService.coa.findMany(filter)).pipe(
+    return from(this.prismaService.chickenDisease.findMany(filter)).pipe(
       catchError((error) => {
         throw error;
       }),
@@ -138,7 +116,7 @@ export class CoasRepository {
   }
 
   public count(filter: Omit<Filter, 'include'>) {
-    return from(this.prismaService.coa.count(filter)).pipe(
+    return from(this.prismaService.chickenDisease.count(filter)).pipe(
       catchError((error) => {
         throw error;
       }),

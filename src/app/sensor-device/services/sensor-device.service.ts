@@ -9,14 +9,12 @@ import { SensorDeviceRepository } from '../repositories';
 export class SensorDeviceService {
   constructor(
     private readonly sensorDeviceRepository: SensorDeviceRepository,
-  ) {
-  }
+  ) {}
 
   paginate(paginateDto: PaginationQueryDto, claim: JWTClaim) {
     return from(
       this.sensorDeviceRepository.paginate(paginateDto, {
-        where: {
-        },
+        where: {},
       }),
     );
   }

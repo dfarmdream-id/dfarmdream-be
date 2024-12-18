@@ -19,12 +19,11 @@ declare global {
 }
 
 async function bootstrap() {
-
   BigInt.prototype.toJSON = function () {
-    const int:any = Number.parseInt(this.toString());
+    const int: any = Number.parseInt(this.toString());
     return int ?? this.toString();
   };
-  
+
   const app = await NestFactory.create(MainModule, {
     logger: ['log', 'error', 'warn', 'debug', 'verbose'],
   });

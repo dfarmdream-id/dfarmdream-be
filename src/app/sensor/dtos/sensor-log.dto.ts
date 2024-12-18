@@ -12,5 +12,5 @@ export class SensorLogDTO {
 
   @ApiProperty()
   @IsOptional()
-  sensorCode:string;
+  sensorCode: string;
 }

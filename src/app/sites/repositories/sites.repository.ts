@@ -22,11 +22,11 @@ export class SitesRepository {
   public paginate(paginateDto: PaginationQueryDto, filter?: Filter) {
     const { limit = 10, page = 1 } = paginateDto;
     const where = {
-      ...filter?.where
-    }
-    Object.assign(where,{
-      deletedAt:null
-    })
+      ...filter?.where,
+    };
+    Object.assign(where, {
+      deletedAt: null,
+    });
     return from(
       this.prismaService.$transaction([
         this.prismaService.site.findMany({

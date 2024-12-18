@@ -9,37 +9,31 @@ import {
   Post,
   Put,
   Query,
-  UseGuards,
 } from '@nestjs/common';
+import { ChickenDiseasesService } from 'src/app/chickendiseases/services';
 import { PaginationQueryDto } from 'src/common/dtos/pagination-query.dto';
 import { ResponseEntity } from 'src/common/entities/response.entity';
-import { ApiSecurity, ApiTags } from '@nestjs/swagger';
+import {
+  CreateChickenDiseasesDto,
+  UpdateChickenDiseasesDto,
+} from 'src/app/chickendiseases/dtos';
+import { ApiTags } from '@nestjs/swagger';
 import { catchError, map } from 'rxjs';
 import { Observable } from 'rxjs';
-import { AuthGuard } from '@src/app/auth';
-import { User } from '@src/app/auth/decorators';
-import { JWTClaim } from '@src/app/auth/entity/jwt-claim.dto';
-import { connect, MqttClient } from 'mqtt';
-import { SensorDeviceService } from '../../services';
-import { CreateSensorDevice, UpdateSensorDevice } from '../../dtos';
 
-@ApiSecurity('JWT')
-@ApiTags('IOT Sensor Device')
+@ApiTags('ChickenDiseases')
 @Controller({
-  path: 'sensor-device',
+  path: 'chickendisease',
   version: '1',
 })
-export class SensorDeviceHttpController {
-  public readonly mqtt: MqttClient;
-  public readonly topic: string;
-  public readonly sensorId: string;
+export class ChickenDiseasesHttpController {
+  constructor(private readonly chickendiseaseService: ChickenDiseasesService) {}
 
-  constructor(private readonly sensorDeviceService: SensorDeviceService) {}
-
-  @UseGuards(AuthGuard)
   @Post()
-  public create(@Body() body: CreateSensorDevice): Observable<ResponseEntity> {
-    return this.sensorDeviceService.create(body).pipe(
+  public create(
+    @Body() createChickenDiseasesDto: CreateChickenDiseasesDto,
+  ): Observable<ResponseEntity> {
+    return this.chickendiseaseService.create(createChickenDiseasesDto).pipe(
       map((data) => new ResponseEntity({ data, message: 'success' })),
       catchError((error) => {
         throw new HttpException(error.message, HttpStatus.BAD_REQUEST);
@@ -47,13 +41,11 @@ export class SensorDeviceHttpController {
     );
   }
 
-  @UseGuards(AuthGuard)
   @Get()
   public index(
     @Query() paginateDto: PaginationQueryDto,
-    @User() user: JWTClaim,
   ): Observable<ResponseEntity> {
-    return this.sensorDeviceService.paginate(paginateDto, user).pipe(
+    return this.chickendiseaseService.paginate(paginateDto).pipe(
       map((data) => new ResponseEntity({ data, message: 'success' })),
       catchError((error) => {
         throw new HttpException(error.message, HttpStatus.NOT_FOUND);
@@ -61,10 +53,9 @@ export class SensorDeviceHttpController {
     );
   }
 
-  @UseGuards(AuthGuard)
   @Get(':id')
   public detail(@Param('id') id: string): Observable<ResponseEntity> {
-    return this.sensorDeviceService.detail(id).pipe(
+    return this.chickendiseaseService.detail(id).pipe(
       map((data) => new ResponseEntity({ data, message: 'success' })),
       catchError((error) => {
         throw new HttpException(error.message, HttpStatus.NOT_FOUND);
@@ -72,11 +63,9 @@ export class SensorDeviceHttpController {
     );
   }
 
-  @UseGuards(AuthGuard)
   @Delete(':id')
   public destroy(@Param('id') id: string): Observable<ResponseEntity> {
-    console.log('Delete Sensor');
-    return this.sensorDeviceService.destroy(id).pipe(
+    return this.chickendiseaseService.destroy(id).pipe(
       map((data) => new ResponseEntity({ data, message: 'success' })),
       catchError((error) => {
         throw new HttpException(error.message, HttpStatus.BAD_REQUEST);
@@ -84,13 +73,12 @@ export class SensorDeviceHttpController {
     );
   }
 
-  @UseGuards(AuthGuard)
   @Put(':id')
   public update(
     @Param('id') id: string,
-    @Body() payload: UpdateSensorDevice,
+    @Body() updateChickenDiseasesDto: UpdateChickenDiseasesDto,
   ): Observable<ResponseEntity> {
-    return this.sensorDeviceService.update(id, payload).pipe(
+    return this.chickendiseaseService.update(id, updateChickenDiseasesDto).pipe(
       map((data) => new ResponseEntity({ data, message: 'success' })),
       catchError((error) => {
         throw new HttpException(error.message, HttpStatus.BAD_REQUEST);

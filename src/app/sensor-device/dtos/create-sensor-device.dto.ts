@@ -7,16 +7,14 @@ export class CreateSensorDevice {
   @IsString()
   code: string;
 
-
   @ApiProperty({
     enum: SensorType,
   })
   @IsString()
   @IsEnum(SensorType)
-  type:'TEMP' | 'HUMIDITY' | 'GAS' | 'LDR'
-
+  type: 'TEMP' | 'HUMIDITY' | 'GAS' | 'LDR';
 
   @ApiProperty()
   @IsString()
-  deviceId:string;
+  deviceId: string;
 }

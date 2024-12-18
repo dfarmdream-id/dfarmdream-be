@@ -13,6 +13,7 @@ import { catchError, map } from 'rxjs';
 import { Observable } from 'rxjs';
 import { User } from '@src/app/auth/decorators';
 import { AuthGuard } from '@src/app/auth';
+import { ChartEggDto } from '@app/dashboards/dtos/chart-egg.dto';
 
 @ApiSecurity('JWT')
 @ApiTags('Dashboards')
@@ -60,5 +61,19 @@ export class DashboardsHttpController {
           throw new HttpException(error.message, HttpStatus.NOT_FOUND);
         }),
       );
+  }
+
+  @UseGuards(AuthGuard)
+  @Get('chart-egg')
+  public chartEgg(
+    @User() user: { id: string; siteId: string },
+    @Query() queryDto: ChartEggDto,
+  ) {
+    return this.dashboardService.chartEgg(user.siteId, queryDto.groupBy).pipe(
+      map((data) => new ResponseEntity({ data, message: 'success' })),
+      catchError((error) => {
+        throw new HttpException(error.message, HttpStatus.NOT_FOUND);
+      }),
+    );
   }
 }

@@ -40,6 +40,7 @@ import { JournalTemplatesModule } from './journal-templates';
 import { JournalTypesModule } from './journal-types';
 import { CoasModule } from './coas';
 import { SensorDeviceModule } from './sensor-device';
+import { ChickenDiseasesModule } from './chickendiseases';
 import { GoodsModule } from './goods';
 
 @ApiTags('App Spec')
@@ -98,6 +99,8 @@ class AppController {
     JournalModule,
     JournalTemplatesModule,
     JournalTypesModule,
+    SensorDeviceModule,
+    ChickenDiseasesModule,
     SensorDeviceModule,
     GoodsModule
   ],

@@ -1,5 +1,12 @@
 import { ApiProperty } from '@nestjs/swagger';
-import { IsBoolean, IsInt, IsNotEmpty, IsNumber, IsString, IsUUID } from 'class-validator';
+import {
+  IsBoolean,
+  IsInt,
+  IsNotEmpty,
+  IsNumber,
+  IsString,
+  IsUUID,
+} from 'class-validator';
 
 export class CreateCoasDto {
   @ApiProperty()
@@ -20,7 +27,7 @@ export class CreateCoasDto {
 
   @ApiProperty()
   @IsNotEmpty()
-  groupId:string;
+  groupId: string;
 
   @ApiProperty()
   @IsInt()
