@@ -112,87 +112,53 @@ export class DashboardsService {
       date,
       cageId,
     }: {
-      date: string;
-      cageId: string;
+      date?: string;
+      cageId?: string;
     },
   ) {
-    const alive = this.chickendRepository.count({
-      where: {
-        status: 'ALIVE',
-        deletedAt: null,
-        rack: {
-          cage: {
-            siteId: siteId,
-            ...(cageId && { id: cageId }), // Filter by cageId jika tersedia
-          },
+    // Parse date range dari query string jika ada
+    const dateRange = date
+      ? date.split(',').map((d) => new Date(`${d}T00:00:00Z`))
+      : null;
+
+    // Helper untuk filter tanggal
+    const dateFilter = dateRange
+      ? {
+          gte: dateRange[0], // Start of date range
+          lt: new Date(dateRange[1].setUTCHours(23, 59, 59)), // End of date range
+        }
+      : null;
+
+    // Kondisi where umum
+    const baseWhere = (status: string) => ({
+      status: status as any,
+      deletedAt: null,
+      rack: {
+        cage: {
+          siteId: siteId,
+          ...(cageId && { id: cageId }),
         },
-        ...(date && {
-          createdAt: {
-            gte: new Date(`${date}T00:00:00Z`), // Start of the day
-            lt: new Date(`${date}T23:59:59Z`), // End of the day
-          },
-        }),
       },
+      ...(dateFilter && {
+        createdAt: dateFilter,
+      }),
     });
 
-    const dead = this.chickendRepository.count({
-      where: {
-        status: 'DEAD',
-        deletedAt: null,
-        rack: {
-          cage: {
-            siteId: siteId,
-            ...(cageId && { id: cageId }), // Filter by cageId jika tersedia
-          },
-        },
-        ...(date && {
-          createdAt: {
-            gte: new Date(`${date}T00:00:00Z`), // Start of the day
-            lt: new Date(`${date}T23:59:59Z`), // End of the day
-          },
+    // Menghitung jumlah berdasarkan status menggunakan repository
+    const countByStatus = (status: string) =>
+      from(
+        this.chickendRepository.count({
+          where: baseWhere(status),
         }),
-      },
-    });
+      );
 
-    const alive_in_sick = this.chickendRepository.count({
-      where: {
-        status: 'ALIVE_IN_SICK',
-        deletedAt: null,
-        rack: {
-          cage: {
-            siteId: siteId,
-            ...(cageId && { id: cageId }), // Filter by cageId jika tersedia
-          },
-        },
-        ...(date && {
-          createdAt: {
-            gte: new Date(`${date}T00:00:00Z`), // Start of the day
-            lt: new Date(`${date}T23:59:59Z`), // End of the day
-          },
-        }),
-      },
+    // Menggunakan forkJoin untuk menjalankan semua query secara bersamaan
+    return forkJoin({
+      alive: countByStatus('ALIVE'),
+      dead: countByStatus('DEAD'),
+      alive_in_sick: countByStatus('ALIVE_IN_SICK'),
+      dead_due_to_illness: countByStatus('DEAD_DUE_TO_ILLNESS'),
     });
-
-    const dead_due_to_illness = this.chickendRepository.count({
-      where: {
-        status: 'DEAD_DUE_TO_ILLNESS',
-        deletedAt: null,
-        rack: {
-          cage: {
-            siteId: siteId,
-            ...(cageId && { id: cageId }), // Filter by cageId jika tersedia
-          },
-        },
-        ...(date && {
-          createdAt: {
-            gte: new Date(`${date}T00:00:00Z`), // Start of the day
-            lt: new Date(`${date}T23:59:59Z`), // End of the day
-          },
-        }),
-      },
-    });
-
-    return forkJoin({ alive, dead, alive_in_sick, dead_due_to_illness });
   }
 
   public chartEgg(
@@ -315,6 +281,10 @@ export class DashboardsService {
       cageId: string;
     },
   ) {
+    const dateRange = date
+      ? date.split(',').map((d) => new Date(`${d}T00:00:00Z`))
+      : null;
+
     const query = this.prismaService.$queryRaw<
       {
         disease: string;
@@ -331,7 +301,7 @@ export class DashboardsService {
       LEFT JOIN "Cage" cg ON cr."cageId" = cg."id"
       WHERE cg."siteId" = ${siteId} AND c."deletedAt" IS NULL AND c."diseaseId" IS NOT NULL
       ${cageId ? Prisma.sql`AND cg."id" = ${cageId}` : Prisma.sql``}
-      ${date ? Prisma.sql`AND c."updatedAt" >= ${new Date(`${date}T00:00:00Z`)} AND c."updatedAt" <= ${new Date(`${date}T23:59:59Z`)}` : Prisma.sql``}
+      ${dateRange ? Prisma.sql`AND c."updatedAt" >= ${dateRange[0]} AND c."updatedAt" <= ${dateRange[1]}` : Prisma.sql``}
       GROUP BY d."name"
     `,
     );
