@@ -228,6 +228,13 @@ export class UsersService {
               username: signInDto.username,
             },
           ],
+          sites: {
+            some: {
+              site: {
+                deletedAt: null,
+              },
+            },
+          },
         },
         {
           sites: {
