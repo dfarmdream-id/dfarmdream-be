@@ -76,4 +76,37 @@ export class DashboardsHttpController {
       }),
     );
   }
+
+  @UseGuards(AuthGuard)
+  @Get('chart-chicken')
+  public chartChicken(
+    @User() user: { id: string; siteId: string },
+    @Query() queryDto: ChartEggDto,
+  ) {
+    return this.dashboardService
+      .chartChicken(user.siteId, queryDto.groupBy)
+      .pipe(
+        map((data) => new ResponseEntity({ data, message: 'success' })),
+        catchError((error) => {
+          throw new HttpException(error.message, HttpStatus.NOT_FOUND);
+        }),
+      );
+  }
+
+  @UseGuards(AuthGuard)
+  @Get('chart-disease')
+  public chartDisease(
+    @User() user: { id: string; siteId: string },
+    @Query() query: { date: string; cageId: string },
+  ) {
+    return this.dashboardService.chartDisease(user.siteId, {
+      date: query.date,
+      cageId: query.cageId,
+    }).pipe(
+      map((data) => new ResponseEntity({ data, message: 'success' })),
+      catchError((error) => {
+        throw new HttpException(error.message, HttpStatus.NOT_FOUND);
+      }),
+    );
+  }
 }

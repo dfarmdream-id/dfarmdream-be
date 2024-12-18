@@ -154,7 +154,45 @@ export class DashboardsService {
       },
     });
 
-    return forkJoin({ alive, dead });
+    const alive_in_sick = this.chickendRepository.count({
+      where: {
+        status: 'ALIVE_IN_SICK',
+        deletedAt: null,
+        rack: {
+          cage: {
+            siteId: siteId,
+            ...(cageId && { id: cageId }), // Filter by cageId jika tersedia
+          },
+        },
+        ...(date && {
+          createdAt: {
+            gte: new Date(`${date}T00:00:00Z`), // Start of the day
+            lt: new Date(`${date}T23:59:59Z`), // End of the day
+          },
+        }),
+      },
+    });
+
+    const dead_due_to_illness = this.chickendRepository.count({
+      where: {
+        status: 'DEAD_DUE_TO_ILLNESS',
+        deletedAt: null,
+        rack: {
+          cage: {
+            siteId: siteId,
+            ...(cageId && { id: cageId }), // Filter by cageId jika tersedia
+          },
+        },
+        ...(date && {
+          createdAt: {
+            gte: new Date(`${date}T00:00:00Z`), // Start of the day
+            lt: new Date(`${date}T23:59:59Z`), // End of the day
+          },
+        }),
+      },
+    });
+
+    return forkJoin({ alive, dead, alive_in_sick, dead_due_to_illness });
   }
 
   public chartEgg(
@@ -181,20 +219,20 @@ export class DashboardsService {
     >(
       Prisma.sql`
         SELECT
-          DATE_TRUNC(${groupFormat}, COALESCE(wt."updatedAt", b."createdAt")) AS grouped_date,
+          DATE_TRUNC(${groupFormat}, COALESCE(wt."updatedAt", b."updatedAt")) AS grouped_date,
           COALESCE(SUM(wt."qty"), 0) AS total_qty,
           SUM(b."biaya") AS total_biaya,
           COALESCE(SUM((wt."weight" * p."value")::BIGINT), 0) AS total_harga
         FROM "Biaya" b
                LEFT JOIN "WarehouseTransaction" wt
-                         ON DATE_TRUNC(${groupFormat}, wt."updatedAt") = DATE_TRUNC(${groupFormat}, b."createdAt")
+                         ON DATE_TRUNC(${groupFormat}, wt."updatedAt") = DATE_TRUNC(${groupFormat}, b."updatedAt")
                            AND wt."siteId" = ${siteId}
                            AND wt."deletedAt" IS NULL
                            AND wt."CashierDeliveryAt" IS NOT NULL
                LEFT JOIN "Price" p
                          ON wt."priceId" = p."id"
-        WHERE b."siteId" = ${siteId}
-        GROUP BY DATE_TRUNC(${groupFormat}, COALESCE(wt."updatedAt", b."createdAt"))
+        WHERE b."siteId" = ${siteId} AND wt."category" = 'EGG'
+        GROUP BY DATE_TRUNC(${groupFormat}, COALESCE(wt."updatedAt", b."updatedAt"))
         ORDER BY grouped_date ASC
       `,
     );
@@ -207,6 +245,102 @@ export class DashboardsService {
           total: row.total_qty,
           totalBiaya: row.total_biaya,
           totalHarga: Number(row.total_harga), // Konversi dari string ke number
+        })),
+      ),
+    );
+  }
+
+  public chartChicken(
+    siteId: string,
+    groupBy: 'days' | 'weeks' | 'months' | 'years' = 'days',
+  ) {
+    // Map groupBy ke format PostgreSQL DATE_TRUNC
+    const groupByMap = {
+      days: Prisma.sql`'day'`,
+      weeks: Prisma.sql`'week'`,
+      months: Prisma.sql`'month'`,
+      years: Prisma.sql`'year'`,
+    };
+    const groupFormat = groupByMap[groupBy] || Prisma.sql`'day'`;
+
+    // Prisma query dalam raw SQL
+    const query = this.prismaService.$queryRaw<
+      {
+        grouped_date: string;
+        total_qty: number;
+        total_biaya: number;
+        total_harga: string;
+      }[]
+    >(
+      Prisma.sql`
+        SELECT
+          DATE_TRUNC(${groupFormat}, COALESCE(wt."updatedAt", b."updatedAt")) AS grouped_date,
+          COALESCE(SUM(wt."qty"), 0) AS total_qty,
+          SUM(b."biaya") AS total_biaya,
+          COALESCE(SUM((wt."weight" * p."value")::BIGINT), 0) AS total_harga
+        FROM "Biaya" b
+               LEFT JOIN "WarehouseTransaction" wt
+                         ON DATE_TRUNC(${groupFormat}, wt."updatedAt") = DATE_TRUNC(${groupFormat}, b."updatedAt")
+                           AND wt."siteId" = ${siteId}
+                           AND wt."deletedAt" IS NULL
+                           AND wt."CashierDeliveryAt" IS NOT NULL
+               LEFT JOIN "Price" p
+                         ON wt."priceId" = p."id"
+        WHERE b."siteId" = ${siteId} AND wt."category" = 'CHICKEN'
+        GROUP BY DATE_TRUNC(${groupFormat}, COALESCE(wt."updatedAt", b."updatedAt"))
+        ORDER BY grouped_date ASC
+      `,
+    );
+
+    // Bungkus Prisma query ke dalam Observable
+    return from(query).pipe(
+      map((results) =>
+        results.map((row) => ({
+          date: row.grouped_date,
+          total: row.total_qty,
+          totalBiaya: row.total_biaya,
+          totalHarga: Number(row.total_harga), // Konversi dari string ke number
+        })),
+      ),
+    );
+  }
+
+  public chartDisease(
+    siteId: string,
+    {
+      date,
+      cageId,
+    }: {
+      date: string;
+      cageId: string;
+    },
+  ) {
+    const query = this.prismaService.$queryRaw<
+      {
+        disease: string;
+        total: number;
+      }[]
+    >(
+      Prisma.sql`
+      SELECT
+        d."name" AS disease,
+        COUNT(c."id") AS total
+      FROM "Chicken" c
+      LEFT JOIN "ChickenDisease" d ON c."diseaseId" = d."id"
+      LEFT JOIN "CageRack" cr ON c."rackId" = cr."id"
+      LEFT JOIN "Cage" cg ON cr."cageId" = cg."id"
+      WHERE cg."siteId" = ${siteId} AND c."deletedAt" IS NULL AND c."diseaseId" IS NOT NULL
+      ${cageId ? Prisma.sql`AND cg."id" = ${cageId}` : Prisma.sql``}
+      ${date ? Prisma.sql`AND c."updatedAt" >= ${new Date(`${date}T00:00:00Z`)} AND c."updatedAt" <= ${new Date(`${date}T23:59:59Z`)}` : Prisma.sql``}
+      GROUP BY d."name"
+    `,
+    );
+
+    return from(query).pipe(
+      map((results) =>
+        results.map((row) => ({
+          disease: row.disease || 'Tidak Diketahui', // Handle null name
+          total: row.total,
         })),
       ),
     );
