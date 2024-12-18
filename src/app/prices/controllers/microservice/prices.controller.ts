@@ -7,6 +7,7 @@ import { CreatePricesDto, UpdatePricesDto } from 'src/app/prices/dtos';
 import { map, catchError, from } from 'rxjs';
 import { ApiTags } from '@nestjs/swagger';
 import { GetPricesDto } from '../../dtos/get-prices.dto';
+import { User } from '@src/app/auth/decorators';
 
 @ApiTags('Prices')
 @Controller({
@@ -121,8 +122,9 @@ export class PricesMicroserviceController {
   public update(
     @Payload('id') id: string,
     @Payload() updatePricesDto: UpdatePricesDto,
+    @User() user: { id: string; },
   ) {
-    return from(this.priceService.update(id, updatePricesDto)).pipe(
+    return from(this.priceService.update(id, updatePricesDto, user.id)).pipe(
       map(
         (data) =>
           new ResponseEntity({

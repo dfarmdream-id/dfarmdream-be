@@ -66,6 +66,7 @@ export class BiayaRepository {
             kategoriBiaya: true,
             site: true,
             user: true,
+            goods:true
           },
         }),
         this.prismaService.biaya.count({

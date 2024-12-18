@@ -3,6 +3,9 @@ import { PrismaAbsenService } from '@src/platform/database/services/prisma-absen
 import { PrismaService } from '@src/platform/database/services/prisma.service';
 import { FilterAbsenDTO } from '../dtos/filter-absen.dto';
 import { DateTime } from 'luxon';
+import moment from 'moment';
+import { Prisma } from '@prisma/client';
+
 @Injectable()
 export class AbsenService {
   constructor(
@@ -228,6 +231,139 @@ export class AbsenService {
     };
   }
 
+  async syncAttendanceLog() {
+    let where = {};
+    where = {
+      pin: {
+        not: '',
+      },
+    };
+    try {
+      const latestData = await this.prismaService.attendanceLog.findFirst({
+        orderBy: {
+          checkInAt: 'desc',
+        },
+      });
+      if (latestData) {
+        where = {
+          ...where,
+          event_time: {
+            gt: latestData.checkInAt,
+          },
+        };
+        console.log('lastCheckInAt', latestData.checkInAt);
+      }
+
+      const listAccTransaction =
+        await this.absenClient.acc_transaction.findMany({
+          where,
+        });
+      console.log('count', listAccTransaction.length);
+      if (listAccTransaction.length == 0) return;
+
+      for (const item of listAccTransaction) {
+        try {
+          const user = await this.prismaService.user.findFirstOrThrow({
+            where: {
+              nip: item.pin,
+            },
+            include: {
+              sites: true,
+              cages: true,
+            },
+          });
+          const tgl = this.throwIfNull(item.event_time);
+          await this.prismaService.attendanceLog.create({
+            data: {
+              userId: user.id,
+              siteId: user.sites[0].siteId,
+              cageId: user.cages[0].cageId,
+              checkInAt: tgl,
+              tanggal: moment(tgl).format('YYYY-MM-DD'),
+            },
+          });
+        } catch (e) {
+          console.error(e instanceof Error ? e.message : (e as string));
+          continue;
+        }
+      }
+    } catch (e) {
+      console.error(e instanceof Error ? e.message : (e as string));
+    }
+  }
+
+  async getAttendanceLog(filter: FilterAbsenDTO, siteId: string) {
+    let where = {};
+    let queryWhere = `WHERE alg."siteId" = '${filter.lokasi ?? siteId}'`;
+    where = {
+      user: {
+        sites: {
+          some: {
+            siteId: filter.lokasi ?? siteId,
+          },
+        },
+      },
+    };
+
+    if (filter.tanggal) {
+      where = {
+        ...where,
+        tanggal: filter.tanggal,
+      };
+      queryWhere += ` AND tanggal = ${filter.tanggal}`;
+    }
+
+    if (filter.search) {
+      where = {
+        ...where,
+        OR: [
+          {
+            user: {
+              fullName: { contains: filter.search, mode: 'insensitive' },
+            },
+          },
+          { cage: { name: { contains: filter.search, mode: 'insensitive' } } },
+          { site: { name: { contains: filter.search, mode: 'insensitive' } } },
+        ],
+      };
+      queryWhere += ` AND (u."fullName" ILIKE '%${filter.search}%' OR c."name" ILIKE '%${filter.search}%' OR s."name" ILIKE '%${filter.search}%')`;
+    }
+
+    const skip: number = ((filter.page ?? 1) - 1) * (filter.limit ?? 10);
+    const take: number = filter.limit ?? 10;
+
+    const listData = await this.prismaService.$queryRaw`
+    SELECT alg."userId", u."fullName", u.nip, c.name as kandang, s.name as lokasi, 
+           MAX(alg."checkInAt") as checkInAt, alg.tanggal 
+    FROM "AttendanceLog" alg
+    INNER JOIN "User" u ON u.id = alg."userId"
+    INNER JOIN "Cage" c ON c.id = alg."cageId"
+    INNER JOIN "Site" s ON s.id = alg."siteId"
+    ${Prisma.raw(queryWhere)}
+    GROUP BY alg."userId", u."fullName", u.nip, alg.tanggal, c.name, s.name
+    ORDER BY alg.tanggal DESC
+    LIMIT ${Prisma.raw(take.toString())}
+    OFFSET ${Prisma.raw(skip.toString())};`;
+
+    const totalRecords = await this.prismaService.attendanceLog.count({
+      where,
+    });
+    const totalPages = Math.ceil(totalRecords / (filter.limit ?? 10));
+    return {
+      status: HttpStatus.OK,
+      message: 'Success get attendance log data',
+      data: {
+        data: listData,
+        meta: {
+          totalRecords,
+          currentPage: filter.page,
+          totalPages,
+          pageSize: filter.limit,
+        },
+      },
+    };
+  }
+
   formatToHHmm = (utcDate) => {
     // const dt = utcDate.toString();
     const dateTime = DateTime.fromJSDate(new Date(utcDate!));
@@ -238,4 +374,9 @@ export class AbsenService {
     const minutes = dateTime.toUTC().minute.toString().padStart(2, '0');
     return `${hours}:${minutes}`;
   };
+
+  throwIfNull(value: Date | null) {
+    if (!value) throw new Error('value is null');
+    return value;
+  }
 }

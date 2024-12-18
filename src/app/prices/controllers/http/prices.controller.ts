@@ -9,6 +9,7 @@ import {
   Post,
   Put,
   Query,
+  UseGuards,
 } from '@nestjs/common';
 import { PricesService } from 'src/app/prices/services';
 import { ResponseEntity } from 'src/common/entities/response.entity';
@@ -17,6 +18,8 @@ import { ApiTags } from '@nestjs/swagger';
 import { catchError, map } from 'rxjs';
 import { Observable } from 'rxjs';
 import { GetPricesDto } from '../../dtos/get-prices.dto';
+import { User } from '@src/app/auth/decorators';
+import { AuthGuard } from '@src/app/auth';
 
 @ApiTags('Prices')
 @Controller({
@@ -27,20 +30,30 @@ export class PricesHttpController {
   constructor(private readonly priceService: PricesService) {}
 
   @Post()
-  public create(
+  public async create(
     @Body() createPricesDto: CreatePricesDto,
-  ): Observable<ResponseEntity> {
-    return this.priceService.create(createPricesDto).pipe(
-      map((data) => new ResponseEntity({ data, message: 'success' })),
-      catchError((error) => {
-        throw new HttpException(error.message, HttpStatus.BAD_REQUEST);
-      }),
-    );
+  ) {
+    try{
+      const data = await this.priceService.create(createPricesDto)
+      return new ResponseEntity({data, message:'success'})
+    }catch(e){
+      throw new HttpException(e.message, HttpStatus.BAD_REQUEST);
+    }
   }
 
   @Get()
   public index(@Query() paginateDto: GetPricesDto): Observable<ResponseEntity> {
     return this.priceService.paginate(paginateDto).pipe(
+      map((data) => new ResponseEntity({ data, message: 'success' })),
+      catchError((error) => {
+        throw new HttpException(error.message, HttpStatus.NOT_FOUND);
+      }),
+    );
+  }
+
+  @Get('log/:id')
+  public getPriceLog(@Query() paginateDto:GetPricesDto):Observable<ResponseEntity>{
+    return this.priceService.getLogData(paginateDto).pipe(
       map((data) => new ResponseEntity({ data, message: 'success' })),
       catchError((error) => {
         throw new HttpException(error.message, HttpStatus.NOT_FOUND);
@@ -69,15 +82,19 @@ export class PricesHttpController {
   }
 
   @Put(':id')
-  public update(
+  @UseGuards(AuthGuard)
+  public async update(
     @Param('id') id: string,
     @Body() updatePricesDto: UpdatePricesDto,
-  ): Observable<ResponseEntity> {
-    return this.priceService.update(id, updatePricesDto).pipe(
-      map((data) => new ResponseEntity({ data, message: 'success' })),
-      catchError((error) => {
-        throw new HttpException(error.message, HttpStatus.BAD_REQUEST);
-      }),
-    );
+    @User() user: { id: string; },
+  ) {
+    console.log("user : ", user)
+    try{
+      const data = await this.priceService.update(id, updatePricesDto, user.id!)
+      return new ResponseEntity({data, message:'success'})
+    }catch(e){
+      console.log("Failed to update price : ",e)
+      throw new HttpException(e.message, HttpStatus.BAD_REQUEST);
+    }
   }
 }

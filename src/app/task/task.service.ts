@@ -18,4 +18,10 @@ export class TaskService {
     this.logger.debug('Running Generate absen');
     this.absenService.generateDataAbsen();
   }
+
+  @Cron('*/5 * * * *')
+  handleSyncAttendanceLog() {
+    this.logger.debug('Running AttendanceLog Sync');
+    this.absenService.syncAttendanceLog();
+  }
 }
