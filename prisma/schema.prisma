@@ -293,13 +293,18 @@ model CageRack {
 }
 
 enum ChickenStatus {
-  ALIVE
-  DEAD // DEAD dianggap sebagai DEAD_WITHOUT_ILLNESS
+  ALIVE // Ayam hidup sehat
+  DEAD // Dianggap sebagai DEAD_WITHOUT_ILLNESS (Mati tanpa sakit)
 
-  ALIVE_IN_SICK
-  DEAD_DUE_TO_ILLNESS
+  ALIVE_IN_SICK // Ayam hidup tapi sedang sakit
+  DEAD_DUE_TO_ILLNESS // Mati karena penyakit
 
-  SPENT
+  PRODUCTIVE // Ayam produktif (misalnya dalam masa bertelur)
+  FEED_CHANGE // Ayam sedang dalam proses adaptasi ganti pakan
+
+  REJUVENATION
+
+  SPENT // Ayam afkir (sudah tidak produktif)
 }
 
 model Chicken {
