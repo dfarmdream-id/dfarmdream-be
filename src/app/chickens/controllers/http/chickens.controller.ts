@@ -48,9 +48,10 @@ export class ChickensHttpController {
   @Get()
   public index(
     @Query() paginateDto: PaginationQueryDto,
+    @Query('rackId') rackId: string | null,
     @User() user: { id: string; siteId: string },
   ): Observable<ResponseEntity> {
-    return this.chickenService.paginate(paginateDto, user.siteId).pipe(
+    return this.chickenService.paginate(paginateDto, user.siteId, rackId).pipe(
       map((data) => new ResponseEntity({ data, message: 'success' })),
       catchError((error) => {
         throw new HttpException(error.message, HttpStatus.NOT_FOUND);

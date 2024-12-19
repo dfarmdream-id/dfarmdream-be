@@ -9,7 +9,11 @@ import { Prisma } from '@prisma/client';
 export class ChickensService {
   constructor(private readonly chickenRepository: ChickensRepository) {}
 
-  public paginate(paginateDto: PaginationQueryDto, siteId: string) {
+  public paginate(
+    paginateDto: PaginationQueryDto,
+    siteId: string,
+    rackId?: string | null,
+  ) {
     const { q } = paginateDto;
 
     // Filter `OR` conditions dynamically
@@ -26,6 +30,7 @@ export class ChickensService {
     const where: Prisma.ChickenWhereInput = {
       deletedAt: null,
       rack: {
+        ...(rackId && { id: rackId }),
         cage: {
           siteId,
         },
