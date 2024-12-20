@@ -34,23 +34,25 @@ export class BiayaController {
   @Post()
   public create(
     @User() user: { id: string; siteId: string },
-    @Body() payload: CreateBiayaDTO){
-      payload.userId = user.id
+    @Body() payload: CreateBiayaDTO,
+  ) {
+    payload.userId = user.id;
     // return this.biayaService.create(payload).pipe(
     //   map((data) => new ResponseEntity({ data, message: 'success' })),
     //   catchError((error) => {
     //     throw new HttpException(error.message, HttpStatus.BAD_REQUEST);
     //   }),
     // );
-    return this.biayaService.create(payload)
+    return this.biayaService.create(payload);
   }
 
   @UseGuards(AuthGuard)
   @Get()
   public index(
     @Query() paginateDto: PaginationQueryDto,
+    @User() user: { siteId: string },
   ): Observable<ResponseEntity> {
-    return this.biayaService.paginate(paginateDto).pipe(
+    return this.biayaService.paginate(paginateDto, user.siteId).pipe(
       map((data) => new ResponseEntity({ data, message: 'success' })),
       catchError((error) => {
         throw new HttpException(error.message, HttpStatus.NOT_FOUND);
@@ -87,7 +89,7 @@ export class BiayaController {
     @Param('id') id: string,
     @Body() payload: UpdateBiayaDTO,
   ): Observable<ResponseEntity> {
-    payload.userId = user.id
+    payload.userId = user.id;
     return this.biayaService.update(id, payload).pipe(
       map((data) => new ResponseEntity({ data, message: 'success' })),
       catchError((error) => {
