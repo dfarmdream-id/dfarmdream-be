@@ -21,4 +21,12 @@ export class ChartEggDto {
   @ApiPropertyOptional()
   @IsOptional()
   dateRange: DateRange;
+
+  @ApiPropertyOptional()
+  @IsOptional()
+  rackId?: string;
+
+  @ApiPropertyOptional()
+  @IsOptional()
+  cageId?: string;
 }
