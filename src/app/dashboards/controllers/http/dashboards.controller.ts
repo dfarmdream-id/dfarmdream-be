@@ -69,7 +69,7 @@ export class DashboardsHttpController {
     @User() user: { id: string; siteId: string },
     @Query() queryDto: ChartEggDto,
   ) {
-    return this.dashboardService.chartEgg(user.siteId, queryDto.groupBy).pipe(
+    return this.dashboardService.chartEgg(user.siteId, queryDto).pipe(
       map((data) => new ResponseEntity({ data, message: 'success' })),
       catchError((error) => {
         throw new HttpException(error.message, HttpStatus.NOT_FOUND);
@@ -84,7 +84,7 @@ export class DashboardsHttpController {
     @Query() queryDto: ChartEggDto,
   ) {
     return this.dashboardService
-      .chartChicken(user.siteId, queryDto.groupBy)
+      .chartChicken(user.siteId, queryDto)
       .pipe(
         map((data) => new ResponseEntity({ data, message: 'success' })),
         catchError((error) => {
