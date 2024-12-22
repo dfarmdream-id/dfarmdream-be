@@ -91,11 +91,11 @@ export class AbsenService {
 
   async generateDataAbsen() {
     const userAbsen = await this.absenClient.pers_person.findMany();
-    const userIds: string[] = userAbsen.map((x) => x.pin ?? '');
+    const userIds: string[] = userAbsen.filter((x) => x.pin!='').map((x) => x.pin!);
     const today = DateTime.now().toFormat('yyyy-MM-dd');
     const karyawan = await this.prismaService.user.findMany({
       where: {
-        nip: {
+        identityId: {
           in: userIds,
         },
       },
@@ -105,6 +105,7 @@ export class AbsenService {
       const cek = await this.prismaService.attendance.findFirst({
         where: {
           tanggal: today,
+          userId: item.id,
         },
       });
       if (!cek) {
@@ -184,7 +185,7 @@ export class AbsenService {
           ? this.formatToHHmm(jamAbsen.pulang)
           : null;
         const user = await this.prismaService.user.findFirst({
-          where: { nip: i },
+          where: { identityId: i },
         });
         if (user) {
           const rows = await this.prismaService.attendance.findFirst({
@@ -265,7 +266,7 @@ export class AbsenService {
         try {
           const user = await this.prismaService.user.findFirstOrThrow({
             where: {
-              nip: item.pin,
+              identityId: item.pin,
             },
             include: {
               sites: true,
@@ -333,14 +334,14 @@ export class AbsenService {
     const take: number = filter.limit ?? 10;
 
     const listData = await this.prismaService.$queryRaw`
-    SELECT alg."userId", u."fullName", u.nip, c.name as kandang, s.name as lokasi, 
+    SELECT alg."userId", u."fullName", u.identityId, c.name as kandang, s.name as lokasi, 
            MAX(alg."checkInAt") as checkInAt, alg.tanggal 
     FROM "AttendanceLog" alg
     INNER JOIN "User" u ON u.id = alg."userId"
     INNER JOIN "Cage" c ON c.id = alg."cageId"
     INNER JOIN "Site" s ON s.id = alg."siteId"
     ${Prisma.raw(queryWhere)}
-    GROUP BY alg."userId", u."fullName", u.nip, alg.tanggal, c.name, s.name
+    GROUP BY alg."userId", u."fullName", u.identityId, alg.tanggal, c.name, s.name
     ORDER BY alg.tanggal DESC
     LIMIT ${Prisma.raw(take.toString())}
     OFFSET ${Prisma.raw(skip.toString())};`;
