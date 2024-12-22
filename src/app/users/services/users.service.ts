@@ -35,7 +35,7 @@ export class UsersService {
     };
 
     // Debugging query `where`
-    console.log('Generated Where Clause:', JSON.stringify(where, null, 2));
+    // console.log('Generated Where Clause:', JSON.stringify(where, null, 2));
 
     // Optimized paginate function
     return this.userRepository.paginate(paginateDto, {
@@ -175,6 +175,7 @@ export class UsersService {
           },
         },
         status: updateUsersDto.status,
+        identityId: updateUsersDto.identityId?updateUsersDto.identityId:undefined,
       };
 
       if (updateUsersDto.positionId) {

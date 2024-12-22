@@ -46,8 +46,9 @@ export class CctvCameraController {
   @Get()
   public index(
     @Query() paginateDto: PaginationQueryDto,
+    @User() user: { id: string; siteId: string },
   ): Observable<ResponseEntity> {
-    return this.cameraService.paginate(paginateDto).pipe(
+    return this.cameraService.paginate(paginateDto, user.siteId).pipe(
       map((data) => new ResponseEntity({ data, message: 'success' })),
       catchError((error) => {
         throw new HttpException(error.message, HttpStatus.NOT_FOUND);

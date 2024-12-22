@@ -19,22 +19,20 @@ export class GoodsRepository {
   constructor(private readonly prismaService: PrismaService) {}
 
   public paginate(paginateDto: PaginationQueryDto, filter?: Filter) {
-    const { limit = 10, page = 1,q  } = paginateDto;
+    const { limit = 10, page = 1, q } = paginateDto;
     const where = {
       ...filter?.where,
-      deletedAt:null
-    }
+      deletedAt: null,
+    };
 
-    if(q && q!=''){
-      const orArray:any = [
+    if (q && q != '') {
+      const orArray: any = [
         { name: { contains: q, mode: 'insensitive' } },
         { sku: { contains: q, mode: 'insensitive' } },
-      ]
-      Object.assign(where,{
-        OR: [
-          ...orArray
-        ]
-      })
+      ];
+      Object.assign(where, {
+        OR: [...orArray],
+      });
     }
     return from(
       this.prismaService.$transaction([
@@ -44,7 +42,7 @@ export class GoodsRepository {
           where: where,
           orderBy: {
             ...filter?.orderBy,
-            createdAt:'desc'
+            createdAt: 'desc',
           },
           cursor: filter?.cursor,
         }),

@@ -20,7 +20,7 @@ export class GoodsService {
     return from(this.goodsRepository.delete({ id }));
   }
 
-  public create(payload:CreateGoodsDTO ) {
+  public create(payload: CreateGoodsDTO) {
     return from(this.goodsRepository.create(payload));
   }
 

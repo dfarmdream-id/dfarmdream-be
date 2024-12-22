@@ -122,7 +122,7 @@ export class PricesMicroserviceController {
   public update(
     @Payload('id') id: string,
     @Payload() updatePricesDto: UpdatePricesDto,
-    @User() user: { id: string; },
+    @User() user: { id: string },
   ) {
     return from(this.priceService.update(id, updatePricesDto, user.id)).pipe(
       map(

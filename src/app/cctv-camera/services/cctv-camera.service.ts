@@ -12,9 +12,14 @@ export class CctvCameraService {
     private readonly prismaService: PrismaService,
   ) {}
 
-  paginate(paginateDto: PaginationQueryDto) {
+  paginate(paginateDto: PaginationQueryDto, siteId: string) {
     return from(
       this.cameraRepository.paginate(paginateDto, {
+        where: {
+          cage: {
+            siteId,
+          },
+        },
         orderBy: {
           createdAt: 'desc',
         },
