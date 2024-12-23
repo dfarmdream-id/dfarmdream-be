@@ -46,8 +46,9 @@ export class GoodsController {
   @Get()
   public index(
     @Query() paginateDto: PaginationQueryDto,
+    @Query('typeGood') typeGood: string,
   ): Observable<ResponseEntity> {
-    return this.goodsService.paginate(paginateDto).pipe(
+    return this.goodsService.paginate(paginateDto, typeGood).pipe(
       map((data) => new ResponseEntity({ data, message: 'success' })),
       catchError((error) => {
         throw new HttpException(error.message, HttpStatus.NOT_FOUND);

@@ -1,4 +1,8 @@
-import { ApiPreconditionFailedResponse, ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
+import {
+  ApiPreconditionFailedResponse,
+  ApiProperty,
+  ApiPropertyOptional,
+} from '@nestjs/swagger';
 import { IsNotEmpty, IsOptional, IsString } from 'class-validator';
 
 export class CreateBiayaDTO {
@@ -21,6 +25,10 @@ export class CreateBiayaDTO {
   @ApiProperty()
   @IsNotEmpty()
   cageId: string;
+  
+  @ApiProperty()
+  @IsNotEmpty()
+  journalTypeId: string;
 
   @ApiPropertyOptional()
   @IsOptional()
@@ -29,8 +37,16 @@ export class CreateBiayaDTO {
   @ApiProperty()
   @IsNotEmpty()
   status: number;
+
+  @ApiPropertyOptional()
+  @IsOptional()
+  persediaanBarangId: string;
+
+  @ApiPropertyOptional()
+  @IsOptional()
+  qty: string;
   
   @ApiPropertyOptional()
   @IsOptional()
-  goodsId:string;
+  keterangan: string;
 }

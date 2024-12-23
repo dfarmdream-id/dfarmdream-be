@@ -5,7 +5,7 @@ import {
   CreateWarehouseTransactionsDto,
   UpdateWarehouseTransactionsDto,
 } from '../dtos';
-import { catchError, concatMap, from, map } from 'rxjs';
+import { catchError, concatMap, from, map, switchMap, throwError } from 'rxjs';
 import { DateTime } from 'luxon';
 import { PricesRepository } from '@src/app/prices/repositories';
 import {
@@ -17,6 +17,7 @@ import { PrismaService } from '@src/platform/database/services/prisma.service';
 import { CreateJournalDetailDto, CreateJournalDto } from '@app/journal/dtos';
 import { JournalService } from '@app/journal/services';
 import { JWTClaim } from '@app/auth/entity/jwt-claim.dto';
+import { JournalTemplatesService } from '@app/journal-templates/services';
 
 @Injectable()
 export class WarehouseTransactionsService {
@@ -25,6 +26,7 @@ export class WarehouseTransactionsService {
     private readonly priceRepository: PricesRepository,
     private readonly prismaService: PrismaService,
     private readonly journalService: JournalService,
+    private readonly journalTemplatesService: JournalTemplatesService,
   ) {}
 
   async sendToCashier(
@@ -430,7 +432,6 @@ export class WarehouseTransactionsService {
         return data[0];
       }),
       concatMap((priceData) => {
-        // Now that you have the price, proceed with creating the warehouse transaction
         return from(
           this.warehousetransactionRepository.create({
             category: createWarehouseTransactionsDto.category,
@@ -473,6 +474,66 @@ export class WarehouseTransactionsService {
                 skipDuplicates: true,
               },
             },
+          }),
+        ).pipe(
+          concatMap((transaction) => {
+            return from(
+              this.journalTemplatesService.findFirstByJournalTypeId(
+                createWarehouseTransactionsDto.journalTypeId,
+              ),
+            ).pipe(
+              switchMap((journalTemplate) => {
+                if (!journalTemplate) {
+                  throw new Error(
+                    `Journal template for type ${createWarehouseTransactionsDto.journalTypeId} not found.`,
+                  );
+                }
+
+                const details: CreateJournalDetailDto[] =
+                  journalTemplate.journalTemplateDetails.map((detail) => {
+                    const amount = transaction.qty * priceData.value;
+                    return {
+                      coaCode: detail.coa.code,
+                      debit: detail.typeLedger === 'DEBIT' ? amount : 0,
+                      credit: detail.typeLedger === 'CREDIT' ? amount : 0,
+                      note: `
+                        Transaksi Gudang, Panen ${
+                          createWarehouseTransactionsDto.category == 'EGG'
+                            ? 'Telur'
+                            : 'Ayam'
+                        } - ${detail.coa.name}
+                      `,
+                    };
+                  });
+
+                const journalDto: CreateJournalDto = {
+                  code: `JN-${DateTime.now().toFormat('yy-MM')}-${Math.floor(
+                    Math.random() * 1000,
+                  )}`,
+                  date: DateTime.now().toISO(),
+                  debtTotal: details.reduce((acc, item) => acc + item.debit, 0),
+                  creditTotal: details.reduce(
+                    (acc, item) => acc + item.credit,
+                    0,
+                  ),
+                  status: '1',
+                  journalTypeId: createWarehouseTransactionsDto.journalTypeId,
+                  siteId: siteId,
+                  cageId: createWarehouseTransactionsDto.cageId,
+                  details,
+                };
+
+                return this.journalService.create(journalDto, userId);
+              }),
+              concatMap((journal) => {
+                if (!journal) {
+                  return throwError(
+                    () => new Error('Failed to create journal entry'),
+                  );
+                }
+                return from(Promise.resolve(transaction));
+              }),
+            );
           }),
         );
       }),

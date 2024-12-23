@@ -60,8 +60,10 @@ export class PersediaanBarangController {
   @Get()
   public index(
     @Query() paginateDto: FilterPersediaanBarangDTO,
+    // cageId
+    @Query('cageId') cageId: string,
   ): Observable<ResponseEntity> {
-    return this.persediaanBarangService.paginate(paginateDto).pipe(
+    return this.persediaanBarangService.paginate(paginateDto, cageId).pipe(
       map((data) => new ResponseEntity({ data, message: 'success' })),
       catchError((error) => {
         throw new HttpException(error.message, HttpStatus.NOT_FOUND);

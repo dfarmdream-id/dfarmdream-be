@@ -44,4 +44,9 @@ export class CreateWarehouseTransactionsDto {
   })
   @IsEnum(WarehouseTransactionCategoryEnum)
   category: `${keyof typeof WarehouseTransactionCategoryEnum}`;
+  
+  // journalTypeId
+  @ApiProperty()
+  @IsString()
+  journalTypeId: string;
 }

@@ -2,8 +2,9 @@ import { ApiProperty } from '@nestjs/swagger';
 import { IsEnum, IsNotEmpty } from 'class-validator';
 
 enum TipeBarang {
-  PAKAN,
-  OBAT,
+  PAKAN = 'PAKAN',
+  OBAT = 'OBAT',
+  ASSET = 'ASSET',
 }
 export class CreateGoodsDTO {
   @ApiProperty()
@@ -20,5 +21,5 @@ export class CreateGoodsDTO {
     enumName: 'TipeBarang',
   })
   @IsEnum(TipeBarang)
-  typeLedger: TipeBarang;
+  type: TipeBarang;
 }
