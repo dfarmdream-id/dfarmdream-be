@@ -369,7 +369,7 @@ export class WarehouseTransactionsService {
     };
 
     // Debugging untuk `where` (Opsional)
-    console.log('Generated Where Clause:', JSON.stringify(where, null, 2));
+    // console.log('Generated Where Clause:', JSON.stringify(where, null, 2));
 
     // Mengembalikan hasil paginasi
     return this.warehousetransactionRepository.paginate(paginateDto, {

@@ -1,20 +1,19 @@
 import { Injectable } from '@nestjs/common';
 import { PricesRepository } from '../repositories';
 import { CreatePricesDto, UpdatePricesDto } from '../dtos';
-import { from, switchMap } from 'rxjs';
+import { from } from 'rxjs';
 import { Prisma } from '@prisma/client';
 import { GetPricesDto } from '../dtos/get-prices.dto';
 import { PrismaService } from '@src/platform/database/services/prisma.service';
 
 @Injectable()
 export class PricesService {
- 
   constructor(
     private readonly priceRepository: PricesRepository,
     private readonly prismaService: PrismaService,
   ) {}
 
-  public paginate(paginateDto: GetPricesDto) {
+  public paginate(paginateDto: GetPricesDto, siteId?: string) {
     const where = {
       OR: [
         {
@@ -37,7 +36,7 @@ export class PricesService {
 
     if (paginateDto.siteId) {
       Object.assign(where, {
-        siteId: paginateDto.siteId,
+        siteId: paginateDto.siteId ?? siteId,
       });
     }
 
@@ -48,7 +47,7 @@ export class PricesService {
         },
         where: {
           ...where,
-          status:'ACTIVE'
+          status: 'ACTIVE',
         },
         orderBy: {
           createdAt: 'desc',
@@ -58,8 +57,7 @@ export class PricesService {
   }
 
   getLogData(paginateDto: GetPricesDto) {
-    const where = {}
-
+    const where = {};
 
     if (paginateDto.siteId) {
       Object.assign(where, {
@@ -124,34 +122,41 @@ export class PricesService {
   // }
 
   public async create(createPricesDto: CreatePricesDto) {
-      const savedData = await this.prismaService.price.create({
-        data:{
-          name: createPricesDto.name,
-          status:createPricesDto.status,
-          type: createPricesDto.type,
-          value: createPricesDto.value,
-          site:{
-            connect:{
-              id: createPricesDto.siteId
-            }
-          }
-        }
-      })
-
-      await this.prismaService.price.updateMany({ where:{
-          NOT: {
-            id: savedData.id,
-            siteId: createPricesDto.siteId,
-            type: createPricesDto.type,
+    const savedData = await this.prismaService.price.create({
+      data: {
+        name: createPricesDto.name,
+        status: createPricesDto.status,
+        type: createPricesDto.type,
+        value: createPricesDto.value,
+        site: {
+          connect: {
+            id: createPricesDto.siteId,
           },
-          status: 'ACTIVE',
-      }, data:{
-        status: 'INACTIVE',
-      }, })
-      return savedData
-    }
+        },
+      },
+    });
 
-  public async update(id: string, updatePricesDto: UpdatePricesDto, userId:string) {
+    await this.prismaService.price.updateMany({
+      where: {
+        NOT: {
+          id: savedData.id,
+          siteId: createPricesDto.siteId,
+          type: createPricesDto.type,
+        },
+        status: 'ACTIVE',
+      },
+      data: {
+        status: 'INACTIVE',
+      },
+    });
+    return savedData;
+  }
+
+  public async update(
+    id: string,
+    updatePricesDto: UpdatePricesDto,
+    userId: string,
+  ) {
     await this.prismaService.price.update({
       where: {
         id: id,
@@ -161,13 +166,13 @@ export class PricesService {
       },
     });
     await this.prismaService.priceLog.create({
-      data:{
+      data: {
         siteId: updatePricesDto.siteId,
         type: updatePricesDto.type!,
         price: updatePricesDto.value!,
-        userId:userId,
-      }
-    })
+        userId: userId,
+      },
+    });
     return await this.priceRepository.update({ id }, updatePricesDto);
   }
 }

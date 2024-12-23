@@ -19,7 +19,7 @@ import { Observable } from 'rxjs';
 import { AuthGuard } from '@src/app/auth';
 import { User } from '@src/app/auth/decorators';
 import { JWTClaim } from '@src/app/auth/entity/jwt-claim.dto';
-import { connect, MqttClient } from 'mqtt';
+import { MqttClient } from 'mqtt';
 import { SensorDeviceService } from '../../services';
 import { CreateSensorDevice, UpdateSensorDevice } from '../../dtos';
 

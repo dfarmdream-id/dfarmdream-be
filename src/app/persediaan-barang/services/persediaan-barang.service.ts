@@ -17,11 +17,16 @@ export class PersediaanBarangService {
     private readonly journalService: JournalService,
   ) {}
 
-  paginate(paginateDto: FilterPersediaanBarangDTO, cageId: string) {
+  paginate(
+    paginateDto: FilterPersediaanBarangDTO,
+    cageId: string,
+    siteId: string,
+  ) {
     return from(
       this.persediaanBarangRepo.paginate(paginateDto, {
         where: {
           cageId: cageId,
+          siteId,
         },
       }),
     );

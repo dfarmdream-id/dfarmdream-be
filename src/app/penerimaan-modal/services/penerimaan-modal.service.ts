@@ -63,8 +63,14 @@ export class PenerimaanModalService {
     );
   }
 
-  paginate(paginateDto: PaginationQueryDto) {
-    return from(this.penerimaanModalRepo.paginate(paginateDto));
+  paginate(paginateDto: PaginationQueryDto, siteId: string) {
+    return from(
+      this.penerimaanModalRepo.paginate(paginateDto, {
+        where: {
+          siteId,
+        },
+      }),
+    );
   }
 
   detail(id: string) {

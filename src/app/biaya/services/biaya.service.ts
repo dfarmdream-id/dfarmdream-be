@@ -18,8 +18,10 @@ export class BiayaService {
     private readonly prismaService: PrismaService,
   ) {}
 
-  paginate(paginateDto: PaginationQueryDto) {
-    return from(this.biayaRepository.paginate(paginateDto));
+  paginate(paginateDto: PaginationQueryDto, siteId: string) {
+    return from(
+      this.biayaRepository.paginate(paginateDto, { where: { siteId } }),
+    );
   }
 
   detail(id: string) {

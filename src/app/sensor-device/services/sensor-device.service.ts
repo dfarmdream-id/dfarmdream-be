@@ -1,4 +1,4 @@
-import { HttpException, HttpStatus, Injectable } from '@nestjs/common';
+import { Injectable } from '@nestjs/common';
 import { PaginationQueryDto } from '@src/common/dtos/pagination-query.dto';
 import { from } from 'rxjs';
 import { JWTClaim } from '@src/app/auth/entity/jwt-claim.dto';
@@ -14,7 +14,13 @@ export class SensorDeviceService {
   paginate(paginateDto: PaginationQueryDto, claim: JWTClaim) {
     return from(
       this.sensorDeviceRepository.paginate(paginateDto, {
-        where: {},
+        where: {
+          IotSensor: {
+            cage: {
+              siteId: claim.siteId,
+            },
+          },
+        },
       }),
     );
   }

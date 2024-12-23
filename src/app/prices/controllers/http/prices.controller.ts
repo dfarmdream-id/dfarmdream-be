@@ -30,20 +30,21 @@ export class PricesHttpController {
   constructor(private readonly priceService: PricesService) {}
 
   @Post()
-  public async create(
-    @Body() createPricesDto: CreatePricesDto,
-  ) {
-    try{
-      const data = await this.priceService.create(createPricesDto)
-      return new ResponseEntity({data, message:'success'})
-    }catch(e){
+  public async create(@Body() createPricesDto: CreatePricesDto) {
+    try {
+      const data = await this.priceService.create(createPricesDto);
+      return new ResponseEntity({ data, message: 'success' });
+    } catch (e) {
       throw new HttpException(e.message, HttpStatus.BAD_REQUEST);
     }
   }
 
   @Get()
-  public index(@Query() paginateDto: GetPricesDto): Observable<ResponseEntity> {
-    return this.priceService.paginate(paginateDto).pipe(
+  public index(
+    @Query() paginateDto: GetPricesDto,
+    @User() user: { id: string; siteId: string },
+  ): Observable<ResponseEntity> {
+    return this.priceService.paginate(paginateDto, user.siteId).pipe(
       map((data) => new ResponseEntity({ data, message: 'success' })),
       catchError((error) => {
         throw new HttpException(error.message, HttpStatus.NOT_FOUND);
@@ -52,7 +53,9 @@ export class PricesHttpController {
   }
 
   @Get('log/:id')
-  public getPriceLog(@Query() paginateDto:GetPricesDto):Observable<ResponseEntity>{
+  public getPriceLog(
+    @Query() paginateDto: GetPricesDto,
+  ): Observable<ResponseEntity> {
     return this.priceService.getLogData(paginateDto).pipe(
       map((data) => new ResponseEntity({ data, message: 'success' })),
       catchError((error) => {
@@ -86,14 +89,18 @@ export class PricesHttpController {
   public async update(
     @Param('id') id: string,
     @Body() updatePricesDto: UpdatePricesDto,
-    @User() user: { id: string; },
+    @User() user: { id: string },
   ) {
-    console.log("user : ", user)
-    try{
-      const data = await this.priceService.update(id, updatePricesDto, user.id!)
-      return new ResponseEntity({data, message:'success'})
-    }catch(e){
-      console.log("Failed to update price : ",e)
+    console.log('user : ', user);
+    try {
+      const data = await this.priceService.update(
+        id,
+        updatePricesDto,
+        user.id!,
+      );
+      return new ResponseEntity({ data, message: 'success' });
+    } catch (e) {
+      console.log('Failed to update price : ', e);
       throw new HttpException(e.message, HttpStatus.BAD_REQUEST);
     }
   }
