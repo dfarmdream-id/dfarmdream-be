@@ -58,7 +58,10 @@ export class BiayaRepository {
           skip: (+page - 1) * +limit,
           take: +limit,
           where: where,
-          orderBy: filter?.orderBy,
+          orderBy: {
+            ...filter?.orderBy,
+            tanggal: 'desc',
+          },
           cursor: filter?.cursor,
           // include: filter?.include,
           include: {
@@ -66,7 +69,11 @@ export class BiayaRepository {
             kategoriBiaya: true,
             site: true,
             user: true,
-            goods: true,
+            persediaanPakanObat: {
+              include: {
+                goods: true,
+              },
+            },
           },
         }),
         this.prismaService.biaya.count({

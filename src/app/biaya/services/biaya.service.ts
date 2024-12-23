@@ -1,14 +1,20 @@
 import { HttpException, HttpStatus, Injectable } from '@nestjs/common';
 import { PaginationQueryDto } from '@src/common/dtos/pagination-query.dto';
-import { from } from 'rxjs';
+import { catchError, from, Observable, switchMap, throwError } from 'rxjs';
 import { BiayaRepository } from '../repositories';
 import { CreateBiayaDTO, UpdateBiayaDTO } from '../dtos';
 import { PrismaService } from '@src/platform/database/services/prisma.service';
+import { DateTime } from 'luxon';
+import { JournalService } from '@app/journal/services';
+import { JournalTemplatesService } from '@app/journal-templates/services';
+import { CreateJournalDetailDto, CreateJournalDto } from '@app/journal/dtos';
 
 @Injectable()
 export class BiayaService {
   constructor(
     private readonly biayaRepository: BiayaRepository,
+    private readonly journalService: JournalService,
+    private readonly journalTemplatesService: JournalTemplatesService,
     private readonly prismaService: PrismaService,
   ) {}
 
@@ -30,38 +36,155 @@ export class BiayaService {
     return from(this.biayaRepository.delete({ id }));
   }
 
-  async create(payload: CreateBiayaDTO) {
-    try {
-      const saved = await this.prismaService.biaya.create({
-        data: {
-          tanggal: payload.tanggal,
-          kategoriBiaya: {
-            connect: { id: payload.kategoriId },
-          },
-          cage: {
-            connect: { id: payload.cageId },
-          },
-          site: {
-            connect: { id: payload.siteId },
-          },
-          goods: {
-            connect: { id: payload.goodsId },
-          },
-          user: {
-            connect: { id: payload.userId },
-          },
-          biaya: payload.biaya,
-          status: payload.status,
-        },
-      });
-      return {
-        status: HttpStatus.OK,
-        message: 'Success create biaya',
-        data: saved,
-      };
-    } catch (e) {
-      console.log('Failed to create biaya : ', e);
-      throw new HttpException('Failed to create biaya', HttpStatus.BAD_REQUEST);
-    }
+  create(payload: CreateBiayaDTO): Observable<any> {
+    const currentDate = DateTime.now().toFormat('yyyy-MM-dd');
+    const qtyOut = Number(payload.qty ?? '0');
+
+    return from(
+      this.prismaService.persediaanPakanObat.findFirst({
+        where: { id: payload.persediaanBarangId ?? '' },
+        include: { goods: true },
+      }),
+    ).pipe(
+      switchMap((barang) => {
+        if (barang) {
+          const qtyAkhir = barang.qty - qtyOut;
+          const totalHarga = barang.harga * qtyOut;
+
+          return from(
+            this.prismaService.kartuStokBarang
+              .create({
+                data: {
+                  tanggal: currentDate,
+                  barangId: barang.id,
+                  cageId: payload.cageId,
+                  siteId: payload.siteId,
+                  qtyAsal: barang.qty,
+                  qtyIn: 0,
+                  qtyOut,
+                  qtyAkhir,
+                  harga: barang.harga,
+                  total: totalHarga,
+                  karyawanId: payload.userId,
+                  keterangan: payload.keterangan,
+                  status: 0,
+                },
+              })
+              .then(() =>
+                this.prismaService.persediaanPakanObat.update({
+                  where: { id: barang.id },
+                  data: { qty: qtyAkhir },
+                }),
+              ),
+          ).pipe(switchMap(() => from(Promise.resolve(barang))));
+        }
+        return from(Promise.resolve(null));
+      }),
+      switchMap((barang) =>
+        from(
+          this.prismaService.biaya.create({
+            data: {
+              tanggal: payload.tanggal,
+              kategoriBiaya: { connect: { id: payload.kategoriId } },
+              cage: { connect: { id: payload.cageId } },
+              site: { connect: { id: payload.siteId } },
+              ...(payload.persediaanBarangId && {
+                persediaanPakanObat: {
+                  connect: { id: payload.persediaanBarangId },
+                },
+              }),
+              user: { connect: { id: payload.userId } },
+              qtyOut,
+              biaya: payload.biaya ?? 0,
+              status: payload.status,
+              keterangan: payload.keterangan,
+            },
+          }),
+        ).pipe(
+          switchMap((saved) =>
+            from(
+              this.journalTemplatesService.findFirstByJournalTypeId(
+                payload.journalTypeId,
+              ),
+            ).pipe(
+              switchMap((journalTemplate) => {
+                if (!journalTemplate) return from(Promise.resolve(null));
+
+                const totalBiaya = payload.biaya ?? 0;
+                const typeGood = barang?.goods?.type?.toLowerCase() ?? 'pakan';
+
+                // Determine if DEBIT or CREDIT has more than 1 and handle nominal assignment
+                const ledgerCounts =
+                  journalTemplate.journalTemplateDetails.reduce(
+                    (acc, detail) => {
+                      acc[detail.typeLedger] =
+                        (acc[detail.typeLedger] || 0) + 1;
+                      return acc;
+                    },
+                    {} as Record<string, number>,
+                  );
+
+                const details: CreateJournalDetailDto[] =
+                  journalTemplate.journalTemplateDetails.map((detail) => {
+                    const isRelevant = detail.coa.name
+                      .toLowerCase()
+                      .includes(typeGood);
+
+                    const nominal =
+                      ledgerCounts[detail.typeLedger] === 1
+                        ? totalBiaya
+                        : ledgerCounts[detail.typeLedger] > 1 && isRelevant
+                          ? totalBiaya
+                          : 0;
+
+                    return {
+                      coaCode: detail.coa.code,
+                      debit: detail.typeLedger === 'DEBIT' ? nominal : 0,
+                      credit: detail.typeLedger === 'CREDIT' ? nominal : 0,
+                      note: `Biaya untuk ${barang?.goods?.name ?? 'lainnya'}${
+                        payload.keterangan ? `, note ${payload.keterangan}` : ''
+                      }`,
+                    };
+                  });
+
+                const journalDto: CreateJournalDto = {
+                  code: `JN-${DateTime.now().toFormat('yy-MM')}-$${
+                    Math.floor(Math.random() * 1000) + 1
+                  }`,
+                  date: payload.tanggal,
+                  debtTotal: details.reduce((acc, curr) => acc + curr.debit, 0),
+                  creditTotal: details.reduce(
+                    (acc, curr) => acc + curr.credit,
+                    0,
+                  ),
+                  status: '1',
+                  journalTypeId: payload.journalTypeId,
+                  cageId: payload.cageId,
+                  siteId: payload.siteId,
+                  details,
+                };
+
+                return this.journalService.create(journalDto, payload.userId);
+              }),
+              switchMap((journal) => {
+                if (!journal) {
+                  return throwError(
+                    () => new Error('Failed to create journal entry'),
+                  );
+                }
+                return from(Promise.resolve(saved));
+              }),
+            ),
+          ),
+        ),
+      ),
+      catchError((err) => {
+        console.error('Error while creating biaya:', err.message);
+        return throwError(
+          () =>
+            new HttpException('Failed to create biaya', HttpStatus.BAD_REQUEST),
+        );
+      }),
+    );
   }
 }

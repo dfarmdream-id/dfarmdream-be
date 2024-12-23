@@ -1,15 +1,10 @@
 import { ApiProperty } from '@nestjs/swagger';
 import { IsNotEmpty, IsOptional, IsString, IsUUID } from 'class-validator';
 
-enum TipeBarangDTO {
-  PAKAN,
-  OBAT,
-}
-
 export class CreatePersediaanBarang {
   @ApiProperty()
   @IsString()
-  namaBarang: string;
+  goodId: string;
 
   @ApiProperty()
   @IsNotEmpty()
@@ -30,10 +25,6 @@ export class CreatePersediaanBarang {
   @ApiProperty()
   @IsString()
   cageId: string;
-
-  @ApiProperty()
-  @IsString()
-  tipeBarang: TipeBarangDTO;
 
   @ApiProperty()
   @IsUUID()

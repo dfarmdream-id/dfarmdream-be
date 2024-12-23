@@ -638,6 +638,7 @@ model KategoriBiaya {
   kodeAkun     String
   status       Int
   biaya        Biaya[]
+  goodType     TipeBarang? // Kolom ini menjadi opsional (nullable)
   deletedAt    DateTime?
   createdAt    DateTime  @default(now())
   updatedAt    DateTime  @updatedAt
@@ -657,8 +658,12 @@ model Biaya {
   keterangan    String?
   biaya         Int
   status        Int
-  goodsId       String?        
-  goods         Goods?  @relation(fields: [goodsId], references: [id])
+
+  persediaanPakanObatId String?
+  persediaanPakanObat   PersediaanPakanObat? @relation(fields: [persediaanPakanObatId], references: [id])
+  
+  qtyOut               Int?
+  
   deletedAt     DateTime?
   createdAt     DateTime      @default(now())
   updatedAt     DateTime      @updatedAt
@@ -796,14 +801,16 @@ model JournalDetail {
 
 model PersediaanPakanObat {
   id         String     @id @unique @default(uuid())
-  namaBarang String
+  
+  goodsId    String?
+  goods      Goods?      @relation(fields: [goodsId], references: [id])
+  
   qty        Int
   harga      Int        @default(0)
   total      Int        @default(0)
   siteId     String
   cageId     String
   status     Int        @default(1)
-  tipeBarang TipeBarang
 
   site      Site              @relation(fields: [siteId], references: [id])
   cage      Cage              @relation(fields: [cageId], references: [id])
@@ -811,6 +818,8 @@ model PersediaanPakanObat {
   deletedAt DateTime?
   createdAt DateTime          @default(now())
   updatedAt DateTime          @updatedAt
+
+  Biaya Biaya[]
 }
 
 model KartuStokBarang {
@@ -865,7 +874,8 @@ model Goods{
   deletedAt DateTime?
   createdAt DateTime  @default(now())
   updatedAt DateTime  @updatedAt
-  biaya Biaya[]
+
+  PersediaanPakanObat PersediaanPakanObat[]
 }
 
 model PriceLog{
