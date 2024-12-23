@@ -389,4 +389,5 @@ export class JournalService {
 
     return firstJournal?.createdAt || new Date(0); // Default ke Unix epoch jika tidak ada data
   }
+  
 }
