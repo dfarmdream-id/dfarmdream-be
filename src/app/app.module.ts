@@ -42,6 +42,7 @@ import { CoasModule } from './coas';
 import { SensorDeviceModule } from './sensor-device';
 import { ChickenDiseasesModule } from './chickendiseases';
 import { GoodsModule } from './goods';
+import { ProfitLossesModule } from './profit-loss';
 
 @ApiTags('App Spec')
 @Controller()
@@ -102,7 +103,8 @@ class AppController {
     SensorDeviceModule,
     ChickenDiseasesModule,
     SensorDeviceModule,
-    GoodsModule
+    GoodsModule,
+    ProfitLossesModule
   ],
   controllers: [AppController],
   exports: [FilesModule],
