@@ -282,6 +282,7 @@ model Cage {
 model CageRack {
   id                        String                      @id @unique @default(uuid())
   name                      String
+  code                      Int?    @db.Integer @map("code") // Map ke kolom `code` di database
   cage                      Cage?                       @relation(fields: [cageId], references: [id])
   cageId                    String?
   deletedAt                 DateTime?
