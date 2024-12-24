@@ -52,7 +52,7 @@ export class ChickenCageRacksService {
           },
         },
         orderBy: {
-          name: 'asc',
+          code: 'asc',
         },
       }),
     );
