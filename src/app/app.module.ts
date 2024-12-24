@@ -104,7 +104,7 @@ class AppController {
     ChickenDiseasesModule,
     SensorDeviceModule,
     GoodsModule,
-    ProfitLossesModule
+    ProfitLossesModule,
   ],
   controllers: [AppController],
   exports: [FilesModule],
