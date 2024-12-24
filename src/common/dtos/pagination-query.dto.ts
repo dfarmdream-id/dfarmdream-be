@@ -49,4 +49,12 @@ export class PaginationQueryDto {
   @Type(() => DateRangeDto)
   @IsOptional()
   dateRange: DateRangeDto;
+
+  // @ApiPropertyOptional({ description: 'Site ID' })
+  // @IsOptional()
+  // siteId: string;
+
+  @ApiPropertyOptional({ description: 'Batch ID' })
+  @IsOptional()
+  batchId: string;
 }

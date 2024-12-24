@@ -4,8 +4,6 @@ import { ResponseEntity } from 'src/common/entities/response.entity';
 import { ApiTags } from '@nestjs/swagger';
 import { AuthModule } from './auth';
 import { FilesModule } from './files';
-// import { BlogsModule } from './blogs';
-// import { FaqsModule } from './faqs';
 import { PermissionsModule } from './permissions';
 import { RolesModule } from './roles';
 import { SitesModule } from './sites';
@@ -43,6 +41,7 @@ import { SensorDeviceModule } from './sensor-device';
 import { ChickenDiseasesModule } from './chickendiseases';
 import { GoodsModule } from './goods';
 import { ProfitLossesModule } from './profit-loss';
+import {BatchesModule} from "@app/batches";
 
 @ApiTags('App Spec')
 @Controller()
@@ -104,7 +103,8 @@ class AppController {
     ChickenDiseasesModule,
     SensorDeviceModule,
     GoodsModule,
-    ProfitLossesModule
+    ProfitLossesModule,
+    BatchesModule,
   ],
   controllers: [AppController],
   exports: [FilesModule],
