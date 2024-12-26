@@ -366,7 +366,7 @@ export class SensorService {
     if (user.siteId) {
       const cages = await this.prismaService.cage.findMany({
         where: {
-          siteId: user.siteId,
+          siteId: filter.siteId ?? user.siteId,
         },
       });
       cageIds = cages.map((x) => x.id);
