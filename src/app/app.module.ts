@@ -43,6 +43,7 @@ import { SensorDeviceModule } from './sensor-device';
 import { ChickenDiseasesModule } from './chickendiseases';
 import { GoodsModule } from './goods';
 import { ProfitLossesModule } from './profit-loss';
+import { TelegramLogModule } from './telegram-log';
 
 @ApiTags('App Spec')
 @Controller()
@@ -105,6 +106,7 @@ class AppController {
     SensorDeviceModule,
     GoodsModule,
     ProfitLossesModule,
+    TelegramLogModule,
   ],
   controllers: [AppController],
   exports: [FilesModule],
