@@ -450,6 +450,10 @@ export class WarehouseTransactionsService {
               );
             }
 
+            if (batch.status === 'CLOSED') {
+              throw new Error(`Batch dengan Nama ${batch.name} sudah ditutup.`);
+            }
+
             // Get journal template
             return from(
               this.journalTemplatesService.findFirstByJournalTypeId(
@@ -545,25 +549,13 @@ export class WarehouseTransactionsService {
                           );
 
                         console.log('[529 COA SINGLE]', coaSingle);
-
-                        const singleCoaAmount = Math.min(
-                          totalCurrentTransaction,
-                          remainingBiaya,
-                        );
+                        
+                        const singleCoaAmount =
+                          remainingBiaya <= 0
+                            ? totalCurrentTransaction
+                            : Math.min(totalCurrentTransaction, remainingBiaya);
 
                         console.log('[534 SINGLE COA AMOUNT]', singleCoaAmount);
-
-                        // const splittedAmounts = coaDetails.map((_, idx) =>
-                        //   idx === coaDetails.length - 1
-                        //     ? singleCoaAmount -
-                        //       splittedAmounts
-                        //         .slice(0, idx)
-                        //         .reduce((a, b) => a + b, 0)
-                        //     : Math.floor(singleCoaAmount / coaDetails.length),
-                        // );
-
-                        // Split amounts naturally
-                        // Split amounts naturally with randomization
                         const naturalSplit = (
                           amount: number,
                           parts: number,
@@ -631,20 +623,19 @@ export class WarehouseTransactionsService {
                         ];
 
                         if (createWarehouseTransactionsDto.isEndOfBatch) {
-                          if (remainingBiaya < singleCoaAmount) {
-                            journalDetails.push({
-                              coaCode: 509,
-                              debit:
-                                coaSingle[0].typeLedger !== 'DEBIT'
-                                  ? Math.abs(remainingBiaya)
-                                  : 0,
-                              credit:
-                                coaSingle[0].typeLedger !== 'CREDIT'
-                                  ? Math.abs(remainingBiaya)
-                                  : 0,
-                              note: `Biaya tambahan untuk menutupi kekurangan (Batch: ${batch.name})`,
-                            });
-                          }
+
+                          // updater status of batch to CLOSED
+                          from(
+                            this.batchRepository.update(
+                              {
+                                id: createWarehouseTransactionsDto.batchId,
+                              },
+                              {
+                                status: 'CLOSED',
+                                endDate: DateTime.now().toISO(),
+                              },
+                            ),
+                          ).subscribe();
                         }
 
                         console.log('[576 JOURNAL DETAILS]', journalDetails);

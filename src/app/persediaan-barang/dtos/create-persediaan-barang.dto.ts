@@ -30,4 +30,9 @@ export class CreatePersediaanBarang {
   @IsUUID()
   @IsOptional()
   journalTypeId?: string;
+
+  @ApiProperty()
+  @IsUUID()
+  @IsOptional()
+  batchId?: string;
 }
