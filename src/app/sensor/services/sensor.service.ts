@@ -409,9 +409,10 @@ export class SensorService {
     let cageIds: any = [];
 
     if (user.siteId) {
+
       const cages = await this.prismaService.cage.findMany({
         where: {
-          siteId: user.siteId,
+          siteId: filter.siteId ?? user.siteId,
         },
       });
       cageIds = cages.map((x) => x.id);
@@ -441,8 +442,11 @@ export class SensorService {
   FROM "SensorLog" 
   LEFT JOIN "SensorDevice" on "SensorDevice"."id" = "SensorLog"."sensorId"
   LEFT JOIN "IotSensor" on "IotSensor"."id" = "SensorDevice"."deviceId"
+  LEFT JOIN "Cage" on "Cage"."id" = "IotSensor"."cageId"
+  LEFT JOIN "Site" on "Site"."id" = "Cage"."siteId"
   WHERE "epoch" >= ${startOfDay}
   AND "SensorDevice"."type" = ${type}::"SensorType"
+  ${filter.siteId?Prisma.sql`AND "Site"."id" = ${filter.siteId}`:Prisma.empty}
   ${cageIds.length > 0 ? Prisma.sql`AND "IotSensor"."cageId" IN (${Prisma.join(cageIds)})` : Prisma.empty}
   GROUP BY to_char(DATE_TRUNC('hour', to_timestamp(cast("SensorLog"."epoch"/1000 as bigint))), 'YYYY-MM-DD HH24:MI:SS')
   ORDER BY hour ASC`;
@@ -471,6 +475,16 @@ export class SensorService {
         IotSensor: {
           cageId: {
             in: cageIds,
+          },
+        },
+      });
+    }
+
+    if(filter.siteId){
+      Object.assign(where, {
+        IotSensor: {
+          cage: {
+            siteId: filter.siteId,
           },
         },
       });
