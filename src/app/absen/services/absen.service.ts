@@ -59,7 +59,13 @@ export class AbsenService {
     if(filter.lokasi){
       where = {
         ...where,
-        siteId:filter.lokasi
+        user: {
+          sites: {
+            some: {
+              siteId: filter.lokasi,
+            },
+          },
+        },
       }
     }
 
