@@ -517,6 +517,8 @@ model WarehouseTransaction {
   price             Price?                            @relation(fields: [priceId], references: [id])
   priceId           String?
   CashierDeliveryAt DateTime?                         @db.Timestamptz()
+  batchId          String?
+  batch            Batch?    @relation(fields: [batchId], references: [id]) // Relasi ke batch
 }
 
 model IotSensor {
@@ -675,6 +677,9 @@ model Biaya {
   
   qtyOut               Int?
   
+  batchId              String?
+  batch                Batch?    @relation(fields: [batchId], references: [id]) // Relasi ke batch
+  
   deletedAt     DateTime?
   createdAt     DateTime      @default(now())
   updatedAt     DateTime      @updatedAt
@@ -789,6 +794,9 @@ model JournalHeader {
   cageId        String?
   cage          Cage?       @relation(fields: [cageId], references: [id])
   
+  batchId       String?
+  batch         Batch?      @relation(fields: [batchId], references: [id])
+  
   deletedAt     DateTime?
   createdAt     DateTime    @default(now())
   updatedAt     DateTime    @updatedAt
@@ -853,6 +861,9 @@ model KartuStokBarang {
   status     Int?    @default(1)
   harga      Int
   total      Int
+  
+  batchId    String?
+  batch      Batch?    @relation(fields: [batchId], references: [id]) // Relasi ke batch
 
   deletedAt DateTime?
   createdAt DateTime  @default(now())
@@ -925,4 +936,9 @@ model Batch {
   cages          Cage[]     // Relasi ke kandang-kandang terkait
 
   cageRack CageRack[]
+  warehouseTransaction WarehouseTransaction[]
+  journalHeader JournalHeader[]
+  biaya Biaya[]
+
+  kartuStokBarang KartuStokBarang[]
 }

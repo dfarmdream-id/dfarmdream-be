@@ -12,5 +12,9 @@ export class CreateChickenCageRacksDto {
 
   @ApiProperty()
   @IsString()
+  batchId: string;
+
+  @ApiProperty()
+  @IsString()
   createdAt: string;
 }

@@ -42,6 +42,7 @@ export class ChickensService {
       this.chickenRepository.paginate(paginateDto, {
         where,
         include: {
+          batch: true,
           rack: {
             include: {
               cage: true,
@@ -65,6 +66,7 @@ export class ChickensService {
           name: true,
           status: true,
           rackId: true,
+          batchId: true,
           disease: {
             select: {
               id: true,
@@ -96,6 +98,25 @@ export class ChickensService {
   }
 
   public update(id: string, updateChickensDto: UpdateChickensDto) {
-    return from(this.chickenRepository.update({ id }, updateChickensDto));
+    // Hilangkan rackId dan ubah menjadi format connect
+    const updatedData = {
+      ...updateChickensDto,
+      rack: updateChickensDto.rackId
+        ? { connect: { id: updateChickensDto.rackId } }
+        : undefined, // Jika tidak ada rackId, jangan tambahkan properti rack
+      batch: updateChickensDto.batchId
+        ? { connect: { id: updateChickensDto.batchId } }
+        : undefined, // Jika tidak ada batchId, jangan tambahkan properti batch
+      disease: updateChickensDto.diseaseIds
+        ? { connect: { id: updateChickensDto.diseaseIds } }
+        : undefined, // Jika tidak ada diseaseId, jangan tambahkan properti disease
+    };
+
+    // Hapus rackId dari objek agar tidak ikut terupdate
+    delete updatedData.rackId;
+    delete updatedData.batchId;
+    delete updatedData.diseaseIds;
+
+    return from(this.chickenRepository.update({ id }, updatedData));
   }
 }

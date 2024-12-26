@@ -45,6 +45,7 @@ export class ChickenCageRacksService {
           ...w,
         },
         include: {
+          batch: true,
           cage: {
             include: {
               site: true,
@@ -80,6 +81,11 @@ export class ChickenCageRacksService {
         cage: {
           connect: {
             id: createChickenCageRacksDto.cageId,
+          },
+        },
+        batch: {
+          connect: {
+            id: createChickenCageRacksDto.batchId,
           },
         },
         createdAt: new Date(dateNow).toISOString(), // Konversi ke ISO-8601

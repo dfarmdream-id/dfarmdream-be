@@ -39,6 +39,7 @@ export class PricesHttpController {
     }
   }
 
+  @UseGuards(AuthGuard)
   @Get()
   public index(
     @Query() paginateDto: GetPricesDto,

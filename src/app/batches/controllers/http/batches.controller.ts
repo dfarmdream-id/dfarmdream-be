@@ -8,7 +8,7 @@ import {
   Param,
   Post,
   Put,
-  Query,
+  Query, UseGuards,
 } from '@nestjs/common';
 import { BatchesService } from 'src/app/batches/services';
 import { PaginationQueryDto } from 'src/common/dtos/pagination-query.dto';
@@ -19,6 +19,7 @@ import { catchError, map } from 'rxjs';
 import { Observable } from 'rxjs';
 import { JWTClaim } from '@app/auth/entity/jwt-claim.dto';
 import { User } from '@app/auth/decorators';
+import {AuthGuard} from "@app/auth";
 
 @ApiTags('Batches')
 @Controller({
@@ -40,6 +41,7 @@ export class BatchesHttpController {
     );
   }
 
+  @UseGuards(AuthGuard)
   @Get()
   public index(
     @Query() paginateDto: PaginationQueryDto,

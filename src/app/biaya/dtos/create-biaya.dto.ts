@@ -25,10 +25,14 @@ export class CreateBiayaDTO {
   @ApiProperty()
   @IsNotEmpty()
   cageId: string;
-  
+
   @ApiProperty()
   @IsNotEmpty()
   journalTypeId: string;
+
+  @ApiProperty()
+  @IsNotEmpty()
+  batchId: string;
 
   @ApiPropertyOptional()
   @IsOptional()

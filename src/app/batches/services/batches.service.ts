@@ -32,10 +32,13 @@ export class BatchesService {
   public create(createBatchesDto: CreateBatchesDto) {
     return from(
       this.batchRepository.create({
-        ...createBatchesDto,
         site: {
           connect: { id: createBatchesDto.siteId },
         },
+        name: createBatchesDto.name,
+        startDate: createBatchesDto.startDate,
+        endDate: createBatchesDto.endDate,
+        status: createBatchesDto.status,
       }),
     );
   }

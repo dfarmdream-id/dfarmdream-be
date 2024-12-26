@@ -75,6 +75,11 @@ export class CreateJournalDto {
   @IsUUID()
   @IsOptional()
   cageId?: string;
+  
+  @ApiProperty({ description: 'ID of the batch (UUID)' })
+  @IsUUID()
+  @IsOptional()
+  batchId?: string;
 
   @ApiProperty({ description: 'ID of the site (UUID)' })
   @IsUUID()

@@ -22,25 +22,30 @@ export class BatchesRepository {
   public paginate(paginateDto: PaginationQueryDto, filter?: Filter) {
     const { limit = 10, page = 1 } = paginateDto;
 
-    return from(this.prismaService.$transaction([
-      this.prismaService.batch.findMany({
-        skip: (+page - 1) * +limit,
-        take: +limit,
-        where: filter?.where,
-        orderBy: filter?.orderBy,
-        cursor: filter?.cursor,
-        include: filter?.include,
-      }),
-      this.prismaService.batch.count({
-        where: filter?.where,
-      }),
-    ])).pipe(
-      map(([data, count]) => new PaginatedEntity(data, {
-        limit,
-        page,
-        totalData: count,
-      })),
-           catchError((error) => {
+    return from(
+      this.prismaService.$transaction([
+        this.prismaService.batch.findMany({
+          skip: (+page - 1) * +limit,
+          take: +limit,
+          where: filter?.where,
+          orderBy: filter?.orderBy,
+          cursor: filter?.cursor,
+          include: filter?.include,
+        }),
+        this.prismaService.batch.count({
+          where: filter?.where,
+        }),
+      ]),
+    ).pipe(
+      map(
+        ([data, count]) =>
+          new PaginatedEntity(data, {
+            limit,
+            page,
+            totalData: count,
+          }),
+      ),
+      catchError((error) => {
         throw error;
       }),
     );
@@ -48,7 +53,7 @@ export class BatchesRepository {
 
   public create(data: Prisma.BatchCreateInput) {
     return from(this.prismaService.batch.create({ data })).pipe(
-           catchError((error) => {
+      catchError((error) => {
         throw error;
       }),
     );
@@ -59,20 +64,20 @@ export class BatchesRepository {
     data: Prisma.BatchUpdateInput,
   ) {
     return from(this.prismaService.batch.update({ where, data })).pipe(
-           catchError((error) => {
+      catchError((error) => {
         throw error;
       }),
     );
   }
 
-  public delete(
-    where: Prisma.BatchWhereUniqueInput,
-  ) {
-    return from(this.prismaService.batch.update({
-      where,
-      data: { deletedAt: new Date() },
-    })).pipe(
-           catchError((error) => {
+  public delete(where: Prisma.BatchWhereUniqueInput) {
+    return from(
+      this.prismaService.batch.update({
+        where,
+        data: { deletedAt: new Date() },
+      }),
+    ).pipe(
+      catchError((error) => {
         throw error;
       }),
     );
@@ -83,7 +88,7 @@ export class BatchesRepository {
     select?: Prisma.BatchSelect,
   ) {
     return from(this.prismaService.batch.findUnique({ where, select })).pipe(
-           catchError((error) => {
+      catchError((error) => {
         throw error;
       }),
     );
@@ -94,7 +99,7 @@ export class BatchesRepository {
     select?: Prisma.BatchSelect,
   ) {
     return from(this.prismaService.batch.findUnique({ where, select })).pipe(
-           catchError((error) => {
+      catchError((error) => {
         throw error;
       }),
     );
@@ -102,7 +107,7 @@ export class BatchesRepository {
 
   public find(filter: Filter) {
     return from(this.prismaService.batch.findMany(filter)).pipe(
-           catchError((error) => {
+      catchError((error) => {
         throw error;
       }),
     );
@@ -110,7 +115,7 @@ export class BatchesRepository {
 
   public count(filter: Omit<Filter, 'include'>) {
     return from(this.prismaService.batch.count(filter)).pipe(
-           catchError((error) => {
+      catchError((error) => {
         throw error;
       }),
     );
@@ -118,11 +123,10 @@ export class BatchesRepository {
 
   public any(filter: Omit<Filter, 'include'>) {
     return this.count(filter).pipe(
-      map(count => count > 0),
-           catchError((error) => {
+      map((count) => count > 0),
+      catchError((error) => {
         throw error;
       }),
     );
   }
 }
-
