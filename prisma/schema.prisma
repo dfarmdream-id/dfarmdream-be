@@ -192,6 +192,7 @@ model Site {
   AttendanceLog        AttendanceLog[]
   JournalHeader JournalHeader[]
   PriceLog PriceLog[]
+  Batch Batch[]
 }
 
 model Position {
@@ -262,6 +263,10 @@ model Cage {
   height               Int                    @default(0)
   capacity             Int                    @default(0)
   status               String?                @default("ACTIVE")
+
+  batchId    String?
+  batch      Batch?    @relation(fields: [batchId], references: [id]) // Relasi ke batch
+  
   userCages            UserCage[]
   racks                CageRack[]
   cashFlow             CashFlow[]
@@ -285,6 +290,8 @@ model CageRack {
   code                      Int?
   cage                      Cage?                       @relation(fields: [cageId], references: [id])
   cageId                    String?
+  batchId    String?
+  batch      Batch?    @relation(fields: [batchId], references: [id]) // Relasi ke batch
   deletedAt                 DateTime?
   createdAt                 DateTime                    @default(now())
   updatedAt                 DateTime                    @updatedAt
@@ -320,6 +327,9 @@ model Chicken {
 
   diseaseId String?
   disease   ChickenDisease? @relation(fields: [diseaseId], references: [id])
+
+  batchId    String?
+  batch      Batch?     @relation(fields: [batchId], references: [id]) // Relasi ke batch
 }
 
 model Investor {
@@ -507,6 +517,8 @@ model WarehouseTransaction {
   price             Price?                            @relation(fields: [priceId], references: [id])
   priceId           String?
   CashierDeliveryAt DateTime?                         @db.Timestamptz()
+  batchId          String?
+  batch            Batch?    @relation(fields: [batchId], references: [id]) // Relasi ke batch
 }
 
 model IotSensor {
@@ -665,6 +677,9 @@ model Biaya {
   
   qtyOut               Int?
   
+  batchId              String?
+  batch                Batch?    @relation(fields: [batchId], references: [id]) // Relasi ke batch
+  
   deletedAt     DateTime?
   createdAt     DateTime      @default(now())
   updatedAt     DateTime      @updatedAt
@@ -779,6 +794,9 @@ model JournalHeader {
   cageId        String?
   cage          Cage?       @relation(fields: [cageId], references: [id])
   
+  batchId       String?
+  batch         Batch?      @relation(fields: [batchId], references: [id])
+  
   deletedAt     DateTime?
   createdAt     DateTime    @default(now())
   updatedAt     DateTime    @updatedAt
@@ -843,6 +861,9 @@ model KartuStokBarang {
   status     Int?    @default(1)
   harga      Int
   total      Int
+  
+  batchId    String?
+  batch      Batch?    @relation(fields: [batchId], references: [id]) // Relasi ke batch
 
   deletedAt DateTime?
   createdAt DateTime  @default(now())
@@ -891,4 +912,33 @@ model PriceLog{
   user User? @relation(fields: [userId], references: [id])
   createdAt DateTime  @default(now())
   updatedAt DateTime  @updatedAt
+}
+
+enum BatchStatus {
+  ONGOING
+  COMPLETED
+  CLOSED
+}
+
+model Batch {
+  id             String     @id @unique @default(uuid())
+  name           String     @unique
+  startDate      DateTime
+  endDate        DateTime?
+  status         BatchStatus @default(ONGOING)
+  siteId         String
+  site           Site       @relation(fields: [siteId], references: [id])
+  createdAt      DateTime   @default(now())
+  updatedAt      DateTime   @updatedAt
+  deletedAt      DateTime?
+
+  chicken Chicken[]
+  cages          Cage[]     // Relasi ke kandang-kandang terkait
+
+  cageRack CageRack[]
+  warehouseTransaction WarehouseTransaction[]
+  journalHeader JournalHeader[]
+  biaya Biaya[]
+
+  kartuStokBarang KartuStokBarang[]
 }

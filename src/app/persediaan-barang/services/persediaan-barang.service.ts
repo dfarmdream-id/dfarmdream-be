@@ -188,6 +188,7 @@ export class PersediaanBarangService {
           barangId: save.id,
           cageId: payload.cageId,
           siteId: payload.siteId,
+          batchId: payload.batchId,
           qtyAsal: 0,
           qtyIn: payload.qty,
           qtyAkhir: payload.qty,

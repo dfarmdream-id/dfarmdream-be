@@ -12,6 +12,8 @@ import { JournalDetailRepository } from '@app/journal/repositories/journal-detai
 import { JournalTemplatesService } from '@app/journal-templates/services';
 import { JournalTemplatesRepository } from '@app/journal-templates/repositories';
 import { JournalTemplateDetailsRepository } from '@app/journal-templates/repositories/journal-template-details.repository';
+import { BatchesRepository } from '@app/batches/repositories';
+import { BiayaRepository } from '@app/biaya/repositories';
 
 @Module({
   imports: [PricesModule],
@@ -28,6 +30,8 @@ import { JournalTemplateDetailsRepository } from '@app/journal-templates/reposit
     JournalTemplatesService,
     JournalTemplatesRepository,
     JournalTemplateDetailsRepository,
+    BatchesRepository,
+    BiayaRepository,
   ],
   exports: [WarehouseTransactionsRepository],
 })

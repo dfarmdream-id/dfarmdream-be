@@ -51,9 +51,40 @@ export class JournalHttpController {
   async balanceSheets(
     @Query('month') month: string,
     @Query('year') year: string,
+    @Query('cageId') cageId: string,
+    @Query('batchId') batchId: string,
   ) {
     try {
-      const data = await this.journalHeaderService.getTrialBalance(month, year);
+      const data = await this.journalHeaderService.getTrialBalance(
+        month,
+        year,
+        cageId,
+        batchId,
+      );
+      return {
+        data,
+        message: 'Balance sheet data retrieved successfully',
+      };
+    } catch (error) {
+      throw new HttpException(
+        error.message || 'Failed to retrieve balance sheet data',
+        HttpStatus.INTERNAL_SERVER_ERROR,
+      );
+    }
+  }
+
+  @UseGuards(AuthGuard)
+  @Get('chart-keuangan')
+  async chartKeuangan(
+    @Query('month') month: string,
+    @Query('year') year: string,
+  ) {
+    try {
+      const data =
+        await this.journalHeaderService.getChartBalanceSheetAndProfit(
+          month,
+          year,
+        );
       return {
         data,
         message: 'Balance sheet data retrieved successfully',
@@ -70,13 +101,17 @@ export class JournalHttpController {
   @Get()
   public index(
     @Query() paginateDto: PaginationQueryDto,
+    @Query('cageId') cageId: string,
+    @Query('batchId') batchId: string,
   ): Observable<ResponseEntity> {
-    return this.journalHeaderService.paginate(paginateDto).pipe(
-      map((data) => new ResponseEntity({ data, message: 'success' })),
-      catchError((error) => {
-        throw new HttpException(error.message, HttpStatus.NOT_FOUND);
-      }),
-    );
+    return this.journalHeaderService
+      .paginate(paginateDto, cageId, batchId)
+      .pipe(
+        map((data) => new ResponseEntity({ data, message: 'success' })),
+        catchError((error) => {
+          throw new HttpException(error.message, HttpStatus.NOT_FOUND);
+        }),
+      );
   }
 
   @UseGuards(AuthGuard)

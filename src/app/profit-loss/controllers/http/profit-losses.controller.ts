@@ -10,7 +10,7 @@ import {
   Put,
   Query,
 } from '@nestjs/common';
-import { ProfitLossesService } from "src/app/profit-loss/services";
+import { ProfitLossesService } from 'src/app/profit-loss/services';
 import { ResponseEntity } from 'src/common/entities/response.entity';
 import { ApiTags } from '@nestjs/swagger';
 import { catchError, map } from 'rxjs';
@@ -28,9 +28,16 @@ export class ProfitLossesHttpController {
   async profitLosses(
     @Query('month') month: string,
     @Query('year') year: string,
-  ){
+    @Query('cageId') cageId: string,
+    @Query('batchId') batchId: string,
+  ) {
     try {
-      const data = await this.profitService.getProfitLoss(month, year);
+      const data = await this.profitService.getProfitLoss(
+        month,
+        year,
+        cageId,
+        batchId,
+      );
       return {
         data,
         message: 'Balance sheet data retrieved successfully',
