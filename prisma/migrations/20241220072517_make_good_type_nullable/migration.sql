@@ -1,0 +1,3 @@
+-- AlterTable
+ALTER TABLE "KategoriBiaya" ALTER COLUMN "goodType" DROP NOT NULL,
+ALTER COLUMN "goodType" DROP DEFAULT;

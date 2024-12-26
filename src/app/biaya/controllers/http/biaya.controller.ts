@@ -37,13 +37,12 @@ export class BiayaController {
     @Body() payload: CreateBiayaDTO,
   ) {
     payload.userId = user.id;
-    // return this.biayaService.create(payload).pipe(
-    //   map((data) => new ResponseEntity({ data, message: 'success' })),
-    //   catchError((error) => {
-    //     throw new HttpException(error.message, HttpStatus.BAD_REQUEST);
-    //   }),
-    // );
-    return this.biayaService.create(payload);
+    return this.biayaService.create(payload).pipe(
+      map((data) => new ResponseEntity({ data, message: 'success' })),
+      catchError((error) => {
+        throw new HttpException(error.message, HttpStatus.BAD_REQUEST);
+      }),
+    );
   }
 
   @UseGuards(AuthGuard)

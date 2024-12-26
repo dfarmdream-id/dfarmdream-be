@@ -3,7 +3,6 @@ import { from } from 'rxjs';
 import { PersediaanBarangRepository } from '../repositories';
 import { CreatePersediaanBarang, UpdatePersediaanBarangDTO } from '../dtos';
 import { FilterPersediaanBarangDTO } from '../dtos/filter-persediaan-barang.dto';
-import { TipeBarang } from '@prisma/client';
 import { PrismaService } from '@src/platform/database/services/prisma.service';
 import { DateTime } from 'luxon';
 import { TransaksiBarangDTO } from '../dtos/transaksi.dto';
@@ -18,14 +17,44 @@ export class PersediaanBarangService {
     private readonly journalService: JournalService,
   ) {}
 
-  paginate(paginateDto: FilterPersediaanBarangDTO, siteId: string) {
+  paginate(
+    paginateDto: FilterPersediaanBarangDTO,
+    cageId: string,
+    siteId: string,
+  ) {
     return from(
-      this.persediaanBarangRepo.paginate(paginateDto, { where: { siteId } }),
+      this.persediaanBarangRepo.paginate(paginateDto, {
+        where: {
+          cageId: cageId,
+          siteId,
+        },
+      }),
     );
   }
 
   detail(id: string) {
-    return from(this.persediaanBarangRepo.firstOrThrow({ id }));
+    return from(
+      this.persediaanBarangRepo.firstOrThrow(
+        { id },
+        {
+          id: true,
+          qty: true,
+          cageId: true,
+          siteId: true,
+          harga: true,
+          total: true,
+          status: true,
+          goodsId: true,
+          goods: {
+            select: {
+              id: true,
+              name: true,
+              type: true,
+            },
+          },
+        },
+      ),
+    );
   }
 
   async update(
@@ -35,7 +64,7 @@ export class PersediaanBarangService {
   ) {
     try {
       const currentDate = DateTime.now().toFormat('yyyy-MM-dd');
-      const updated = await this.prismaService.persediaanPakanObat.update({
+      await this.prismaService.persediaanPakanObat.update({
         where: {
           id: id,
         },
@@ -46,10 +75,9 @@ export class PersediaanBarangService {
           harga: payload.harga,
           total: payload.harga! * payload.qty!,
           status: 1,
-          tipeBarang: TipeBarang[payload.tipeBarang!],
+          goodsId: payload.goodId,
         },
       });
-
       const kartuStok = await this.prismaService.kartuStokBarang.create({
         data: {
           barangId: id,
@@ -144,14 +172,13 @@ export class PersediaanBarangService {
       const currentDate = DateTime.now().toFormat('yyyy-MM-dd');
       const save = await this.prismaService.persediaanPakanObat.create({
         data: {
-          namaBarang: payload.namaBarang,
           qty: payload.qty,
           cageId: payload.cageId,
           siteId: payload.siteId,
           harga: payload.harga,
           total: payload.harga * payload.qty,
           status: 1,
-          tipeBarang: TipeBarang[payload.tipeBarang],
+          goodsId: payload.goodId,
         },
       });
 

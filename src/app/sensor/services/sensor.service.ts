@@ -13,7 +13,6 @@ import {
 import { MqttClient, connect } from 'mqtt';
 import { JWTClaim } from '@src/app/auth/entity/jwt-claim.dto';
 import moment from 'moment';
-import { FILTER_CATCH_EXCEPTIONS } from '@nestjs/common/constants';
 
 @Injectable()
 export class SensorService {
@@ -423,22 +422,34 @@ export class SensorService {
       cageIds = [filter.cageId];
     }
 
+    // const data: any = await this.prismaService.$queryRaw`
+    // SELECT 
+    //   DATE_TRUNC('hour', "SensorLog"."createdAt") as hour,
+    //   AVG(value) as average_value
+    // FROM "SensorLog" 
+    // LEFT JOIN "SensorDevice" on "SensorDevice"."id" = "SensorLog"."sensorId"
+    // LEFT JOIN "IotSensor" on "IotSensor"."id" = "SensorDevice"."deviceId"
+    // WHERE "epoch" >= ${startOfDay}
+    // AND "SensorDevice"."type" = ${type}::"SensorType"
+    // ${cageIds.length > 0 ? Prisma.sql`AND "IotSensor"."cageId" IN (${Prisma.join(cageIds)})` : Prisma.empty}
+    // GROUP BY DATE_TRUNC('hour', "SensorLog"."createdAt")
+    // ORDER BY hour ASC`;
 
-    const data: any = await this.prismaService.$queryRaw`
-    SELECT 
-      DATE_TRUNC('hour', "SensorLog"."createdAt") as hour,
-      AVG(value) as average_value
-    FROM "SensorLog" 
-    LEFT JOIN "SensorDevice" on "SensorDevice"."id" = "SensorLog"."sensorId"
-    LEFT JOIN "IotSensor" on "IotSensor"."id" = "SensorDevice"."deviceId"
-    LEFT JOIN "Cage" on "Cage"."id" = "IotSensor"."cageId"
-    LEFT JOIN "Site" on "Site"."id" = "Cage"."siteId"
-    WHERE "epoch" >= ${startOfDay}
-    AND "SensorDevice"."type" = ${type}::"SensorType"
-    ${filter.siteId?Prisma.sql`AND "Site"."id" = ${filter.siteId}`:Prisma.empty}
-    ${cageIds.length > 0 ? Prisma.sql`AND "IotSensor"."cageId" IN (${Prisma.join(cageIds)})` : Prisma.empty}
-    GROUP BY DATE_TRUNC('hour', "SensorLog"."createdAt")
-    ORDER BY hour ASC`;
+  const data: any = await this.prismaService.$queryRaw`
+  SELECT 
+    to_char(DATE_TRUNC('hour', to_timestamp(cast("SensorLog"."epoch"/1000 as bigint))), 'YYYY-MM-DD HH24:MI:SS') as hour,
+    AVG(value) as average_value
+  FROM "SensorLog" 
+  LEFT JOIN "SensorDevice" on "SensorDevice"."id" = "SensorLog"."sensorId"
+  LEFT JOIN "IotSensor" on "IotSensor"."id" = "SensorDevice"."deviceId"
+  LEFT JOIN "Cage" on "Cage"."id" = "IotSensor"."cageId"
+  LEFT JOIN "Site" on "Site"."id" = "Cage"."siteId"
+  WHERE "epoch" >= ${startOfDay}
+  AND "SensorDevice"."type" = ${type}::"SensorType"
+  ${filter.siteId?Prisma.sql`AND "Site"."id" = ${filter.siteId}`:Prisma.empty}
+  ${cageIds.length > 0 ? Prisma.sql`AND "IotSensor"."cageId" IN (${Prisma.join(cageIds)})` : Prisma.empty}
+  GROUP BY to_char(DATE_TRUNC('hour', to_timestamp(cast("SensorLog"."epoch"/1000 as bigint))), 'YYYY-MM-DD HH24:MI:SS')
+  ORDER BY hour ASC`;
 
     // Format data untuk ApexCharts
     const formattedData = data.map((item) => {

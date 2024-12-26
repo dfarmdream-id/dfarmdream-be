@@ -41,7 +41,9 @@ export class PersediaanBarangRepository {
     if (tipeBarang && tipeBarang != '') {
       where = {
         ...where,
-        tipeBarang: tipeBarang,
+        goods: {
+          type: TipeBarang[tipeBarang],
+        },
       };
     }
 
@@ -49,7 +51,11 @@ export class PersediaanBarangRepository {
       where = {
         ...where,
         OR: [
-          { namaBarang: { contains: q, mode: 'insensitive' } },
+          {
+            goods: {
+              name: { contains: q, mode: 'insensitive' },
+            },
+          },
           {
             site: {
               name: { contains: q, mode: 'insensitive' },
@@ -76,6 +82,7 @@ export class PersediaanBarangRepository {
           include: {
             site: true,
             cage: true,
+            goods: true,
           },
         }),
         this.prismaService.persediaanPakanObat.count({
@@ -137,12 +144,19 @@ export class PersediaanBarangRepository {
           skip: (+page - 1) * +limit,
           take: +limit,
           where: where,
-          orderBy: filter?.orderBy,
+          orderBy: {
+            ...filter?.orderBy,
+            tanggal: 'desc',
+          },
           cursor: filter?.cursor,
           include: {
             site: true,
             cage: true,
-            barang: true,
+            barang: {
+              include: {
+                goods: true,
+              },
+            },
             karyawan: true,
           },
         }),
@@ -169,14 +183,13 @@ export class PersediaanBarangRepository {
     return from(
       this.prismaService.persediaanPakanObat.create({
         data: {
-          namaBarang: data.namaBarang,
+          goodsId: data.goodId,
           qty: data.qty,
           cageId: data.cageId,
           siteId: data.siteId,
           harga: data.harga,
           total: data.harga * data.qty,
           status: 1,
-          tipeBarang: TipeBarang[data.tipeBarang],
         },
       }),
     ).pipe(
@@ -200,7 +213,7 @@ export class PersediaanBarangRepository {
           harga: data.harga,
           total: data.harga! * data.qty!,
           status: 1,
-          tipeBarang: TipeBarang[data.tipeBarang!],
+          goodsId: data.goodId,
         },
       }),
     ).pipe(

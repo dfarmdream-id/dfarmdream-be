@@ -9,6 +9,9 @@ import { PricesModule } from '../prices';
 import { JournalService } from '@app/journal/services';
 import { JournalHeaderRepository } from '@app/journal/repositories';
 import { JournalDetailRepository } from '@app/journal/repositories/journal-detail.repository';
+import { JournalTemplatesService } from '@app/journal-templates/services';
+import { JournalTemplatesRepository } from '@app/journal-templates/repositories';
+import { JournalTemplateDetailsRepository } from '@app/journal-templates/repositories/journal-template-details.repository';
 
 @Module({
   imports: [PricesModule],
@@ -22,6 +25,9 @@ import { JournalDetailRepository } from '@app/journal/repositories/journal-detai
     JournalService,
     JournalHeaderRepository,
     JournalDetailRepository,
+    JournalTemplatesService,
+    JournalTemplatesRepository,
+    JournalTemplateDetailsRepository,
   ],
   exports: [WarehouseTransactionsRepository],
 })

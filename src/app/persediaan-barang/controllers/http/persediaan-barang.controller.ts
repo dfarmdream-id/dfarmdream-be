@@ -60,14 +60,18 @@ export class PersediaanBarangController {
   @Get()
   public index(
     @Query() paginateDto: FilterPersediaanBarangDTO,
+    // cageId
+    @Query('cageId') cageId: string,
     @User() user: { id: string; siteId: string },
   ): Observable<ResponseEntity> {
-    return this.persediaanBarangService.paginate(paginateDto, user.siteId).pipe(
-      map((data) => new ResponseEntity({ data, message: 'success' })),
-      catchError((error) => {
-        throw new HttpException(error.message, HttpStatus.NOT_FOUND);
-      }),
-    );
+    return this.persediaanBarangService
+      .paginate(paginateDto, cageId, user.siteId)
+      .pipe(
+        map((data) => new ResponseEntity({ data, message: 'success' })),
+        catchError((error) => {
+          throw new HttpException(error.message, HttpStatus.NOT_FOUND);
+        }),
+      );
   }
 
   @UseGuards(AuthGuard)
