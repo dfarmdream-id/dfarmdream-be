@@ -13,6 +13,7 @@ import {
 import { MqttClient, connect } from 'mqtt';
 import { JWTClaim } from '@src/app/auth/entity/jwt-claim.dto';
 import moment from 'moment';
+import { FILTER_CATCH_EXCEPTIONS } from '@nestjs/common/constants';
 
 @Injectable()
 export class SensorService {
@@ -409,9 +410,10 @@ export class SensorService {
     let cageIds: any = [];
 
     if (user.siteId) {
+
       const cages = await this.prismaService.cage.findMany({
         where: {
-          siteId: user.siteId,
+          siteId: filter.siteId ?? user.siteId,
         },
       });
       cageIds = cages.map((x) => x.id);
@@ -421,6 +423,7 @@ export class SensorService {
       cageIds = [filter.cageId];
     }
 
+
     const data: any = await this.prismaService.$queryRaw`
     SELECT 
       DATE_TRUNC('hour', "SensorLog"."createdAt") as hour,
@@ -428,8 +431,11 @@ export class SensorService {
     FROM "SensorLog" 
     LEFT JOIN "SensorDevice" on "SensorDevice"."id" = "SensorLog"."sensorId"
     LEFT JOIN "IotSensor" on "IotSensor"."id" = "SensorDevice"."deviceId"
+    LEFT JOIN "Cage" on "Cage"."id" = "IotSensor"."cageId"
+    LEFT JOIN "Site" on "Site"."id" = "Cage"."siteId"
     WHERE "epoch" >= ${startOfDay}
     AND "SensorDevice"."type" = ${type}::"SensorType"
+    ${filter.siteId?Prisma.sql`AND "Site"."id" = ${filter.siteId}`:Prisma.empty}
     ${cageIds.length > 0 ? Prisma.sql`AND "IotSensor"."cageId" IN (${Prisma.join(cageIds)})` : Prisma.empty}
     GROUP BY DATE_TRUNC('hour', "SensorLog"."createdAt")
     ORDER BY hour ASC`;
@@ -458,6 +464,16 @@ export class SensorService {
         IotSensor: {
           cageId: {
             in: cageIds,
+          },
+        },
+      });
+    }
+
+    if(filter.siteId){
+      Object.assign(where, {
+        IotSensor: {
+          cage: {
+            siteId: filter.siteId,
           },
         },
       });
