@@ -16,7 +16,15 @@ export class FilterLogDTO {
 
   @ApiPropertyOptional()
   @IsOptional()
-  tanggal?: Date;
+  tanggal?: string;
+
+  @ApiPropertyOptional()
+  @IsOptional()
+  startDate?: Date;
+
+  @ApiPropertyOptional()
+  @IsOptional()
+  endDate?: Date;
 
   @ApiPropertyOptional({ default: 1 })
   @IsOptional()
