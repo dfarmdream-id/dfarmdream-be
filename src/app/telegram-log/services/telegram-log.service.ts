@@ -45,9 +45,13 @@ export class TelegramLogService {
     }
 
     if (filter.tanggal) {
+      const [startDate, endDate] = filter.tanggal.split(',');
       where = {
         ...where,
-        updatedAt: { gte: new Date(filter.tanggal) },
+        createdAt: {
+          gte: new Date(startDate),
+          lte: new Date(endDate),
+        },
       };
     }
 
