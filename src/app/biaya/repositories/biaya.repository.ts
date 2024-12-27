@@ -69,6 +69,7 @@ export class BiayaRepository {
             kategoriBiaya: true,
             site: true,
             user: true,
+            batch: true,
             persediaanPakanObat: {
               include: {
                 goods: true,

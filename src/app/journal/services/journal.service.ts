@@ -15,12 +15,18 @@ export class JournalService {
     private readonly prismaService: PrismaService,
   ) {}
 
-  public paginate(paginateDto: PaginationQueryDto) {
+  public paginate(
+    paginateDto: PaginationQueryDto,
+    cageId: string,
+    batchId: string,
+  ) {
     const { q, dateRange } = paginateDto;
 
     // Filter tambahan untuk rentang tanggal
     const where: any = {
       deletedAt: null, // Filter journal yang tidak terhapus
+      cageId,
+      batchId,
     };
 
     if (q) {
@@ -147,6 +153,13 @@ export class JournalService {
         },
         status: createJournalHeadersDto.status,
         user: { connect: { id: userId } },
+        ...(createJournalHeadersDto.batchId && {
+          batch: {
+            connect: {
+              id: createJournalHeadersDto.batchId,
+            },
+          },
+        }),
         ...(createJournalHeadersDto.cageId && {
           cage: {
             connect: {
@@ -288,7 +301,12 @@ export class JournalService {
   }
 
   // balanceSheet
-  async getTrialBalance(month: string, year: string) {
+  async getTrialBalance(
+    month: string,
+    year: string,
+    cageId: string,
+    batchId: string,
+  ) {
     // Step 1: Ambil semua data COA yang isBalanceSheet = true
     const coaList = await this.prismaService.coa.findMany({
       where: {
@@ -323,6 +341,8 @@ export class JournalService {
             where: {
               coaCode: coa.code, // Sum transaksi hanya untuk COA tertentu
               journalHeader: {
+                cageId,
+                batchId,
                 createdAt: {
                   gte: await this.getFirstJournalDate(), // Fungsi untuk mendapatkan tanggal pertama di journalHeader
                   lte: new Date(
@@ -335,17 +355,8 @@ export class JournalService {
             },
           });
 
-          console.log({
-            gte: await this.getFirstJournalDate(), // Fungsi untuk mendapatkan tanggal pertama di journalHeader
-            lte: new Date(
-              new Date(`${year}-${month}-01`).setMonth(
-                new Date(`${year}-${month}-01`).getMonth() + 1,
-              ) - 1,
-            ), // Tanggal akhir berdasarkan input pengguna
-          });
-
-          debit = journalSum._sum.debit || 0;
-          credit = journalSum._sum.credit || 0;
+          debit = journalSum?._sum?.debit ?? 0;
+          credit = journalSum?._sum?.credit ?? 0;
         }
 
         return {
@@ -377,6 +388,162 @@ export class JournalService {
     };
   }
 
+  async getChartBalanceSheetAndProfit(month: string, year: string) {
+    // if year is not provided, use current year
+    if (!year) {
+      year = new Date().getFullYear().toString();
+    }
+
+    // Step 1: Ambil semua data COA
+    const coaList = await this.prismaService.coa.findMany({
+      select: {
+        code: true,
+        name: true,
+        level: true,
+        isBalanceSheet: true,
+        isRetainedEarnings: true,
+      },
+      orderBy: [
+        {
+          code: 'asc',
+        },
+      ],
+    });
+
+    // Group codes for categorization
+    const categories = {
+      kasDanSetaraKas: [101, 102],
+      persediaan: [121, 124, 125],
+      piutang: [141, 142],
+      assetTetap: [131, 132],
+      utangDagang: [201],
+      modal: [301],
+      pendapatan: [401, 402],
+      bebanHPPTelur: [502, 503, 504],
+      bebanHPPAfkir: [506, 507, 508],
+      bebanOperasional: [602, 603, 604, 605, 606, 607, 608, 609],
+    };
+
+    // Helper function to calculate totals
+    const calculateTotal = (result, codes: number[], isCredit = false) =>
+      result.reduce((total, item) => {
+        if (codes.includes(Number(item.coa.code))) {
+          return (
+            total +
+            (isCredit
+              ? item._sum.credit - item._sum.debit
+              : item._sum.debit - item._sum.credit)
+          );
+        }
+        return total;
+      }, 0);
+
+    // Step 2: Iterasi untuk setiap bulan dalam tahun
+    const chartData: {
+      month: number;
+      totalAsset: number;
+      totalEquitas: number;
+      netProfit: number;
+    }[] = [];
+    for (let month = 1; month <= 12; month++) {
+      const startDate = new Date(
+        `${year}-${month.toString().padStart(2, '0')}-01`,
+      );
+      const endDate = new Date(
+        new Date(startDate).setMonth(startDate.getMonth() + 1) - 1,
+      );
+
+      const result = await Promise.all(
+        coaList.map(async (coa) => {
+          const journalSum = await this.prismaService.journalDetail.aggregate({
+            _sum: {
+              debit: true,
+              credit: true,
+            },
+            where: {
+              coaCode: coa.code,
+              journalHeader: {
+                createdAt: {
+                  gte: startDate,
+                  lte: endDate,
+                },
+              },
+            },
+          });
+
+          return {
+            _sum: {
+              debit: journalSum?._sum?.debit ?? 0,
+              credit: journalSum?._sum?.credit ?? 0,
+            },
+            coa,
+          };
+        }),
+      );
+
+      // Calculate totals for the month
+      const totalAsset = calculateTotal(result, [
+        ...categories.kasDanSetaraKas,
+        ...categories.persediaan,
+        ...categories.piutang,
+        ...categories.assetTetap,
+      ]);
+
+      const totalPendapatan = calculateTotal(result, categories.pendapatan);
+      const totalBebanHPPTelur = calculateTotal(
+        result,
+        categories.bebanHPPTelur,
+      );
+      const totalBebanHPPAfkir = calculateTotal(
+        result,
+        categories.bebanHPPAfkir,
+      );
+      const totalBebanOperasional = calculateTotal(
+        result,
+        categories.bebanOperasional,
+      );
+
+      const netProfit =
+        totalPendapatan -
+        (totalBebanHPPTelur + totalBebanHPPAfkir + totalBebanOperasional);
+
+      const totalEquitas =
+        calculateTotal(
+          result,
+          [...categories.utangDagang, ...categories.modal],
+          true,
+        ) + netProfit;
+
+      // Push data for the month
+      chartData.push({
+        month,
+        totalAsset,
+        totalEquitas,
+        netProfit,
+      });
+    }
+
+    const totalAsset = chartData.reduce(
+      (sum, item) => sum + item.totalAsset,
+      0,
+    );
+    const totalEquitas = chartData.reduce(
+      (sum, item) => sum + item.totalEquitas,
+      0,
+    );
+    const totalNetProfit = chartData.reduce(
+      (sum, item) => sum + item.netProfit,
+      0,
+    );
+
+    return {
+      chart: chartData,
+      totalAsset,
+      totalEquitas,
+      totalNetProfit,
+    };
+  }
+
   async getFirstJournalDate(): Promise<Date> {
     const firstJournal = await this.prismaService.journalHeader.findFirst({
       orderBy: {
@@ -389,5 +556,24 @@ export class JournalService {
 
     return firstJournal?.createdAt || new Date(0); // Default ke Unix epoch jika tidak ada data
   }
-  
+
+  public async sumJournalDetail(filter: {
+    where: { note: { contains: string } };
+  }): Promise<{ debtTotal: number }> {
+    // Query the database for journal details matching the given note filter
+    const journalDetails = await this.prismaService.journalDetail.findMany({
+      where: filter.where,
+      select: {
+        debit: true,
+      },
+    });
+
+    // Sum up the `debit` values from the retrieved journal details
+    const debtTotal = journalDetails.reduce(
+      (sum, detail) => sum + detail.debit,
+      0,
+    );
+
+    return { debtTotal };
+  }
 }

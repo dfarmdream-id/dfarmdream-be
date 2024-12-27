@@ -20,7 +20,12 @@ export class BiayaService {
 
   paginate(paginateDto: PaginationQueryDto, siteId: string) {
     return from(
-      this.biayaRepository.paginate(paginateDto, { where: { siteId } }),
+      this.biayaRepository.paginate(paginateDto, {
+        where: { siteId },
+        include: {
+          batch: true,
+        },
+      }),
     );
   }
 
@@ -59,6 +64,7 @@ export class BiayaService {
                   barangId: barang.id,
                   cageId: payload.cageId,
                   siteId: payload.siteId,
+                  batchId: payload.batchId,
                   qtyAsal: barang.qty,
                   qtyIn: 0,
                   qtyOut,
@@ -82,98 +88,118 @@ export class BiayaService {
       }),
       switchMap((barang) =>
         from(
-          this.prismaService.biaya.create({
-            data: {
-              tanggal: payload.tanggal,
-              kategoriBiaya: { connect: { id: payload.kategoriId } },
-              cage: { connect: { id: payload.cageId } },
-              site: { connect: { id: payload.siteId } },
-              ...(payload.persediaanBarangId && {
-                persediaanPakanObat: {
-                  connect: { id: payload.persediaanBarangId },
-                },
-              }),
-              user: { connect: { id: payload.userId } },
-              qtyOut,
-              biaya: payload.biaya ?? 0,
-              status: payload.status,
-              keterangan: payload.keterangan,
-            },
+          this.prismaService.batch.findUnique({
+            where: { id: payload.batchId },
           }),
         ).pipe(
-          switchMap((saved) =>
+          switchMap((batch) =>
             from(
-              this.journalTemplatesService.findFirstByJournalTypeId(
-                payload.journalTypeId,
-              ),
-            ).pipe(
-              switchMap((journalTemplate) => {
-                if (!journalTemplate) return from(Promise.resolve(null));
-
-                const totalBiaya = payload.biaya ?? 0;
-                const typeGood = barang?.goods?.type?.toLowerCase() ?? 'pakan';
-
-                // Determine if DEBIT or CREDIT has more than 1 and handle nominal assignment
-                const ledgerCounts =
-                  journalTemplate.journalTemplateDetails.reduce(
-                    (acc, detail) => {
-                      acc[detail.typeLedger] =
-                        (acc[detail.typeLedger] || 0) + 1;
-                      return acc;
+              this.prismaService.biaya.create({
+                data: {
+                  tanggal: payload.tanggal,
+                  kategoriBiaya: { connect: { id: payload.kategoriId } },
+                  cage: { connect: { id: payload.cageId } },
+                  site: { connect: { id: payload.siteId } },
+                  ...(payload.persediaanBarangId && {
+                    persediaanPakanObat: {
+                      connect: { id: payload.persediaanBarangId },
                     },
-                    {} as Record<string, number>,
-                  );
-
-                const details: CreateJournalDetailDto[] =
-                  journalTemplate.journalTemplateDetails.map((detail) => {
-                    const isRelevant = detail.coa.name
-                      .toLowerCase()
-                      .includes(typeGood);
-
-                    const nominal =
-                      ledgerCounts[detail.typeLedger] === 1
-                        ? totalBiaya
-                        : ledgerCounts[detail.typeLedger] > 1 && isRelevant
-                          ? totalBiaya
-                          : 0;
-
-                    return {
-                      coaCode: detail.coa.code,
-                      debit: detail.typeLedger === 'DEBIT' ? nominal : 0,
-                      credit: detail.typeLedger === 'CREDIT' ? nominal : 0,
-                      note: `Biaya untuk ${barang?.goods?.name ?? 'lainnya'}${
-                        payload.keterangan ? `, note ${payload.keterangan}` : ''
-                      }`,
-                    };
-                  });
-
-                const journalDto: CreateJournalDto = {
-                  code: `JN-${DateTime.now().toFormat('yy-MM')}-$${
-                    Math.floor(Math.random() * 1000) + 1
-                  }`,
-                  date: payload.tanggal,
-                  debtTotal: details.reduce((acc, curr) => acc + curr.debit, 0),
-                  creditTotal: details.reduce(
-                    (acc, curr) => acc + curr.credit,
-                    0,
+                  }),
+                  user: { connect: { id: payload.userId } },
+                  qtyOut,
+                  batch: {
+                    connect: { id: payload.batchId },
+                  },
+                  biaya: payload.biaya ?? 0,
+                  status: payload.status,
+                  keterangan: payload.keterangan,
+                },
+              }),
+            ).pipe(
+              switchMap((saved) =>
+                from(
+                  this.journalTemplatesService.findFirstByJournalTypeId(
+                    payload.journalTypeId,
                   ),
-                  status: '1',
-                  journalTypeId: payload.journalTypeId,
-                  cageId: payload.cageId,
-                  siteId: payload.siteId,
-                  details,
-                };
+                ).pipe(
+                  switchMap((journalTemplate) => {
+                    if (!journalTemplate) return from(Promise.resolve(null));
 
-                return this.journalService.create(journalDto, payload.userId);
-              }),
-              switchMap((journal) => {
-                if (!journal) {
-                  return throwError(
-                    () => new Error('Failed to create journal entry'),
-                  );
-                }
-                return from(Promise.resolve(saved));
-              }),
+                    const totalBiaya = payload.biaya ?? 0;
+                    const typeGood =
+                      barang?.goods?.type?.toLowerCase() ?? 'pakan';
+
+                    const ledgerCounts =
+                      journalTemplate.journalTemplateDetails.reduce(
+                        (acc, detail) => {
+                          acc[detail.typeLedger] =
+                            (acc[detail.typeLedger] || 0) + 1;
+                          return acc;
+                        },
+                        {} as Record<string, number>,
+                      );
+
+                    const details: CreateJournalDetailDto[] =
+                      journalTemplate.journalTemplateDetails.map((detail) => {
+                        const isRelevant = detail.coa.name
+                          .toLowerCase()
+                          .includes(typeGood);
+
+                        const nominal =
+                          ledgerCounts[detail.typeLedger] === 1
+                            ? totalBiaya
+                            : ledgerCounts[detail.typeLedger] > 1 && isRelevant
+                              ? totalBiaya
+                              : 0;
+
+                        return {
+                          coaCode: detail.coa.code,
+                          debit: detail.typeLedger === 'DEBIT' ? nominal : 0,
+                          credit: detail.typeLedger === 'CREDIT' ? nominal : 0,
+                          note: `
+                            Biaya: ${
+                              barang?.goods?.name ?? 'Lainnya'
+                            } (Batch: ${batch?.name ?? 'Tidak Diketahui'}) - ${detail.coa.name} - ${payload.keterangan}
+                          `,
+                        };
+                      });
+
+                    const journalDto: CreateJournalDto = {
+                      code: `JN-${DateTime.now().toFormat('yy-MM')}-$${
+                        Math.floor(Math.random() * 1000) + 1
+                      }`,
+                      date: payload.tanggal,
+                      debtTotal: details.reduce(
+                        (acc, curr) => acc + curr.debit,
+                        0,
+                      ),
+                      creditTotal: details.reduce(
+                        (acc, curr) => acc + curr.credit,
+                        0,
+                      ),
+                      batchId: payload.batchId,
+                      status: '1',
+                      journalTypeId: payload.journalTypeId,
+                      cageId: payload.cageId,
+                      siteId: payload.siteId,
+                      details,
+                    };
+
+                    return this.journalService.create(
+                      journalDto,
+                      payload.userId,
+                    );
+                  }),
+                  switchMap((journal) => {
+                    if (!journal) {
+                      return throwError(
+                        () => new Error('Failed to create journal entry'),
+                      );
+                    }
+                    return from(Promise.resolve(saved));
+                  }),
+                ),
+              ),
             ),
           ),
         ),

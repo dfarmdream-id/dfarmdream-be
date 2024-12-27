@@ -49,4 +49,11 @@ export class CreateWarehouseTransactionsDto {
   @ApiProperty()
   @IsString()
   journalTypeId: string;
+
+  @ApiProperty()
+  @IsString()
+  batchId: string;
+  
+  @ApiProperty()
+  isEndOfBatch: boolean;
 }

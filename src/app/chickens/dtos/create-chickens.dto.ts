@@ -9,4 +9,12 @@ export class CreateChickensDto {
   @ApiProperty()
   @IsString()
   rackId: string;
+  
+  @ApiProperty()
+  @IsString()
+  batchId: string;
+
+  @ApiProperty()
+  @IsString()
+  diseaseIds: string;
 }

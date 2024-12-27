@@ -25,28 +25,31 @@ export class ProfitLossesService {
     return firstJournal?.createdAt || new Date(0); // Default ke Unix epoch jika tidak ada data
   }
 
-  async getProfitLoss(month: string, year: string){
+  async getProfitLoss(
+    month: string,
+    year: string,
+    cageId: string,
+    batchId: string,
+  ) {
     const pendapatan = [401, 402];
     const bebanHPPTelur = [502, 503, 504];
     const bebanHPPAfkir = [506, 507, 508];
     const bebanOperasional = [602, 603, 604, 605, 606, 607, 608, 609];
 
-    const coaList = await this.prismaService.coa.findMany(
-      {
-        select: {
-          code: true,
-          name: true,
-          level: true,
-          isBalanceSheet: true,
-          isRetainedEarnings: true,
+    const coaList = await this.prismaService.coa.findMany({
+      select: {
+        code: true,
+        name: true,
+        level: true,
+        isBalanceSheet: true,
+        isRetainedEarnings: true,
+      },
+      orderBy: [
+        {
+          code: 'asc',
         },
-        orderBy: [
-          {
-            code: 'asc',
-          },
-        ],
-      }
-    )
+      ],
+    });
 
     const result = await Promise.all(
       coaList.map(async (coa) => {
@@ -62,6 +65,8 @@ export class ProfitLossesService {
             where: {
               coaCode: coa.code, // Sum transaksi hanya untuk COA tertentu
               journalHeader: {
+                cageId,
+                batchId,
                 createdAt: {
                   gte: await this.getFirstJournalDate(), // Fungsi untuk mendapatkan tanggal pertama di journalHeader
                   lte: new Date(
@@ -83,8 +88,8 @@ export class ProfitLossesService {
             ), // Tanggal akhir berdasarkan input pengguna
           });
 
-          debit = journalSum._sum.debit || 0;
-          credit = journalSum._sum.credit || 0;
+          debit = journalSum?._sum?.debit ?? 0;
+          credit = journalSum?._sum?.credit ?? 0;
         }
 
         return {
@@ -134,7 +139,9 @@ export class ProfitLossesService {
       return total;
     }, 0);
 
-    const netProfit = totalPendapatan - (totalBebanHPPAfkir + totalBebanHPPTelur + totalBebanOperasional);
+    const netProfit =
+      totalPendapatan -
+      (totalBebanHPPAfkir + totalBebanHPPTelur + totalBebanOperasional);
 
     return {
       trialBalance: result,

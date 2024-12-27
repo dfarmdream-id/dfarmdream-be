@@ -157,6 +157,7 @@ export class PersediaanBarangRepository {
                 goods: true,
               },
             },
+            batch: true,
             karyawan: true,
           },
         }),
