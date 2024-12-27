@@ -51,7 +51,8 @@ model User {
   JournalHeader             JournalHeader[]
   KartuStokBarang           KartuStokBarang[]
   AttendanceLog             AttendanceLog[]
-  PriceLog PriceLog[]
+  PriceLog                  PriceLog[]
+  TelegramMesasgeLog        TelegramMesasgeLog[]
 
   @@index([email, username, identityId])
 }
@@ -280,8 +281,8 @@ model Cage {
   PersediaanPakanObat  PersediaanPakanObat[]
   KartuStokBarang      KartuStokBarang[]
   AttendanceLog        AttendanceLog[]
-  JournalHeader JournalHeader[]
-  PriceLog PriceLog[]
+  JournalHeader        JournalHeader[]
+  PriceLog             PriceLog[]
 }
 
 model CageRack {
@@ -375,7 +376,7 @@ model DocumentInvestment {
   investorId String?
   site       Site?     @relation(fields: [siteId], references: [id])
   siteId     String?
-  url       String?
+  url        String?
   date       DateTime?
   amount     Int?      @default(0)
   deletedAt  DateTime?
@@ -439,7 +440,7 @@ model Price {
   value  Int          @default(0)
   site   Site?        @relation(fields: [siteId], references: [id])
   siteId String?
-  date  DateTime?
+  date   DateTime?
 
   deletedAt            DateTime?
   createdAt            DateTime               @default(now())
@@ -589,6 +590,7 @@ model TelegramMesasgeLog {
   epoch       BigInt
   createdAt   DateTime   @default(now())
   updatedAt   DateTime   @updatedAt
+  user        User?      @relation(fields: [userId], references: [id])
 }
 
 model RelayLog {
@@ -646,19 +648,19 @@ model Attendance {
 }
 
 model KategoriBiaya {
-  id           String    @id @unique @default(uuid())
+  id           String      @id @unique @default(uuid())
   namaKategori String
   kodeAkun     String
   status       Int
   biaya        Biaya[]
   goodType     TipeBarang? // Kolom ini menjadi opsional (nullable)
   deletedAt    DateTime?
-  createdAt    DateTime  @default(now())
-  updatedAt    DateTime  @updatedAt
+  createdAt    DateTime    @default(now())
+  updatedAt    DateTime    @updatedAt
 }
 
 model Biaya {
-  id            String        @id @unique @default(uuid())
+  id            String         @id @unique @default(uuid())
   kategoriId    String
   kategoriBiaya KategoriBiaya? @relation(fields: [kategoriId], references: [id])
   tanggal       String
@@ -819,17 +821,17 @@ model JournalDetail {
 }
 
 model PersediaanPakanObat {
-  id         String     @id @unique @default(uuid())
-  
-  goodsId    String?
-  goods      Goods?      @relation(fields: [goodsId], references: [id])
-  
-  qty        Int
-  harga      Int        @default(0)
-  total      Int        @default(0)
-  siteId     String
-  cageId     String
-  status     Int        @default(1)
+  id String @id @unique @default(uuid())
+
+  goodsId String?
+  goods   Goods?  @relation(fields: [goodsId], references: [id])
+
+  qty    Int
+  harga  Int    @default(0)
+  total  Int    @default(0)
+  siteId String
+  cageId String
+  status Int    @default(1)
 
   site      Site              @relation(fields: [siteId], references: [id])
   cage      Cage              @relation(fields: [cageId], references: [id])
@@ -879,37 +881,38 @@ enum TipeBarang {
 model ChickenDisease {
   id          String    @id @unique @default(uuid())
   name        String    @unique // Nama penyakit, misal "Newcastle Disease"
-  description String?// Penjelasan penyakit (opsional)
-  symptoms    String?// Gejala penyakit (opsional)
-  treatment   String?// Pengobatan penyakit (opsional)
+  description String? // Penjelasan penyakit (opsional)
+  symptoms    String? // Gejala penyakit (opsional)
+  treatment   String? // Pengobatan penyakit (opsional)
   deletedAt   DateTime?
   createdAt   DateTime  @default(now())
   updatedAt   DateTime  @updatedAt
 
   Chicken Chicken[]
 }
-model Goods{
-  id  String  @id @unique @default(uuid())
-  sku  String
-  name String
-  type TipeBarang @default(PAKAN)
+
+model Goods {
+  id        String     @id @unique @default(uuid())
+  sku       String
+  name      String
+  type      TipeBarang @default(PAKAN)
   deletedAt DateTime?
-  createdAt DateTime  @default(now())
-  updatedAt DateTime  @updatedAt
+  createdAt DateTime   @default(now())
+  updatedAt DateTime   @updatedAt
 
   PersediaanPakanObat PersediaanPakanObat[]
 }
 
-model PriceLog{
-  id String @id @unique @default(uuid())
-  siteId String?
-  cageId String?
-  type PriceType
-  userId String?
-  price Int
-  site       Site?    @relation(fields: [siteId], references: [id])
-  cage       Cage?   @relation(fields: [cageId], references: [id])
-  user User? @relation(fields: [userId], references: [id])
+model PriceLog {
+  id        String    @id @unique @default(uuid())
+  siteId    String?
+  cageId    String?
+  type      PriceType
+  userId    String?
+  price     Int
+  site      Site?     @relation(fields: [siteId], references: [id])
+  cage      Cage?     @relation(fields: [cageId], references: [id])
+  user      User?     @relation(fields: [userId], references: [id])
   createdAt DateTime  @default(now())
   updatedAt DateTime  @updatedAt
 }
