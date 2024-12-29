@@ -13,6 +13,7 @@ import {
 import { MqttClient, connect } from 'mqtt';
 import { JWTClaim } from '@src/app/auth/entity/jwt-claim.dto';
 import moment from 'moment';
+import { DateTime } from 'luxon';
 
 @Injectable()
 export class SensorService {
@@ -452,11 +453,18 @@ export class SensorService {
   ORDER BY hour ASC`;
 
     // Format data untuk ApexCharts
+    // const formattedData = data.map((item) => {
+    //   const date = moment(item.hour);
+    //   return {
+    //     x: `${date.format('HH:mm')}`,
+    //     y: Number(item.average_value.toFixed(2)),
+    //   };
+    // });
     const formattedData = data.map((item) => {
-      const date = moment(item.hour);
+      const date = DateTime.fromFormat(item.hour, 'yyyy-MM-dd HH:mm:ss');
       return {
-        x: `${date.format('HH:mm')}`,
-        y: Number(item.average_value.toFixed(2)),
+      x: `${date.toFormat('HH:mm')}`,
+      y: Number(item.average_value.toFixed(2)),
       };
     });
     const where = {
@@ -522,10 +530,10 @@ export class SensorService {
     let cageIds: any = [];
     let where = {};
 
-    if (user.siteId) {
+    if (filter.siteId) {
       const cages = await this.prismaService.cage.findMany({
         where: {
-          siteId: user.siteId,
+          siteId: filter.siteId,
         },
       });
       cageIds = cages.map((x) => x.id);
@@ -548,6 +556,27 @@ export class SensorService {
         },
       };
     }
+
+    if (filter.tanggal && filter.tanggal != '') {
+      const startOfDay = DateTime.fromISO(filter.tanggal, { zone: 'Asia/Jakarta' })
+      .startOf('day')
+      .toUTC()
+      .toJSDate(); // Mengonversi ke objek Date
+  
+    const endOfDay = DateTime.fromISO(filter.tanggal, { zone: 'Asia/Jakarta' })
+      .endOf('day')
+      .toUTC()
+      .toJSDate(); // Mengonversi ke objek Date
+
+      where = {
+        ...where,
+        createdAt: {
+          gte: startOfDay,
+          lte: endOfDay,
+        },
+      };
+    }
+
 
     try {
       const skip: number = ((filter.page ?? 1) - 1) * (filter.limit ?? 10);
@@ -589,6 +618,7 @@ export class SensorService {
         },
       };
     } catch (e) {
+      console.log('Failed to get relay log data : ', e.message);
       throw new HttpException(
         'Failed to get relay status',
         HttpStatus.BAD_REQUEST,
