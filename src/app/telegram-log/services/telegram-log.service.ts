@@ -2,6 +2,7 @@ import { HttpStatus, Injectable } from '@nestjs/common';
 import { PrismaService } from '@src/platform/database/services/prisma.service';
 import { FilterLogDTO } from '../dtos';
 import { Prisma } from '@prisma/client';
+import moment from 'moment';
 
 @Injectable()
 export class TelegramLogService {
@@ -49,8 +50,8 @@ export class TelegramLogService {
       where = {
         ...where,
         createdAt: {
-          gte: new Date(startDate),
-          lte: new Date(endDate),
+          gte: moment(startDate).startOf('day').toDate(),
+          lte: moment(endDate).endOf('day').toDate(),
         },
       };
     }
