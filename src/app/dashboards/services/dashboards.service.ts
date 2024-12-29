@@ -226,6 +226,7 @@ export class DashboardsService {
           AND wt."CashierDeliveryAt" IS NOT NULL
           AND wt."category" = 'EGG'
           ${chartEggDto.cageId ? Prisma.sql`AND wt."cageId" = ${chartEggDto.cageId}` : Prisma.sql``}
+          ${chartEggDto.batchId ? Prisma.sql`AND wt."batchId" = ${chartEggDto.batchId}` : Prisma.sql``}
           LEFT JOIN "Price" p
           ON wt."priceId" = p."id"
         GROUP BY d.grouped_date
@@ -301,6 +302,7 @@ export class DashboardsService {
         AND wt."CashierDeliveryAt" IS NOT NULL
         AND wt."category" = 'CHICKEN'
         ${chartEggDto.cageId ? Prisma.sql`AND wt."cageId" = ${chartEggDto.cageId}` : Prisma.sql``}
+        ${chartEggDto.batchId ? Prisma.sql`AND wt."batchId" = ${chartEggDto.batchId}` : Prisma.sql``}
       LEFT JOIN "Price" p
         ON wt."priceId" = p."id"
       GROUP BY d.grouped_date
