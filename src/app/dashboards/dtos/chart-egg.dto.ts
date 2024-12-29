@@ -20,7 +20,11 @@ export class ChartEggDto {
 
   @ApiPropertyOptional()
   @IsOptional()
-  dateRange: DateRange;
+  startDate: string;
+
+  @ApiPropertyOptional()
+  @IsOptional()
+  endDate: string;
 
   @ApiPropertyOptional()
   @IsOptional()
