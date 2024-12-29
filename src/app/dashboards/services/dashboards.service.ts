@@ -166,11 +166,7 @@ export class DashboardsService {
     });
   }
 
-  public chartEgg(
-    siteId: string,
-    // groupBy: 'days' | 'weeks' | 'months' | 'years' = 'days',
-    chartEggDto: ChartEggDto,
-  ) {
+  public chartEgg(siteId: string, chartEggDto: ChartEggDto) {
     // Map groupBy ke format PostgreSQL DATE_TRUNC
     const groupByMap = {
       days: Prisma.sql`'day'`,
@@ -189,14 +185,13 @@ export class DashboardsService {
     };
     const interval = intervalMap[chartEggDto.groupBy] || '1 day';
 
-    // Tentukan rentang waktu berdasarkan groupBy
-    const dateStartMap = {
-      days: Prisma.sql`NOW() - INTERVAL '20 days'`,
-      weeks: Prisma.sql`NOW() - INTERVAL '20 weeks'`,
-      months: Prisma.sql`NOW() - INTERVAL '20 months'`,
-      years: Prisma.sql`NOW() - INTERVAL '20 years'`,
-    };
-    const dateStart = dateStartMap[chartEggDto.groupBy];
+    // Tentukan rentang waktu menggunakan startDate dan endDate dari chartEggDto
+    const startDate = chartEggDto.startDate
+      ? Prisma.sql`${new Date(chartEggDto.startDate).toISOString()}::TIMESTAMP`
+      : Prisma.sql`NOW() - INTERVAL '20 days'`;
+    const endDate = chartEggDto.endDate
+      ? Prisma.sql`${new Date(chartEggDto.endDate).toISOString()}::TIMESTAMP`
+      : Prisma.sql`NOW()`;
 
     const query = this.prismaService.$queryRaw<
       {
@@ -207,35 +202,35 @@ export class DashboardsService {
       }[]
     >(
       Prisma.sql`
-      SELECT
-        d.grouped_date,
-        COALESCE(SUM(wt."qty"), 0) AS total_qty,
-        COALESCE(SUM(b."biaya"), 0) AS total_biaya,
-        COALESCE(SUM((wt."weight" * p."value")::BIGINT), 0) AS total_harga
-      FROM (
         SELECT
-          GENERATE_SERIES(
-            DATE_TRUNC(${groupFormat}, ${dateStart}),
-            DATE_TRUNC(${groupFormat}, NOW()),
-            ${interval}::INTERVAL -- Pastikan interval didefinisikan dengan jelas
-          ) AS grouped_date
-      ) d
-      LEFT JOIN "Biaya" b
-             ON DATE_TRUNC(${groupFormat}, b."updatedAt") = d.grouped_date
-             AND b."siteId" = ${siteId}
-        ${chartEggDto.cageId ? Prisma.sql`AND b."cageId" = ${chartEggDto.cageId}` : Prisma.sql``}
+          d.grouped_date,
+          COALESCE(SUM(wt."qty"), 0) AS total_qty,
+          COALESCE(SUM(b."biaya"), 0) AS total_biaya,
+          COALESCE(SUM((wt."weight" * p."value")::BIGINT), 0) AS total_harga
+        FROM (
+               SELECT
+                 GENERATE_SERIES(
+                   DATE_TRUNC(${groupFormat}, ${startDate}),
+                   DATE_TRUNC(${groupFormat}, ${endDate}),
+                   ${interval}::INTERVAL -- Pastikan interval didefinisikan dengan jelas
+                 ) AS grouped_date
+             ) d
+               LEFT JOIN "Biaya" b
+                         ON DATE_TRUNC(${groupFormat}, b."updatedAt") = d.grouped_date
+                           AND b."siteId" = ${siteId}
+          ${chartEggDto.cageId ? Prisma.sql`AND b."cageId" = ${chartEggDto.cageId}` : Prisma.sql``}
       LEFT JOIN "WarehouseTransaction" wt
-             ON DATE_TRUNC(${groupFormat}, wt."updatedAt") = d.grouped_date
-             AND wt."siteId" = ${siteId}
-             AND wt."deletedAt" IS NULL
-             AND wt."CashierDeliveryAt" IS NOT NULL
-             AND wt."category" = 'EGG'
-        ${chartEggDto.cageId ? Prisma.sql`AND wt."cageId" = ${chartEggDto.cageId}` : Prisma.sql``}
-      LEFT JOIN "Price" p
-             ON wt."priceId" = p."id"
-      GROUP BY d.grouped_date
-      ORDER BY d.grouped_date ASC
-    `,
+        ON DATE_TRUNC(${groupFormat}, wt."updatedAt") = d.grouped_date
+          AND wt."siteId" = ${siteId}
+          AND wt."deletedAt" IS NULL
+          AND wt."CashierDeliveryAt" IS NOT NULL
+          AND wt."category" = 'EGG'
+          ${chartEggDto.cageId ? Prisma.sql`AND wt."cageId" = ${chartEggDto.cageId}` : Prisma.sql``}
+          LEFT JOIN "Price" p
+          ON wt."priceId" = p."id"
+        GROUP BY d.grouped_date
+        ORDER BY d.grouped_date ASC
+      `,
     );
 
     // Bungkus Prisma query ke dalam Observable
@@ -261,14 +256,16 @@ export class DashboardsService {
     };
     const groupFormat = groupByMap[chartEggDto.groupBy] || Prisma.sql`'day'`;
 
-    // Tentukan interval untuk rentang waktu berdasarkan groupBy
-    const intervalMap = {
-      days: '20 days',
-      weeks: '20 weeks',
-      months: '20 months',
-      years: '20 years',
-    };
-    const interval = intervalMap[chartEggDto.groupBy] || '20 days';
+    // Tentukan interval untuk rentang waktu
+    const interval = Prisma.raw(`'1 ${chartEggDto.groupBy.slice(0, -1)}'::INTERVAL`);
+
+    // Gunakan startDate dan endDate dari chartEggDto, dengan fallback ke interval default
+    const startDate = chartEggDto.startDate
+      ? Prisma.sql`${new Date(chartEggDto.startDate).toISOString()}::TIMESTAMP`
+      : Prisma.sql`NOW() - INTERVAL '20 days'`;
+    const endDate = chartEggDto.endDate
+      ? Prisma.sql`${new Date(chartEggDto.endDate).toISOString()}::TIMESTAMP`
+      : Prisma.sql`NOW()`;
 
     // Query Prisma dengan raw SQL
     const query = this.prismaService.$queryRaw<
@@ -288,9 +285,9 @@ export class DashboardsService {
       FROM (
         SELECT
           generate_series(
-            DATE_TRUNC(${groupFormat}, NOW() - INTERVAL ${Prisma.raw(`'${interval}'`)}),
-            DATE_TRUNC(${groupFormat}, NOW()),
-            ${Prisma.raw(`'1 ${chartEggDto.groupBy.slice(0, -1)}'`)}::INTERVAL
+            DATE_TRUNC(${groupFormat}, ${startDate}),
+            DATE_TRUNC(${groupFormat}, ${endDate}),
+            ${interval}
           ) AS grouped_date
       ) d
       LEFT JOIN "Biaya" b
