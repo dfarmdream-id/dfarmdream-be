@@ -33,4 +33,8 @@ export class ChartEggDto {
   @ApiPropertyOptional()
   @IsOptional()
   cageId?: string;
+
+  @ApiPropertyOptional()
+  @IsOptional()
+  batchId?: string;
 }
