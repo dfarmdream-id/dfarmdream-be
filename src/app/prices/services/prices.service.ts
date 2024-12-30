@@ -22,7 +22,7 @@ export class PricesService {
           name: {
             contains: paginateDto.q,
             mode: Prisma.QueryMode.insensitive,
-          },
+          }
         },
       ],
     };
@@ -91,7 +91,7 @@ export class PricesService {
         },
       };
     }
-    
+
     const data = await this.prismaService.priceLog.findMany({
       skip: (+page - 1) * +limit,
       take: +limit,
@@ -160,7 +160,7 @@ export class PricesService {
   //   );
   // }
 
-  public async create(createPricesDto: CreatePricesDto) {
+  public async create(createPricesDto: CreatePricesDto, userId:string) {
     const savedData = await this.prismaService.price.create({
       data: {
         name: createPricesDto.name,
@@ -188,6 +188,16 @@ export class PricesService {
         status: 'INACTIVE',
       },
     });
+
+    await this.prismaService.priceLog.create({
+      data: {
+        siteId: createPricesDto.siteId,
+        type: createPricesDto.type!,
+        price: createPricesDto.value!,
+        userId: userId,
+      },
+    });
+
     return savedData;
   }
 

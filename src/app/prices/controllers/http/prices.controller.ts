@@ -30,9 +30,9 @@ export class PricesHttpController {
   constructor(private readonly priceService: PricesService) {}
 
   @Post()
-  public async create(@Body() createPricesDto: CreatePricesDto) {
+  public async create(@Body() createPricesDto: CreatePricesDto, @User() user: { id: string; siteId: string },) {
     try {
-      const data = await this.priceService.create(createPricesDto);
+      const data = await this.priceService.create(createPricesDto,user.id);
       return new ResponseEntity({ data, message: 'success' });
     } catch (e) {
       throw new HttpException(e.message, HttpStatus.BAD_REQUEST);
@@ -93,7 +93,6 @@ export class PricesHttpController {
     @Body() updatePricesDto: UpdatePricesDto,
     @User() user: { id: string },
   ) {
-    console.log('user : ', user);
     try {
       const data = await this.priceService.update(
         id,
