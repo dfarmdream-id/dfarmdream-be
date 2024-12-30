@@ -69,7 +69,6 @@ export class DocumentInvestmentsHttpController {
 
   @Delete(':id')
   public destroy(@Param('id') id: string): Observable<ResponseEntity> {
-    console.log('Delete Id :', id);
     return this.documentinvestmentService.destroy(id).pipe(
       map((data) => new ResponseEntity({ data, message: 'success' })),
       catchError((error) => {

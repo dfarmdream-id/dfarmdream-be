@@ -280,14 +280,14 @@ export class AbsenService {
             gt: latestData.checkInAt,
           },
         };
-        console.log('lastCheckInAt', latestData.checkInAt);
+        // console.log('lastCheckInAt', latestData.checkInAt);
       }
 
       const listAccTransaction =
         await this.absenClient.acc_transaction.findMany({
           where,
         });
-      console.log('count', listAccTransaction.length);
+      // console.log('count', listAccTransaction.length);
       if (listAccTransaction.length == 0) return;
 
       for (const item of listAccTransaction) {

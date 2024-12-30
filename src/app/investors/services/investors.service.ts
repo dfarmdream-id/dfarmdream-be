@@ -18,7 +18,6 @@ export class InvestorsService {
   ) {}
 
   public paginate(paginateDto: PaginationQueryDto, siteId?: string) {
-    console.log('paginateDto', siteId);
 
     return from(
       this.investorRepository.paginate(paginateDto, {
@@ -165,8 +164,7 @@ export class InvestorsService {
           return user;
         }),
         map((user) => {
-          console.log('user', user);
-          console.log('signInDto', signInDto);
+     
 
           const isValid = signInDto.password === user.password;
 
