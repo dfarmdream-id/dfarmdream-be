@@ -54,15 +54,16 @@ export class PricesHttpController {
   }
 
   @Get('log/:id')
-  public getPriceLog(
+  public async getPriceLog(
     @Query() paginateDto: GetPricesDto,
-  ): Observable<ResponseEntity> {
-    return this.priceService.getLogData(paginateDto).pipe(
-      map((data) => new ResponseEntity({ data, message: 'success' })),
-      catchError((error) => {
-        throw new HttpException(error.message, HttpStatus.NOT_FOUND);
-      }),
-    );
+    @Param('id') id: string,
+  ) {
+    try{
+      const data = await this.priceService.getLogData(paginateDto, id);
+      return new ResponseEntity({ data, message: 'success' })
+    }catch(error){
+      throw new HttpException(error.message, HttpStatus.NOT_FOUND);
+    }
   }
 
   @Get(':id')
