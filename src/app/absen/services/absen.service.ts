@@ -49,14 +49,20 @@ export class AbsenService {
       };
     }
 
-    if(filter.kandang) {
+    if (filter.kandang) {
       where = {
         ...where,
-        cageId:filter.kandang
-      }
+        user: {
+          AttendanceLog: {
+            some: {
+              cageId: filter.kandang,
+            },
+          },
+        },
+      };
     }
 
-    if(filter.lokasi){
+    if (filter.lokasi) {
       where = {
         ...where,
         user: {
@@ -66,7 +72,7 @@ export class AbsenService {
             },
           },
         },
-      }
+      };
     }
 
     const skip: number = ((filter.page ?? 1) - 1) * (filter.limit ?? 10);
@@ -111,7 +117,9 @@ export class AbsenService {
 
   async generateDataAbsen() {
     const userAbsen = await this.absenClient.pers_person.findMany();
-    const userIds: string[] = userAbsen.filter((x) => x.pin!='').map((x) => x.pin!);
+    const userIds: string[] = userAbsen
+      .filter((x) => x.pin != '')
+      .map((x) => x.pin!);
     const today = DateTime.now().toFormat('yyyy-MM-dd');
     const karyawan = await this.prismaService.user.findMany({
       where: {
@@ -350,33 +358,32 @@ export class AbsenService {
       queryWhere += ` AND (u."fullName" ILIKE '%${filter.search}%' OR c."name" ILIKE '%${filter.search}%' OR s."name" ILIKE '%${filter.search}%')`;
     }
 
-    if(filter.tanggal){
+    if (filter.tanggal) {
       where = {
         ...where,
-        tanggal:filter.tanggal
-      }
+        tanggal: filter.tanggal,
+      };
 
-      queryWhere = ` AND tanggal = '${filter.tanggal}' `
+      queryWhere = ` AND tanggal = '${filter.tanggal}' `;
     }
 
-    if(filter.kandang){
+    if (filter.kandang) {
       where = {
         ...where,
-        cageId:filter.kandang
-      }
+        cageId: filter.kandang,
+      };
 
-      queryWhere += ` AND c."id" = '${filter.kandang}' `
+      queryWhere += ` AND c."id" = '${filter.kandang}' `;
     }
 
-    if(filter.lokasi){
+    if (filter.lokasi) {
       where = {
         ...where,
-        siteId:filter.lokasi
-      }
+        siteId: filter.lokasi,
+      };
 
-      queryWhere += ` AND s."id" = '${filter.lokasi}' `
+      queryWhere += ` AND s."id" = '${filter.lokasi}' `;
     }
-
 
     const skip: number = ((filter.page ?? 1) - 1) * (filter.limit ?? 10);
     const take: number = filter.limit ?? 10;
