@@ -102,7 +102,6 @@ export class AuthService {
     const userModel = await this.prisma.user.findFirstOrThrow({
       where: { id: user.id },
     });
-    console.log(userModel.password);
 
     if (!verifySync(payload.currentPassword, userModel?.password)) {
       throw new HttpException('Wrong Current Password', HttpStatus.BAD_REQUEST);
