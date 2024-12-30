@@ -33,6 +33,11 @@ export class AbsenHttpController {
     return this.absenService.syncDataAbsen();
   }
 
+  @Get('/sync-log')
+  syncAttendaceLog() {
+    return this.absenService.syncAttendanceLog();
+  }
+
   @Get('/generate-absen')
   generateAbsen() {
     return this.absenService.generateDataAbsen();
