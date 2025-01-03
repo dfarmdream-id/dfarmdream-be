@@ -26,6 +26,7 @@ import {
 import { User } from '@src/app/auth/decorators';
 import { JWTClaim } from '@src/app/auth/entity/jwt-claim.dto';
 import { MqttClient } from 'mqtt';
+import { PaginateSensorLog } from '../../dtos/sensor-log.dto';
 
 @ApiSecurity('JWT')
 @ApiTags('IOT Sensors')
@@ -43,6 +44,11 @@ export class SensorHttpController {
   @Get('/sync-ten-minutes')
   public syncTenMinutesData() {
     return this.sensorService.syncTenMinutesData();
+  }
+
+  @Get('/sync-ten-minutes-30')
+  public syncTenMinutes30Data() {
+    return this.sensorService.sync30DaysData();
   }
   
   @UseGuards(AuthGuard)
@@ -70,6 +76,19 @@ export class SensorHttpController {
         throw new HttpException(error.message, HttpStatus.NOT_FOUND);
       }),
     );
+  }
+
+  @UseGuards(AuthGuard)
+  @Get('/log')
+  public async getLogData(
+    @Query() paginateDto: PaginateSensorLog,
+  ) {
+    try{
+      const data = await this.sensorService.paginateLog(paginateDto)
+      return new ResponseEntity({ data, message: 'success' });
+    }catch(e){
+      throw new HttpException(e.message, HttpStatus.NOT_FOUND);
+    }
   }
 
   @UseGuards(AuthGuard)

@@ -4,7 +4,7 @@ import { PaginationQueryDto } from '@src/common/dtos/pagination-query.dto';
 import { from } from 'rxjs';
 import { CreateSensorDTO, UpdateSensorDTO } from '../dtos';
 import { PrismaService } from '@src/platform/database/services/prisma.service';
-import { SensorLogDTO } from '../dtos/sensor-log.dto';
+import { PaginateSensorLog, SensorLogDTO } from '../dtos/sensor-log.dto';
 import { Prisma, SensorType } from '@prisma/client';
 import {
   ChartFilterDTO,
@@ -15,6 +15,7 @@ import { JWTClaim } from '@src/app/auth/entity/jwt-claim.dto';
 import moment from 'moment';
 import { DateTime } from 'luxon';
 import { stat } from 'fs';
+import { PaginatedEntity } from '@src/common/entities/paginated.entity';
 
 @Injectable()
 export class SensorService {
@@ -285,6 +286,52 @@ export class SensorService {
         },
       }),
     );
+  }
+
+  async paginateLog(filter: PaginateSensorLog) {
+    const where = {}
+    if (filter.sensorId && filter.sensorId != '') {
+      Object.assign(where, {
+        sensorId: filter.sensorId,
+      });
+    }
+
+    if (filter.date && filter.date != '') {
+      const [startDate, endDate] = filter.date.split(',');
+      const startOfDay = moment(startDate).startOf('day').toDate();
+      const endOfDay = moment(endDate).endOf('day').toDate();
+      Object.assign(where, {
+        interval: {
+          gte: startOfDay,
+          lte: endOfDay,
+        },
+      });
+    }
+
+    const skip: number = ((filter.page ?? 1) - 1) * (filter.limit ?? 10);
+    const take: number = filter.limit ?? 10;
+    const datas = await this.prismaService.sensorLogTenMinutes.findMany({
+      skip: Number(skip),
+      take:Number(take),
+      where: where,
+      orderBy:{
+        interval:'desc'
+      },
+      include:{
+        sensor:true
+      }
+    })
+
+    const total = await this.prismaService.sensorLogTenMinutes.count({
+      where: where
+    })
+
+    return new PaginatedEntity(datas,{
+      limit:filter.limit,
+      page:filter.page,
+      totalData:total
+    })    
+
   }
 
   detail(id: string) {
@@ -634,6 +681,16 @@ export class SensorService {
     const result:any = await this.prismaService.$queryRaw`select * from v_sensor_log_10`;
 
     for (const row of result) {
+      const cekData = await this.prismaService.sensorLogTenMinutes.findFirst({
+        where:{
+          epoch:BigInt(row.epoch),
+          sensorId:row.sensorId,
+        }
+      })
+      if(cekData){
+        continue;
+      }
+
       await this.prismaService.sensorLogTenMinutes.create({
         data: {
           type: row.type,
@@ -654,10 +711,19 @@ export class SensorService {
     }
   }
 
-  async sync7DaysData(){
+  async sync30DaysData(){
     const result:any = await this.prismaService.$queryRaw`select * from v_sensor_log_30`;
 
     for (const row of result) {
+      const cekData = await this.prismaService.sensorLogTenMinutes.findFirst({
+        where:{
+          epoch:BigInt(row.epoch),
+          sensorId:row.sensorId,
+        }
+      })
+      if(cekData){
+        continue;
+      }
       await this.prismaService.sensorLogTenMinutes.create({
         data: {
           type: row.type,
