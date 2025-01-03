@@ -40,6 +40,11 @@ export class SensorHttpController {
 
   constructor(private readonly sensorService: SensorService) {}
 
+  @Get('/sync-ten-minutes')
+  public syncTenMinutesData() {
+    return this.sensorService.syncTenMinutesData();
+  }
+  
   @UseGuards(AuthGuard)
   @Post()
   public create(

@@ -560,6 +560,8 @@ model SensorDevice {
   lastUpdatedAt BigInt?     @default(0)
   IotSensor     IotSensor?  @relation(fields: [deviceId], references: [id])
   SensorLog     SensorLog[]
+  SensorLogTenMinutes SensorLogTenMinutes[]
+  SensorLogDaily SensorLogDaily[]
   createdAt     DateTime    @default(now())
   updatedAt     DateTime    @updatedAt
 }
@@ -574,6 +576,32 @@ model SensorLog {
   createdAt   DateTime      @default(now())
   updatedAt   DateTime      @updatedAt
   iotSensorId String?
+}
+
+model SensorLogTenMinutes {
+ id          String        @id @unique @default(uuid())
+ sensorId    String?
+ sensor      SensorDevice? @relation(fields: [sensorId], references: [id])
+ type        SensorType    @default(HUMIDITY)
+ averageValue  Float         @default(0)
+ epoch       BigInt
+ interval    DateTime
+ createdAt   DateTime      @default(now())
+ updatedAt   DateTime      @updatedAt
+ iotSensorId String? 
+}
+
+model SensorLogDaily {
+ id          String        @id @unique @default(uuid())
+ sensorId    String?
+ sensor      SensorDevice? @relation(fields: [sensorId], references: [id])
+ type        SensorType    @default(HUMIDITY)
+ averageValue  Float         @default(0)
+ epoch       BigInt
+ interval    DateTime
+ createdAt   DateTime      @default(now())
+ updatedAt   DateTime      @updatedAt
+ iotSensorId String?
 }
 
 model TelegramMesasgeLog {

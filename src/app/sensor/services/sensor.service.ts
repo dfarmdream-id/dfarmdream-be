@@ -14,6 +14,7 @@ import { MqttClient, connect } from 'mqtt';
 import { JWTClaim } from '@src/app/auth/entity/jwt-claim.dto';
 import moment from 'moment';
 import { DateTime } from 'luxon';
+import { stat } from 'fs';
 
 @Injectable()
 export class SensorService {
@@ -626,6 +627,54 @@ export class SensorService {
         'Failed to get relay status',
         HttpStatus.BAD_REQUEST,
       );
+    }
+  }
+
+  async syncTenMinutesData(){
+    const result:any = await this.prismaService.$queryRaw`select * from v_sensor_log_10`;
+
+    for (const row of result) {
+      await this.prismaService.sensorLogTenMinutes.create({
+        data: {
+          type: row.type,
+          sensorId: row.sensorId,
+          iotSensorId: row.iotSensorId,
+          interval: new Date(row.interval),
+          epoch: BigInt(row.epoch),
+          averageValue: row.average_value,
+        },
+      });
+    }
+    return {
+      status: HttpStatus.OK,
+      message:"Success sync data",
+      data:{
+        total: result.length
+      }
+    }
+  }
+
+  async sync7DaysData(){
+    const result:any = await this.prismaService.$queryRaw`select * from v_sensor_log_30`;
+
+    for (const row of result) {
+      await this.prismaService.sensorLogTenMinutes.create({
+        data: {
+          type: row.type,
+          sensorId: row.sensorId,
+          iotSensorId: row.iotSensorId,
+          interval: new Date(row.interval),
+          epoch: BigInt(row.epoch),
+          averageValue: row.average_value,
+        },
+      });
+    }
+    return {
+      status: HttpStatus.OK,
+      message:"Success sync data",
+      data:{
+        total: result.length
+      }
     }
   }
 }
