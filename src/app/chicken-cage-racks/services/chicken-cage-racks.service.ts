@@ -83,11 +83,6 @@ export class ChickenCageRacksService {
             id: createChickenCageRacksDto.cageId,
           },
         },
-        batch: {
-          connect: {
-            id: createChickenCageRacksDto.batchId,
-          },
-        },
         createdAt: new Date(dateNow).toISOString(), // Konversi ke ISO-8601
         updatedAt: new Date(dateNow).toISOString(), // Konversi ke ISO-8601
       }),

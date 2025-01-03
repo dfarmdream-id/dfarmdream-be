@@ -549,7 +549,7 @@ export class WarehouseTransactionsService {
                           );
 
                         console.log('[529 COA SINGLE]', coaSingle);
-                        
+
                         const singleCoaAmount =
                           remainingBiaya <= 0
                             ? totalCurrentTransaction
@@ -623,7 +623,6 @@ export class WarehouseTransactionsService {
                         ];
 
                         if (createWarehouseTransactionsDto.isEndOfBatch) {
-
                           // updater status of batch to CLOSED
                           from(
                             this.batchRepository.update(
@@ -674,6 +673,11 @@ export class WarehouseTransactionsService {
                                 id: priceData.id,
                               },
                             },
+                            qtyCrack:
+                              createWarehouseTransactionsDto.haversts.reduce(
+                                (a, b) => a + (b.qtyCrack || 0),
+                                0,
+                              ),
                             weight: createWarehouseTransactionsDto.weight || 0,
                             code: `${DateTime.now().toFormat('ddMMyyyy')}-${Math.random() * 1000}`,
                             items: {
