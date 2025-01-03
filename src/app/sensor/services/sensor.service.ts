@@ -175,7 +175,7 @@ export class SensorService {
         },
       });
 
-      if (ldrEntry && ldrEntry.value! < 2500) {
+      if (ldrEntry && ldrEntry.value! < 1000) {
         this.mqtt.publish('d-farm/' + this.sensorId, 'RELAY1_OFF');
       } else {
         this.mqtt.publish('d-farm/' + this.sensorId, 'RELAY1_ON');
