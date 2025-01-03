@@ -344,18 +344,25 @@ export class DashboardsService {
       }[]
     >(
       Prisma.sql`
-      SELECT
-        d."name" AS disease,
-        COUNT(c."id") AS total
-      FROM "Chicken" c
-      LEFT JOIN "ChickenDisease" d ON c."diseaseId" = d."id"
-      LEFT JOIN "CageRack" cr ON c."rackId" = cr."id"
-      LEFT JOIN "Cage" cg ON cr."cageId" = cg."id"
-      WHERE cg."siteId" = ${siteId} AND c."deletedAt" IS NULL AND c."diseaseId" IS NOT NULL
-      ${cageId ? Prisma.sql`AND cg."id" = ${cageId}` : Prisma.sql``}
-      ${dateRange ? Prisma.sql`AND c."updatedAt" >= ${dateRange[0]} AND c."updatedAt" <= ${dateRange[1]}` : Prisma.sql``}
-      GROUP BY d."name"
-    `,
+        SELECT
+          d."name" AS disease,
+          COALESCE(subquery.total, 0) AS total
+        FROM "ChickenDisease" d
+               LEFT JOIN (
+          SELECT
+            c."diseaseId",
+            COUNT(c."id") AS total
+          FROM "Chicken" c
+                 LEFT JOIN "CageRack" cr ON c."rackId" = cr."id"
+                 LEFT JOIN "Cage" cg ON cr."cageId" = cg."id"
+          WHERE cg."siteId" = ${siteId}
+            AND c."deletedAt" IS NULL
+            ${cageId ? Prisma.sql`AND cg."id" = ${cageId}` : Prisma.sql``}
+            ${dateRange ? Prisma.sql`AND c."updatedAt" >= ${dateRange[0]} AND c."updatedAt" <= ${dateRange[1]}` : Prisma.sql``}
+          GROUP BY c."diseaseId"
+        ) subquery ON d."id" = subquery."diseaseId"
+        ORDER BY d."name"
+      `,
     );
 
     return from(query).pipe(

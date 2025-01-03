@@ -506,6 +506,7 @@ model WarehouseTransaction {
   cage              Cage                              @relation(fields: [cageId], references: [id])
   cageId            String
   qty               Int
+  qtyCrack          Int?                              @default(0)
   weight            Int
   type              WarehouseTransactionType          @default(IN)
   createdBy         User                              @relation(fields: [createdById], references: [id])

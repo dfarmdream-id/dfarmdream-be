@@ -1,4 +1,4 @@
-import { ApiProperty } from '@nestjs/swagger';
+import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
 import {
   WarehouseTransactionCategoryEnum,
   WarehouseTransactionType,
@@ -14,6 +14,10 @@ export class HaverstDto {
   @ApiProperty()
   @IsInt()
   qty: number;
+
+  @ApiPropertyOptional()
+  @IsInt()
+  qtyCrack?: number;
 }
 
 export class CreateWarehouseTransactionsDto {
@@ -44,7 +48,7 @@ export class CreateWarehouseTransactionsDto {
   })
   @IsEnum(WarehouseTransactionCategoryEnum)
   category: `${keyof typeof WarehouseTransactionCategoryEnum}`;
-  
+
   // journalTypeId
   @ApiProperty()
   @IsString()
@@ -53,7 +57,7 @@ export class CreateWarehouseTransactionsDto {
   @ApiProperty()
   @IsString()
   batchId: string;
-  
+
   @ApiProperty()
   isEndOfBatch: boolean;
 }
