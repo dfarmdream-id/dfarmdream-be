@@ -595,6 +595,9 @@ export class SensorService {
             },
           },
         },
+        orderBy:{
+          createdAt:'desc'
+        },
         skip: Number(skip),
         take: Number(take),
       });
