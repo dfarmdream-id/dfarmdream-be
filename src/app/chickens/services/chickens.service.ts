@@ -4,6 +4,7 @@ import { PaginationQueryDto } from 'src/common/dtos/pagination-query.dto';
 import { CreateChickensDto, UpdateChickensDto } from '../dtos';
 import { from } from 'rxjs';
 import { Prisma } from '@prisma/client';
+import { DateTime } from 'luxon';
 
 @Injectable()
 export class ChickensService {
@@ -13,6 +14,11 @@ export class ChickensService {
     paginateDto: PaginationQueryDto,
     siteId: string,
     rackId?: string | null,
+    batchId?: string | null,
+    cageId?: string | null,
+    dateRange?: string | null,
+    status?: string | null,
+    diseaseId?: string | null,
   ) {
     const { q } = paginateDto;
 
@@ -33,7 +39,21 @@ export class ChickensService {
         ...(rackId && { id: rackId }),
         cage: {
           siteId,
+          ...(cageId && { id: cageId }),
         },
+      },
+      batch: {
+        ...(batchId && { id: batchId }),
+      },
+      ...(dateRange && {
+        updatedAt: {
+          gte: DateTime.fromISO(dateRange.split(',')[0]).toJSDate(),
+          lte: DateTime.fromISO(dateRange.split(',')[1]).toJSDate(),
+        },
+      }),
+      ...(status && { status: status as any }),
+      disease: {
+        ...(diseaseId && { id: diseaseId }),
       },
       ...(searchConditions.length > 0 && { OR: searchConditions }), // Tambahkan kondisi `OR` jika ada
     };

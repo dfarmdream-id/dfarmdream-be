@@ -56,10 +56,17 @@ export class WarehouseTransactionsHttpController {
   @Get()
   public index(
     @Query() paginateDto: PaginationQueryDto,
+    @Query('batchId') batchId: string,
+    @Query('cageId') cageId: string,
+    @Query('dateRangeFilter') dateRange: string,
     @User() user: { id: string; siteId: string },
   ): Observable<ResponseEntity> {
     return this.warehousetransactionService
-      .paginate(paginateDto, user.siteId)
+      .paginate(paginateDto, user.siteId, {
+        batchId,
+        cageId,
+        dateRange,
+      })
       .pipe(
         map((data) => new ResponseEntity({ data, message: 'success' })),
         catchError((error) => {

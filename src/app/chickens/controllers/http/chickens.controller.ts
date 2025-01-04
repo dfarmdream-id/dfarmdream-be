@@ -49,14 +49,30 @@ export class ChickensHttpController {
   public index(
     @Query() paginateDto: PaginationQueryDto,
     @Query('rackId') rackId: string | null,
+    @Query('batchId') batchId: string | null,
+    @Query('cageId') cageId: string | null,
+    @Query('dateRangeFilter') dateRange: string | null,
+    @Query('status') status: string | null,
+    @Query('diseaseId') diseaseId: string | null,
     @User() user: { id: string; siteId: string },
   ): Observable<ResponseEntity> {
-    return this.chickenService.paginate(paginateDto, user.siteId, rackId).pipe(
-      map((data) => new ResponseEntity({ data, message: 'success' })),
-      catchError((error) => {
-        throw new HttpException(error.message, HttpStatus.NOT_FOUND);
-      }),
-    );
+    return this.chickenService
+      .paginate(
+        paginateDto,
+        user.siteId,
+        rackId,
+        batchId,
+        cageId,
+        dateRange,
+        status,
+        diseaseId,
+      )
+      .pipe(
+        map((data) => new ResponseEntity({ data, message: 'success' })),
+        catchError((error) => {
+          throw new HttpException(error.message, HttpStatus.NOT_FOUND);
+        }),
+      );
   }
 
   @UseGuards(AuthGuard)

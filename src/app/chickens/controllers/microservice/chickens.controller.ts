@@ -56,7 +56,9 @@ export class ChickensMicroserviceController {
 
   @MessagePattern('chicken.paginate')
   public index(@Payload() paginateDto: PaginationQueryDto) {
-    return from(this.chickenService.paginate(paginateDto, '')).pipe(
+    return from(
+      this.chickenService.paginate(paginateDto, '', '', '', '', '', '', ''),
+    ).pipe(
       map(
         (data) =>
           new ResponseEntity({

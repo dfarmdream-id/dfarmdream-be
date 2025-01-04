@@ -326,7 +326,15 @@ export class WarehouseTransactionsService {
   //   }
   // }
 
-  public paginate(paginateDto: PaginationQueryDto, siteId: string) {
+  public paginate(
+    paginateDto: PaginationQueryDto,
+    siteId: string,
+    {
+      batchId,
+      cageId,
+      dateRange,
+    }: { batchId?: string; cageId?: string; dateRange?: string },
+  ) {
     const { q } = paginateDto;
 
     const searchConditions: Prisma.WarehouseTransactionWhereInput[] = [];
@@ -370,6 +378,14 @@ export class WarehouseTransactionsService {
     const where: Prisma.WarehouseTransactionWhereInput = {
       siteId,
       ...(searchConditions.length > 0 && { OR: searchConditions }),
+      ...(batchId && { batchId }),
+      ...(cageId && { cageId }),
+      ...(dateRange && {
+        createdAt: {
+          gte: DateTime.fromISO(dateRange.split(',')[0]).toJSDate(),
+          lte: DateTime.fromISO(dateRange.split(',')[1]).toJSDate(),
+        },
+      }),
     };
 
     // Debugging untuk `where` (Opsional)
