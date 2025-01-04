@@ -14,5 +14,13 @@ export class FilterTransaksiBarangDTO {
 
   @ApiPropertyOptional()
   @IsOptional()
-  q: string;
+  q: string; 
+
+  @ApiPropertyOptional()
+  @IsOptional()
+  tanggal?:string;
+
+  @ApiPropertyOptional()
+  @IsOptional()
+  goodId?:string;
 }
