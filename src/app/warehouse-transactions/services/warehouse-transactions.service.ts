@@ -35,7 +35,11 @@ export class WarehouseTransactionsService {
 
   async sendToCashier(
     id: string,
-    { typeSell, typeCash }: { typeSell: string; typeCash: string },
+    {
+      typeSell,
+      typeCash,
+      dateCreated,
+    }: { typeSell: string; typeCash: string; dateCreated: string },
     user: JWTClaim,
   ) {
     // Helper untuk logging
@@ -99,6 +103,8 @@ export class WarehouseTransactionsService {
           credit: detail.typeLedger === 'CREDIT' ? multiplier : 0,
           debit: detail.typeLedger === 'DEBIT' ? multiplier : 0,
           note: `${notePrefix} - ${detail.coa.name}`,
+          createdAt: dateCreated,
+          updatedAt: dateCreated,
         }));
 
       const multiplier = (models.price?.value ?? 0) * models.weight;
@@ -120,6 +126,8 @@ export class WarehouseTransactionsService {
         journalTypeId: typeSell,
         cageId: models.cageId,
         siteId: models.siteId,
+        createdAt: dateCreated,
+        updatedAt: dateCreated,
         details: detailsSell,
       };
 
@@ -142,6 +150,8 @@ export class WarehouseTransactionsService {
         journalTypeId: typeCash,
         cageId: models.cageId,
         siteId: models.siteId,
+        createdAt: dateCreated,
+        updatedAt: dateCreated,
         details: detailsCash,
       };
 
@@ -153,7 +163,10 @@ export class WarehouseTransactionsService {
       // Update transaksi
       await this.prismaService.warehouseTransaction.update({
         where: { id },
-        data: { CashierDeliveryAt: new Date() },
+        data: {
+          CashierDeliveryAt: dateCreated,
+          updatedAt: dateCreated,
+        },
       });
 
       return {
@@ -619,6 +632,10 @@ export class WarehouseTransactionsService {
                                 ? 'Telur'
                                 : 'Ayam'
                             } (Batch: ${batch.name}) - ${coa.coa.name}`,
+                            createdAt:
+                              createWarehouseTransactionsDto.dateCreated,
+                            updatedAt:
+                              createWarehouseTransactionsDto.dateCreated,
                           })),
                           ...coaDetails.map((coa, idx) => ({
                             coaCode: coa.coa.code,
@@ -635,6 +652,10 @@ export class WarehouseTransactionsService {
                                 ? 'Telur'
                                 : 'Ayam'
                             } (Batch: ${batch.name}) - ${coa.coa.name}`,
+                            createdAt:
+                              createWarehouseTransactionsDto.dateCreated,
+                            updatedAt:
+                              createWarehouseTransactionsDto.dateCreated,
                           })),
                         ];
 
@@ -696,6 +717,10 @@ export class WarehouseTransactionsService {
                               ),
                             weight: createWarehouseTransactionsDto.weight || 0,
                             code: `${DateTime.now().toFormat('ddMMyyyy')}-${Math.random() * 1000}`,
+                            createdAt:
+                              createWarehouseTransactionsDto.dateCreated,
+                            updatedAt:
+                              createWarehouseTransactionsDto.dateCreated,
                             items: {
                               createMany: {
                                 data: createWarehouseTransactionsDto.haversts.map(
@@ -704,6 +729,10 @@ export class WarehouseTransactionsService {
                                       createdById: userId,
                                       rackId: item.rackId,
                                       qty: item.qty,
+                                      createdAt:
+                                        createWarehouseTransactionsDto.dateCreated,
+                                      updatedAt:
+                                        createWarehouseTransactionsDto.dateCreated,
                                     };
                                   },
                                 ),
@@ -732,6 +761,10 @@ export class WarehouseTransactionsService {
                               siteId: siteId,
                               cageId: createWarehouseTransactionsDto.cageId,
                               batchId: createWarehouseTransactionsDto.batchId,
+                              createdAt:
+                                createWarehouseTransactionsDto.dateCreated,
+                              updatedAt:
+                                createWarehouseTransactionsDto.dateCreated,
                               details: journalDetails,
                             };
 
