@@ -1,5 +1,4 @@
 import {
-  ApiPreconditionFailedResponse,
   ApiProperty,
   ApiPropertyOptional,
 } from '@nestjs/swagger';

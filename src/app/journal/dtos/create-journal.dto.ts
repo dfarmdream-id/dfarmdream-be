@@ -35,6 +35,16 @@ export class CreateJournalDetailDto {
   @ApiProperty({ description: 'Note for the transaction' })
   @IsString()
   note: string;
+
+  @ApiProperty({ description: 'createdAt' })
+  @IsString()
+  @IsOptional()
+  createdAt?: string;
+
+  @ApiProperty({ description: 'updatedAt' })
+  @IsString()
+  @IsOptional()
+  updatedAt?: string;
 }
 
 export class CreateJournalDto {
@@ -75,7 +85,7 @@ export class CreateJournalDto {
   @IsUUID()
   @IsOptional()
   cageId?: string;
-  
+
   @ApiProperty({ description: 'ID of the batch (UUID)' })
   @IsUUID()
   @IsOptional()
@@ -85,4 +95,15 @@ export class CreateJournalDto {
   @IsUUID()
   @IsOptional()
   siteId?: string;
+
+  // createdAt, updatedAt
+  @ApiProperty({ description: 'createdAt' })
+  @IsString()
+  @IsOptional()
+  createdAt?: string;
+
+  @ApiProperty({ description: 'updatedAt' })
+  @IsString()
+  @IsOptional()
+  updatedAt?: string;
 }

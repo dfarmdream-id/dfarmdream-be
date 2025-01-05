@@ -79,7 +79,7 @@ export class WarehouseTransactionsHttpController {
   @Post('cashier/:id')
   public submitToCashier(
     @Param('id') id: string,
-    @Body() body: { typeSell: string; typeCash: string },
+    @Body() body: { typeSell: string; typeCash: string; dateCreated: string },
     @User() user: JWTClaim,
   ) {
     return this.warehousetransactionService.sendToCashier(
@@ -87,6 +87,7 @@ export class WarehouseTransactionsHttpController {
       {
         typeSell: body.typeSell,
         typeCash: body.typeCash,
+        dateCreated: body.dateCreated,
       },
       user,
     );
