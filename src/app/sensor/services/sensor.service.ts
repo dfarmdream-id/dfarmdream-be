@@ -649,8 +649,8 @@ export class SensorService {
     const formattedData = data.map((item) => {
       const date = DateTime.fromFormat(item.hour, 'yyyy-MM-dd HH:mm:ss');
       return {
-        x: `${date.toFormat('HH:mm')}`,
-        // x: `${date}`,
+        // x: `${date.toFormat('HH:mm')}`,
+        x: `${date}`,
         y: Number(item.average_value.toFixed(2)),
       };
     });
