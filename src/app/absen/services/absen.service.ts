@@ -175,21 +175,22 @@ export class AbsenService {
       const { pin, event_time } = transaction;
 
       if (!acc[pin!]) {
-        acc[pin!] = { masuk: null, pulang: null };
+        acc[pin!] = { masuk: null, pulang: null, total:0 };
       }
 
+      acc[pin!].total += 1;
       // const dateTime = DateTime.fromJSDate(new Date(event_time!),{ zone: "Asia/Jakarta" });
       // const dateTime = new Date(event_time!);
 
       const hour = event_time!.getUTCHours();
-      if (hour < 12) {
+      if (hour < 15) {
         // Absen Masuk: Ambil waktu terendah
         acc[pin!].masuk = acc[pin!].masuk
           ? new Date(acc[pin!].masuk) < new Date(event_time!)
             ? acc[pin!].masuk
             : event_time
           : event_time;
-      } else if (hour >= 12 && hour < 18) {
+      } else if (hour >= 15 && hour < 18) {
         // Absen Pulang: Ambil waktu tertinggi
         acc[pin!].pulang = acc[pin!].pulang
           ? new Date(acc[pin!].pulang) > new Date(event_time!)
@@ -234,6 +235,7 @@ export class AbsenService {
                 timestampMasuk: jamAbsen.masuk,
                 timestampKeluar: jamAbsen.pulang,
                 status: jamMasuk ? 1 : 0,
+                total: jamAbsen.total ?? 0
               },
             });
           } else {
@@ -247,6 +249,7 @@ export class AbsenService {
                 timestampMasuk: jamAbsen.masuk,
                 timestampKeluar: jamAbsen.pulang,
                 status: jamMasuk ? 1 : 0,
+                total: jamAbsen??0
               },
             });
           }
