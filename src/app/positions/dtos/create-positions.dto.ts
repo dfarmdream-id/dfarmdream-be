@@ -1,5 +1,5 @@
 import { ApiProperty } from '@nestjs/swagger';
-import { IsString } from 'class-validator';
+import { IsNotEmpty, IsString } from 'class-validator';
 
 export class CreatePositionsDto {
   @ApiProperty()
@@ -13,4 +13,8 @@ export class CreatePositionsDto {
   @ApiProperty()
   @IsString()
   checkoutTime: string;
+
+  @ApiProperty()
+  @IsNotEmpty()
+  checkKandang:boolean
 }

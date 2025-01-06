@@ -191,9 +191,9 @@ model Site {
   KartuStokBarang      KartuStokBarang[]
   CashFlowCategory     CashFlowCategory[]
   AttendanceLog        AttendanceLog[]
-  JournalHeader JournalHeader[]
-  PriceLog PriceLog[]
-  Batch Batch[]
+  JournalHeader        JournalHeader[]
+  PriceLog             PriceLog[]
+  Batch                Batch[]
 }
 
 model Position {
@@ -205,6 +205,7 @@ model Position {
   createdAt    DateTime  @default(now())
   updatedAt    DateTime  @updatedAt
   user         User[]
+  checkKandang Boolean? @default(false)
 }
 
 model Province {
@@ -253,21 +254,21 @@ model SubDistrict {
 }
 
 model Cage {
-  id                   String                 @id @unique @default(uuid())
-  name                 String
-  deletedAt            DateTime?
-  createdAt            DateTime               @default(now())
-  updatedAt            DateTime               @updatedAt
-  siteId               String?
-  site                 Site?                  @relation(fields: [siteId], references: [id])
-  width                Int                    @default(0)
-  height               Int                    @default(0)
-  capacity             Int                    @default(0)
-  status               String?                @default("ACTIVE")
+  id        String    @id @unique @default(uuid())
+  name      String
+  deletedAt DateTime?
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+  siteId    String?
+  site      Site?     @relation(fields: [siteId], references: [id])
+  width     Int       @default(0)
+  height    Int       @default(0)
+  capacity  Int       @default(0)
+  status    String?   @default("ACTIVE")
 
-  batchId    String?
-  batch      Batch?    @relation(fields: [batchId], references: [id]) // Relasi ke batch
-  
+  batchId String?
+  batch   Batch?  @relation(fields: [batchId], references: [id]) // Relasi ke batch
+
   userCages            UserCage[]
   racks                CageRack[]
   cashFlow             CashFlow[]
@@ -291,8 +292,8 @@ model CageRack {
   code                      Int?
   cage                      Cage?                       @relation(fields: [cageId], references: [id])
   cageId                    String?
-  batchId    String?
-  batch      Batch?    @relation(fields: [batchId], references: [id]) // Relasi ke batch
+  batchId                   String?
+  batch                     Batch?                      @relation(fields: [batchId], references: [id]) // Relasi ke batch
   deletedAt                 DateTime?
   createdAt                 DateTime                    @default(now())
   updatedAt                 DateTime                    @updatedAt
@@ -329,8 +330,8 @@ model Chicken {
   diseaseId String?
   disease   ChickenDisease? @relation(fields: [diseaseId], references: [id])
 
-  batchId    String?
-  batch      Batch?     @relation(fields: [batchId], references: [id]) // Relasi ke batch
+  batchId String?
+  batch   Batch?  @relation(fields: [batchId], references: [id]) // Relasi ke batch
 }
 
 model Investor {
@@ -519,8 +520,8 @@ model WarehouseTransaction {
   price             Price?                            @relation(fields: [priceId], references: [id])
   priceId           String?
   CashierDeliveryAt DateTime?                         @db.Timestamptz()
-  batchId          String?
-  batch            Batch?    @relation(fields: [batchId], references: [id]) // Relasi ke batch
+  batchId           String?
+  batch             Batch?                            @relation(fields: [batchId], references: [id]) // Relasi ke batch
 }
 
 model IotSensor {
@@ -532,7 +533,7 @@ model IotSensor {
   tempThreshold      Float
   humidityThreshold  Float
   amoniaThreshold    Float?
-  ldrThreshold Float?
+  ldrThreshold       Float?
   currentTemperature Float?
   currentHumidty     Float?
   currentAmonia      Float?
@@ -554,18 +555,18 @@ enum SensorType {
 }
 
 model SensorDevice {
-  id            String      @id @unique @default(uuid())
-  code          String      @unique
-  deviceId      String?
-  type          SensorType
-  lastestValue  Float?      @default(0)
-  lastUpdatedAt BigInt?     @default(0)
-  IotSensor     IotSensor?  @relation(fields: [deviceId], references: [id])
-  SensorLog     SensorLog[]
+  id                  String                @id @unique @default(uuid())
+  code                String                @unique
+  deviceId            String?
+  type                SensorType
+  lastestValue        Float?                @default(0)
+  lastUpdatedAt       BigInt?               @default(0)
+  IotSensor           IotSensor?            @relation(fields: [deviceId], references: [id])
+  SensorLog           SensorLog[]
   SensorLogTenMinutes SensorLogTenMinutes[]
-  SensorLogDaily SensorLogDaily[]
-  createdAt     DateTime    @default(now())
-  updatedAt     DateTime    @updatedAt
+  SensorLogDaily      SensorLogDaily[]
+  createdAt           DateTime              @default(now())
+  updatedAt           DateTime              @updatedAt
 }
 
 model SensorLog {
@@ -581,29 +582,29 @@ model SensorLog {
 }
 
 model SensorLogTenMinutes {
- id          String        @id @unique @default(uuid())
- sensorId    String?
- sensor      SensorDevice? @relation(fields: [sensorId], references: [id])
- type        SensorType    @default(HUMIDITY)
- averageValue  Float         @default(0)
- epoch       BigInt
- interval    DateTime
- createdAt   DateTime      @default(now())
- updatedAt   DateTime      @updatedAt
- iotSensorId String? 
+  id           String        @id @unique @default(uuid())
+  sensorId     String?
+  sensor       SensorDevice? @relation(fields: [sensorId], references: [id])
+  type         SensorType    @default(HUMIDITY)
+  averageValue Float         @default(0)
+  epoch        BigInt
+  interval     DateTime
+  createdAt    DateTime      @default(now())
+  updatedAt    DateTime      @updatedAt
+  iotSensorId  String?
 }
 
 model SensorLogDaily {
- id          String        @id @unique @default(uuid())
- sensorId    String?
- sensor      SensorDevice? @relation(fields: [sensorId], references: [id])
- type        SensorType    @default(HUMIDITY)
- averageValue  Float         @default(0)
- epoch       BigInt
- interval    DateTime
- createdAt   DateTime      @default(now())
- updatedAt   DateTime      @updatedAt
- iotSensorId String?
+  id           String        @id @unique @default(uuid())
+  sensorId     String?
+  sensor       SensorDevice? @relation(fields: [sensorId], references: [id])
+  type         SensorType    @default(HUMIDITY)
+  averageValue Float         @default(0)
+  epoch        BigInt
+  interval     DateTime
+  createdAt    DateTime      @default(now())
+  updatedAt    DateTime      @updatedAt
+  iotSensorId  String?
 }
 
 model TelegramMesasgeLog {
@@ -706,15 +707,15 @@ model Biaya {
 
   persediaanPakanObatId String?
   persediaanPakanObat   PersediaanPakanObat? @relation(fields: [persediaanPakanObatId], references: [id])
-  
-  qtyOut               Int?
-  
-  batchId              String?
-  batch                Batch?    @relation(fields: [batchId], references: [id]) // Relasi ke batch
-  
-  deletedAt     DateTime?
-  createdAt     DateTime      @default(now())
-  updatedAt     DateTime      @updatedAt
+
+  qtyOut Int?
+
+  batchId String?
+  batch   Batch?  @relation(fields: [batchId], references: [id]) // Relasi ke batch
+
+  deletedAt DateTime?
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
 }
 
 model PenerimaanModal {
@@ -811,27 +812,27 @@ model JournalType {
 model JournalHeader {
   id           String      @id @unique @default(uuid())
   code         String
-  date          DateTime
-  userId        String
-  user          User        @relation(fields: [userId], references: [id])
-  journalType   JournalType @relation(fields: [jurnalTypeId], references: [id])
-  jurnalTypeId  String
-  debtTotal     Int
-  creditTotal   Int
-  status        String
-  
-  siteId        String?
-  site          Site?       @relation(fields: [siteId], references: [id])
-  
-  cageId        String?
-  cage          Cage?       @relation(fields: [cageId], references: [id])
-  
-  batchId       String?
-  batch         Batch?      @relation(fields: [batchId], references: [id])
-  
-  deletedAt     DateTime?
-  createdAt     DateTime    @default(now())
-  updatedAt     DateTime    @updatedAt
+  date         DateTime
+  userId       String
+  user         User        @relation(fields: [userId], references: [id])
+  journalType  JournalType @relation(fields: [jurnalTypeId], references: [id])
+  jurnalTypeId String
+  debtTotal    Int
+  creditTotal  Int
+  status       String
+
+  siteId String?
+  site   Site?   @relation(fields: [siteId], references: [id])
+
+  cageId String?
+  cage   Cage?   @relation(fields: [cageId], references: [id])
+
+  batchId String?
+  batch   Batch?  @relation(fields: [batchId], references: [id])
+
+  deletedAt DateTime?
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
 
   journalDetails JournalDetail[]
 }
@@ -893,9 +894,9 @@ model KartuStokBarang {
   status     Int?    @default(1)
   harga      Int
   total      Int
-  
-  batchId    String?
-  batch      Batch?    @relation(fields: [batchId], references: [id]) // Relasi ke batch
+
+  batchId String?
+  batch   Batch?  @relation(fields: [batchId], references: [id]) // Relasi ke batch
 
   deletedAt DateTime?
   createdAt DateTime  @default(now())
@@ -954,24 +955,24 @@ enum BatchStatus {
 }
 
 model Batch {
-  id             String     @id @unique @default(uuid())
-  name           String     @unique
-  startDate      DateTime
-  endDate        DateTime?
-  status         BatchStatus @default(ONGOING)
-  siteId         String
-  site           Site       @relation(fields: [siteId], references: [id])
-  createdAt      DateTime   @default(now())
-  updatedAt      DateTime   @updatedAt
-  deletedAt      DateTime?
+  id        String      @id @unique @default(uuid())
+  name      String      @unique
+  startDate DateTime
+  endDate   DateTime?
+  status    BatchStatus @default(ONGOING)
+  siteId    String
+  site      Site        @relation(fields: [siteId], references: [id])
+  createdAt DateTime    @default(now())
+  updatedAt DateTime    @updatedAt
+  deletedAt DateTime?
 
   chicken Chicken[]
-  cages          Cage[]     // Relasi ke kandang-kandang terkait
+  cages   Cage[] // Relasi ke kandang-kandang terkait
 
-  cageRack CageRack[]
+  cageRack             CageRack[]
   warehouseTransaction WarehouseTransaction[]
-  journalHeader JournalHeader[]
-  biaya Biaya[]
+  journalHeader        JournalHeader[]
+  biaya                Biaya[]
 
   kartuStokBarang KartuStokBarang[]
 }

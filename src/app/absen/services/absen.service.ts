@@ -355,7 +355,6 @@ export class AbsenService {
           { site: { name: { contains: filter.search, mode: 'insensitive' } } },
         ],
       };
-      queryWhere += ` AND (u."fullName" ILIKE '%${filter.search}%' OR c."name" ILIKE '%${filter.search}%' OR s."name" ILIKE '%${filter.search}%')`;
     }
 
     if (filter.tanggal) {
@@ -388,20 +387,19 @@ export class AbsenService {
     const skip: number = ((filter.page ?? 1) - 1) * (filter.limit ?? 10);
     const take: number = filter.limit ?? 10;
 
-    const listData = await this.prismaService.$queryRaw`
-    SELECT alg."userId", u."fullName", u."identityId", c.name as kandang, s.name as lokasi, 
-           MAX(alg."checkInAt") as checkInAt, alg.tanggal 
-    FROM "AttendanceLog" alg
-    INNER JOIN "User" u ON u.id = alg."userId"
-    INNER JOIN "Cage" c ON c.id = alg."cageId"
-    INNER JOIN "Site" s ON s.id = alg."siteId"
-    ${Prisma.raw(queryWhere)}
-    AND c."deletedAt" IS NULL
-    GROUP BY alg."userId", u."fullName", u."identityId", alg.tanggal, c.name, s.name
-    ORDER BY alg.tanggal DESC
-    LIMIT ${Prisma.raw(take.toString())}
-    OFFSET ${Prisma.raw(skip.toString())};`;
-
+    const listData = await this.prismaService.attendanceLog.findMany({
+      skip: Number(skip),
+      take: Number(take),
+      include:{
+        user:true,
+        cage:true,
+        site:true
+      },
+      where: where,
+      orderBy: {
+        checkInAt: 'desc',
+      },
+    });
     const totalRecords = await this.prismaService.attendanceLog.count({
       where,
     });
