@@ -176,13 +176,24 @@ export class SensorService {
           createdAt: 'desc',
         },
       });
+      const currentTimeWIB = DateTime.local().setZone('Asia/Jakarta');
+      const currentHour = currentTimeWIB.hour;
+      const currentMinute = currentTimeWIB.minute;
 
-      if (ldrEntry && ldrEntry.value! < device.ldrThreshold!) {
+      if ((currentHour >= 21 || currentHour < 4) || (currentHour === 4 && currentMinute <= 30)) {
+        // Keep relay 1 OFF
         this.mqtt.publish('d-farm/' + this.sensorId, 'RELAY1_OFF');
+        relay1Condition = 0;
       } else {
-        this.mqtt.publish('d-farm/' + this.sensorId, 'RELAY1_ON');
-        relay1Condition = 1;
+        if (ldrEntry && ldrEntry.value! < device.ldrThreshold!) {
+          this.mqtt.publish('d-farm/' + this.sensorId, 'RELAY1_OFF');
+        } else {
+          this.mqtt.publish('d-farm/' + this.sensorId, 'RELAY1_ON');
+          relay1Condition = 1;
+        }
       }
+      
+      
       setTimeout(() => {}, 1000);
       const amoniaValue = amoniaEntry ? amoniaEntry.value : 0;
       const tempValue = tempEntry ? tempEntry.value : 0;
