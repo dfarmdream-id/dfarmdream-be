@@ -180,7 +180,11 @@ export class SensorService {
       const currentHour = currentTimeWIB.hour;
       const currentMinute = currentTimeWIB.minute;
 
-      if ((currentHour >= 21 || currentHour < 4) || (currentHour === 4 && currentMinute <= 30)) {
+      if (
+        currentHour >= 21 ||
+        currentHour < 4 ||
+        (currentHour === 4 && currentMinute <= 30)
+      ) {
         // Keep relay 1 OFF
         this.mqtt.publish('d-farm/' + this.sensorId, 'RELAY1_OFF');
         relay1Condition = 0;
@@ -192,8 +196,7 @@ export class SensorService {
           relay1Condition = 1;
         }
       }
-      
-      
+
       setTimeout(() => {}, 1000);
       const amoniaValue = amoniaEntry ? amoniaEntry.value : 0;
       const tempValue = tempEntry ? tempEntry.value : 0;
@@ -300,7 +303,7 @@ export class SensorService {
   }
 
   async paginateLog(filter: PaginateSensorLog) {
-    const where = {}
+    const where = {};
     if (filter.sensorId && filter.sensorId != '') {
       Object.assign(where, {
         sensorId: filter.sensorId,
@@ -323,26 +326,25 @@ export class SensorService {
     const take: number = filter.limit ?? 10;
     const datas = await this.prismaService.sensorLogTenMinutes.findMany({
       skip: Number(skip),
-      take:Number(take),
+      take: Number(take),
       where: where,
-      orderBy:{
-        interval:'desc'
+      orderBy: {
+        interval: 'desc',
       },
-      include:{
-        sensor:true
-      }
-    })
+      include: {
+        sensor: true,
+      },
+    });
 
     const total = await this.prismaService.sensorLogTenMinutes.count({
-      where: where
-    })
+      where: where,
+    });
 
-    return new PaginatedEntity(datas,{
-      limit:filter.limit,
-      page:filter.page,
-      totalData:total
-    })    
-
+    return new PaginatedEntity(datas, {
+      limit: filter.limit,
+      page: filter.page,
+      totalData: total,
+    });
   }
 
   detail(id: string) {
@@ -404,7 +406,7 @@ export class SensorService {
 
   async getTemperatureChartDaily(filter: ChartFilterDTO, user: JWTClaim) {
     const type = SensorType.TEMP;
-    return await this.getSensorData(filter, user, type);
+    return await this.getSensorData2(filter, user, type);
   }
 
   async getAmoniaChartDaily(filter: ChartFilterDTO, user: JWTClaim) {
@@ -469,7 +471,6 @@ export class SensorService {
     let cageIds: any = [];
 
     if (user.siteId) {
-
       const cages = await this.prismaService.cage.findMany({
         where: {
           siteId: filter.siteId ?? user.siteId,
@@ -483,10 +484,10 @@ export class SensorService {
     }
 
     // const data: any = await this.prismaService.$queryRaw`
-    // SELECT 
+    // SELECT
     //   DATE_TRUNC('hour', "SensorLog"."createdAt") as hour,
     //   AVG(value) as average_value
-    // FROM "SensorLog" 
+    // FROM "SensorLog"
     // LEFT JOIN "SensorDevice" on "SensorDevice"."id" = "SensorLog"."sensorId"
     // LEFT JOIN "IotSensor" on "IotSensor"."id" = "SensorDevice"."deviceId"
     // WHERE "epoch" >= ${startOfDay}
@@ -495,7 +496,7 @@ export class SensorService {
     // GROUP BY DATE_TRUNC('hour', "SensorLog"."createdAt")
     // ORDER BY hour ASC`;
 
-  const data: any = await this.prismaService.$queryRaw`
+    const data: any = await this.prismaService.$queryRaw`
   SELECT 
     to_char(DATE_TRUNC('hour', to_timestamp(cast("SensorLog"."epoch"/1000 as bigint))), 'YYYY-MM-DD HH24:MI:SS') as hour,
     AVG(value) as average_value
@@ -506,7 +507,7 @@ export class SensorService {
   LEFT JOIN "Site" on "Site"."id" = "Cage"."siteId"
   WHERE "epoch" >= ${startOfDay}
   AND "SensorDevice"."type" = ${type}::"SensorType"
-  ${filter.siteId?Prisma.sql`AND "Site"."id" = ${filter.siteId}`:Prisma.empty}
+  ${filter.siteId ? Prisma.sql`AND "Site"."id" = ${filter.siteId}` : Prisma.empty}
   ${cageIds.length > 0 ? Prisma.sql`AND "IotSensor"."cageId" IN (${Prisma.join(cageIds)})` : Prisma.empty}
   GROUP BY to_char(DATE_TRUNC('hour', to_timestamp(cast("SensorLog"."epoch"/1000 as bigint))), 'YYYY-MM-DD HH24:MI:SS')
   ORDER BY hour ASC`;
@@ -522,8 +523,8 @@ export class SensorService {
     const formattedData = data.map((item) => {
       const date = DateTime.fromFormat(item.hour, 'yyyy-MM-dd HH:mm:ss');
       return {
-      x: `${date.toFormat('HH:mm')}`,
-      y: Number(item.average_value.toFixed(2)),
+        x: `${date.toFormat('HH:mm')}`,
+        y: Number(item.average_value.toFixed(2)),
       };
     });
     const where = {
@@ -547,7 +548,7 @@ export class SensorService {
       });
     }
 
-    if(filter.siteId){
+    if (filter.siteId) {
       Object.assign(where, {
         IotSensor: {
           cage: {
@@ -589,13 +590,13 @@ export class SensorService {
     type: SensorType,
   ) {
     const filterTanggal = filter.tanggal
-      ? new Date(filter.tanggal)
-      : new Date();
-    const startOfDay = filterTanggal.setHours(0, 0, 0, 0);
+      ? DateTime.fromISO(filter.tanggal, { zone: 'Asia/Jakarta' })
+      : DateTime.now().setZone('Asia/Jakarta');
+
+      const startOfDay = filterTanggal.startOf('day').toMillis()
     let cageIds: any = [];
 
     if (user.siteId) {
-
       const cages = await this.prismaService.cage.findMany({
         where: {
           siteId: filter.siteId ?? user.siteId,
@@ -609,10 +610,10 @@ export class SensorService {
     }
 
     // const data: any = await this.prismaService.$queryRaw`
-    // SELECT 
+    // SELECT
     //   DATE_TRUNC('hour', "SensorLog"."createdAt") as hour,
     //   AVG(value) as average_value
-    // FROM "SensorLog" 
+    // FROM "SensorLog"
     // LEFT JOIN "SensorDevice" on "SensorDevice"."id" = "SensorLog"."sensorId"
     // LEFT JOIN "IotSensor" on "IotSensor"."id" = "SensorDevice"."deviceId"
     // WHERE "epoch" >= ${startOfDay}
@@ -621,7 +622,7 @@ export class SensorService {
     // GROUP BY DATE_TRUNC('hour', "SensorLog"."createdAt")
     // ORDER BY hour ASC`;
 
-  const data: any = await this.prismaService.$queryRaw`
+    const data: any = await this.prismaService.$queryRaw`
   SELECT 
     to_char(DATE_TRUNC('hour', to_timestamp(cast("SensorLog"."epoch"/1000 as bigint))), 'YYYY-MM-DD HH24:MI:SS') as hour,
     AVG(value) as average_value
@@ -632,7 +633,7 @@ export class SensorService {
   LEFT JOIN "Site" on "Site"."id" = "Cage"."siteId"
   WHERE "epoch" >= ${startOfDay}
   AND "SensorDevice"."type" = ${type}::"SensorType"
-  ${filter.siteId?Prisma.sql`AND "Site"."id" = ${filter.siteId}`:Prisma.empty}
+  ${filter.siteId ? Prisma.sql`AND "Site"."id" = ${filter.siteId}` : Prisma.empty}
   ${cageIds.length > 0 ? Prisma.sql`AND "IotSensor"."cageId" IN (${Prisma.join(cageIds)})` : Prisma.empty}
   GROUP BY to_char(DATE_TRUNC('hour', to_timestamp(cast("SensorLog"."epoch"/1000 as bigint))), 'YYYY-MM-DD HH24:MI:SS')
   ORDER BY hour ASC`;
@@ -648,9 +649,9 @@ export class SensorService {
     const formattedData = data.map((item) => {
       const date = DateTime.fromFormat(item.hour, 'yyyy-MM-dd HH:mm:ss');
       return {
-      // x: `${date.toFormat('HH:mm')}`,
-      x: `${date}`,
-      y: Number(item.average_value.toFixed(2)),
+        x: `${date.toFormat('HH:mm')}`,
+        // x: `${date}`,
+        y: Number(item.average_value.toFixed(2)),
       };
     });
     const where = {
@@ -674,7 +675,7 @@ export class SensorService {
       });
     }
 
-    if(filter.siteId){
+    if (filter.siteId) {
       Object.assign(where, {
         IotSensor: {
           cage: {
@@ -744,15 +745,19 @@ export class SensorService {
     }
 
     if (filter.tanggal && filter.tanggal != '') {
-      const startOfDay = DateTime.fromISO(filter.tanggal, { zone: 'Asia/Jakarta' })
-      .startOf('day')
-      .toUTC()
-      .toJSDate(); // Mengonversi ke objek Date
-  
-    const endOfDay = DateTime.fromISO(filter.tanggal, { zone: 'Asia/Jakarta' })
-      .endOf('day')
-      .toUTC()
-      .toJSDate(); // Mengonversi ke objek Date
+      const startOfDay = DateTime.fromISO(filter.tanggal, {
+        zone: 'Asia/Jakarta',
+      })
+        .startOf('day')
+        .toUTC()
+        .toJSDate(); // Mengonversi ke objek Date
+
+      const endOfDay = DateTime.fromISO(filter.tanggal, {
+        zone: 'Asia/Jakarta',
+      })
+        .endOf('day')
+        .toUTC()
+        .toJSDate(); // Mengonversi ke objek Date
 
       where = {
         ...where,
@@ -762,7 +767,6 @@ export class SensorService {
         },
       };
     }
-
 
     try {
       const skip: number = ((filter.page ?? 1) - 1) * (filter.limit ?? 10);
@@ -781,8 +785,8 @@ export class SensorService {
             },
           },
         },
-        orderBy:{
-          createdAt:'desc'
+        orderBy: {
+          createdAt: 'desc',
         },
         skip: Number(skip),
         take: Number(take),
@@ -815,17 +819,18 @@ export class SensorService {
     }
   }
 
-  async syncTenMinutesData(){
-    const result:any = await this.prismaService.$queryRaw`select * from v_sensor_log_10`;
+  async syncTenMinutesData() {
+    const result: any = await this.prismaService
+      .$queryRaw`select * from v_sensor_log_10`;
 
     for (const row of result) {
       const cekData = await this.prismaService.sensorLogTenMinutes.findFirst({
-        where:{
-          epoch:BigInt(row.epoch),
-          sensorId:row.sensorId,
-        }
-      })
-      if(cekData){
+        where: {
+          epoch: BigInt(row.epoch),
+          sensorId: row.sensorId,
+        },
+      });
+      if (cekData) {
         continue;
       }
 
@@ -842,24 +847,25 @@ export class SensorService {
     }
     return {
       status: HttpStatus.OK,
-      message:"Success sync data",
-      data:{
-        total: result.length
-      }
-    }
+      message: 'Success sync data',
+      data: {
+        total: result.length,
+      },
+    };
   }
 
-  async sync30DaysData(){
-    const result:any = await this.prismaService.$queryRaw`select * from v_sensor_log_30`;
+  async sync30DaysData() {
+    const result: any = await this.prismaService
+      .$queryRaw`select * from v_sensor_log_30`;
 
     for (const row of result) {
       const cekData = await this.prismaService.sensorLogTenMinutes.findFirst({
-        where:{
-          epoch:BigInt(row.epoch),
-          sensorId:row.sensorId,
-        }
-      })
-      if(cekData){
+        where: {
+          epoch: BigInt(row.epoch),
+          sensorId: row.sensorId,
+        },
+      });
+      if (cekData) {
         continue;
       }
       await this.prismaService.sensorLogTenMinutes.create({
@@ -875,10 +881,10 @@ export class SensorService {
     }
     return {
       status: HttpStatus.OK,
-      message:"Success sync data",
-      data:{
-        total: result.length
-      }
-    }
+      message: 'Success sync data',
+      data: {
+        total: result.length,
+      },
+    };
   }
 }
