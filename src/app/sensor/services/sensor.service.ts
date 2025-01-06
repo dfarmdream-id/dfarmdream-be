@@ -404,7 +404,7 @@ export class SensorService {
 
   async getTemperatureChartDaily(filter: ChartFilterDTO, user: JWTClaim) {
     const type = SensorType.TEMP;
-    return await this.getSensorData2(filter, user, type);
+    return await this.getSensorData(filter, user, type);
   }
 
   async getAmoniaChartDaily(filter: ChartFilterDTO, user: JWTClaim) {
