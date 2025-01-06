@@ -100,12 +100,17 @@ export class JournalTemplatesService {
     ).pipe(
       switchMap((journalTemplate) => {
         if (!journalTemplate) {
-          return throwError(() => new Error('Journal template not found'));
+          return throwError(
+            () =>
+              new Error(
+                'Jurnal template tidak ditemukan, silahkan buat jurnal template terlebih dahulu',
+              ),
+          );
         }
         return of(journalTemplate);
       }),
       catchError((error) => {
-        throw new Error(`Failed to fetch journal template: ${error.message}`);
+        throw new Error(`${error.message}`);
       }),
     );
   }

@@ -60,4 +60,8 @@ export class CreateWarehouseTransactionsDto {
 
   @ApiProperty()
   isEndOfBatch: boolean;
+
+  @ApiPropertyOptional()
+  @IsString()
+  dateCreated?: string;
 }

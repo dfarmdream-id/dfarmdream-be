@@ -153,6 +153,12 @@ export class JournalService {
         },
         status: createJournalHeadersDto.status,
         user: { connect: { id: userId } },
+        ...(createJournalHeadersDto.createdAt && {
+          createdAt: createJournalHeadersDto.createdAt,
+        }),
+        ...(createJournalHeadersDto.updatedAt && {
+          updatedAt: createJournalHeadersDto.updatedAt,
+        }),
         ...(createJournalHeadersDto.batchId && {
           batch: {
             connect: {
@@ -196,6 +202,12 @@ export class JournalService {
             debit: detail.debit,
             credit: detail.credit,
             note: detail.note,
+            ...(createJournalHeadersDto.createdAt && {
+              createdAt: createJournalHeadersDto.createdAt,
+            }),
+            ...(createJournalHeadersDto.updatedAt && {
+              updatedAt: createJournalHeadersDto.updatedAt,
+            }),
           }),
         );
 
