@@ -1,8 +1,5 @@
 import { Injectable } from '@nestjs/common';
 import { ProfitLossesRepository } from '../repositories';
-import { PaginationQueryDto } from 'src/common/dtos/pagination-query.dto';
-import { CreateCoasDto, UpdateCoasDto } from '../dtos';
-import { from } from 'rxjs';
 import { PrismaService } from '@src/platform/database/services/prisma.service';
 
 @Injectable()
@@ -77,15 +74,6 @@ export class ProfitLossesService {
                 },
               },
             },
-          });
-
-          console.log({
-            gte: await this.getFirstJournalDate(), // Fungsi untuk mendapatkan tanggal pertama di journalHeader
-            lte: new Date(
-              new Date(`${year}-${month}-01`).setMonth(
-                new Date(`${year}-${month}-01`).getMonth() + 1,
-              ) - 1,
-            ), // Tanggal akhir berdasarkan input pengguna
           });
 
           debit = journalSum?._sum?.debit ?? 0;
