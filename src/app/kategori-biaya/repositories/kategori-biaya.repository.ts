@@ -31,7 +31,7 @@ export class KategoriBiayaRepository {
       where = {
         ...where,
         OR: [
-          { namaAkun: { contains: q, mode: 'insensitive' } },
+          { namaKategori: { contains: q, mode: 'insensitive' } },
           { kodeAkun: { contains: q, mode: 'insensitive' } },
         ],
       };

@@ -17,7 +17,9 @@ export class SensorDeviceService {
         where: {
           IotSensor: {
             cage: {
-              siteId: claim.siteId,
+              site: {
+                id: claim.siteId,
+              },
             },
           },
         },

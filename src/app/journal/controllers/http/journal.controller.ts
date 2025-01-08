@@ -53,6 +53,7 @@ export class JournalHttpController {
     @Query('year') year: string,
     @Query('cageId') cageId: string,
     @Query('batchId') batchId: string,
+    @User() user: { id: string; siteId: string },
   ) {
     try {
       const data = await this.journalHeaderService.getTrialBalance(
@@ -60,6 +61,7 @@ export class JournalHttpController {
         year,
         cageId,
         batchId,
+        user.siteId,
       );
       return {
         data,
@@ -78,12 +80,14 @@ export class JournalHttpController {
   async chartKeuangan(
     @Query('month') month: string,
     @Query('year') year: string,
+    @User() user: { id: string; siteId: string },
   ) {
     try {
       const data =
         await this.journalHeaderService.getChartBalanceSheetAndProfit(
           month,
           year,
+          user.siteId,
         );
       return {
         data,
@@ -103,9 +107,10 @@ export class JournalHttpController {
     @Query() paginateDto: PaginationQueryDto,
     @Query('cageId') cageId: string,
     @Query('batchId') batchId: string,
+    @User() user: { id: string; siteId: string },
   ): Observable<ResponseEntity> {
     return this.journalHeaderService
-      .paginate(paginateDto, cageId, batchId)
+      .paginate(paginateDto, cageId, batchId, user.siteId)
       .pipe(
         map((data) => new ResponseEntity({ data, message: 'success' })),
         catchError((error) => {

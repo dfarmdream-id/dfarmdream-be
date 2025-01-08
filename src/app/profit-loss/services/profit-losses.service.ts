@@ -27,6 +27,7 @@ export class ProfitLossesService {
     year: string,
     cageId: string,
     batchId: string,
+    userId: string,
   ) {
     const pendapatan = [401, 402];
     const bebanHPPTelur = [502, 503, 504];
@@ -64,6 +65,7 @@ export class ProfitLossesService {
               journalHeader: {
                 cageId,
                 batchId,
+                userId,
                 createdAt: {
                   gte: await this.getFirstJournalDate(), // Fungsi untuk mendapatkan tanggal pertama di journalHeader
                   lte: new Date(

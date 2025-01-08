@@ -38,13 +38,16 @@ export class PersediaanBarangController {
   @Get('/transaksi')
   public indexTransaksi(
     @Query() paginateDto: FilterTransaksiBarangDTO,
+    @User() user: { id: string; siteId: string },
   ): Observable<ResponseEntity> {
-    return this.persediaanBarangService.paginateTransaksi(paginateDto).pipe(
-      map((data) => new ResponseEntity({ data, message: 'success' })),
-      catchError((error) => {
-        throw new HttpException(error.message, HttpStatus.NOT_FOUND);
-      }),
-    );
+    return this.persediaanBarangService
+      .paginateTransaksi(paginateDto, user.siteId)
+      .pipe(
+        map((data) => new ResponseEntity({ data, message: 'success' })),
+        catchError((error) => {
+          throw new HttpException(error.message, HttpStatus.NOT_FOUND);
+        }),
+      );
   }
 
   @UseGuards(AuthGuard)

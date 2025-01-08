@@ -51,7 +51,11 @@ export class SensorRepository {
         this.prismaService.iotSensor.findMany({
           skip: (+page - 1) * +limit,
           take: +limit,
-          where: where,
+          where: {
+            ...where,
+            ...filter?.where,
+            deletedAt: null,
+          },
           orderBy: filter?.orderBy,
           cursor: filter?.cursor,
           include: {
