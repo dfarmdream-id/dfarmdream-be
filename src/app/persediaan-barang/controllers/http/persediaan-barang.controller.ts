@@ -34,6 +34,15 @@ export class PersediaanBarangController {
     private readonly persediaanBarangService: PersediaanBarangService,
   ) {}
 
+
+  @UseGuards(AuthGuard)
+  @Get('/dashboard')
+  public dashboard(
+    @User() user: { as: 'user' | 'investor'; id: string } & { siteId: string },
+  ) {
+    return this.persediaanBarangService.getDataDashboard(user.siteId)
+  }
+
   @UseGuards(AuthGuard)
   @Get('/transaksi')
   public indexTransaksi(

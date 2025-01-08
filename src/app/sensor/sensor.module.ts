@@ -8,6 +8,6 @@ import { SensorDeviceModule } from '../sensor-device';
   imports: [SensorDeviceModule],
   controllers: [SensorHttpController],
   providers: [SensorService, SensorRepository],
-  exports: [SensorRepository],
+  exports: [SensorRepository, SensorService],
 })
 export class SensorModule {}

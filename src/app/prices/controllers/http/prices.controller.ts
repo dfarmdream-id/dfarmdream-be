@@ -30,9 +30,9 @@ export class PricesHttpController {
   constructor(private readonly priceService: PricesService) {}
 
   @Post()
-  public async create(@Body() createPricesDto: CreatePricesDto) {
+  public async create(@Body() createPricesDto: CreatePricesDto, @User() user: { id: string; siteId: string },) {
     try {
-      const data = await this.priceService.create(createPricesDto);
+      const data = await this.priceService.create(createPricesDto,user.id);
       return new ResponseEntity({ data, message: 'success' });
     } catch (e) {
       throw new HttpException(e.message, HttpStatus.BAD_REQUEST);
@@ -54,15 +54,16 @@ export class PricesHttpController {
   }
 
   @Get('log/:id')
-  public getPriceLog(
+  public async getPriceLog(
     @Query() paginateDto: GetPricesDto,
-  ): Observable<ResponseEntity> {
-    return this.priceService.getLogData(paginateDto).pipe(
-      map((data) => new ResponseEntity({ data, message: 'success' })),
-      catchError((error) => {
-        throw new HttpException(error.message, HttpStatus.NOT_FOUND);
-      }),
-    );
+    @Param('id') id: string,
+  ) {
+    try{
+      const data = await this.priceService.getLogData(paginateDto, id);
+      return new ResponseEntity({ data, message: 'success' })
+    }catch(error){
+      throw new HttpException(error.message, HttpStatus.NOT_FOUND);
+    }
   }
 
   @Get(':id')
@@ -92,7 +93,6 @@ export class PricesHttpController {
     @Body() updatePricesDto: UpdatePricesDto,
     @User() user: { id: string },
   ) {
-    console.log('user : ', user);
     try {
       const data = await this.priceService.update(
         id,

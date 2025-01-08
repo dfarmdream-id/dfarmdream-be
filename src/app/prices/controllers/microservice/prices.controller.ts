@@ -21,8 +21,8 @@ export class PricesMicroserviceController {
   ) {}
 
   @MessagePattern('price.create')
-  public create(@Payload() createPricesDto: CreatePricesDto) {
-    return from(this.priceService.create(createPricesDto)).pipe(
+  public create(@Payload() createPricesDto: CreatePricesDto,  @User() user: { id: string; siteId: string },) {
+    return from(this.priceService.create(createPricesDto, user.id)).pipe(
       map(
         (data) =>
           new ResponseEntity({

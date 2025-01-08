@@ -7,6 +7,7 @@ import { PrismaService } from 'src/platform/database/services/prisma.service';
 import { CreatePersediaanBarang, UpdatePersediaanBarangDTO } from '../dtos';
 import { FilterPersediaanBarangDTO } from '../dtos/filter-persediaan-barang.dto';
 import { FilterTransaksiBarangDTO } from '../dtos/filter-transaksi-barang.dto';
+import moment from 'moment';
 
 export type Filter = {
   where?: Prisma.PersediaanPakanObatWhereInput;
@@ -145,6 +146,26 @@ export class PersediaanBarangRepository {
           },
         ],
       };
+    }
+
+   if (paginateDto.tanggal) {
+      const [startDate, endDate] = paginateDto.tanggal.split(',');
+      where = {
+        ...where,
+        createdAt: {
+          gte: moment(startDate).startOf('day').toDate(),
+          lte: moment(endDate).endOf('day').toDate(),
+        },
+      };
+    }
+
+    if(paginateDto.goodId){
+      where = {
+        ...where,
+        barang:{
+          goodsId: paginateDto.goodId
+        }
+      }
     }
 
     return from(

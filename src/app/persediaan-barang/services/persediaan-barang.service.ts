@@ -32,6 +32,29 @@ export class PersediaanBarangService {
     );
   }
 
+  async getDataDashboard(siteId: string) {
+    try{
+      const where = {}
+      Object.assign(where, { siteId: siteId })
+      const models = await this.prismaService.persediaanPakanObat.findMany({
+        include:{
+          goods: true
+        },
+        where: where
+      })
+      return {
+        status:HttpStatus.OK,
+        message:"Success",
+        data:models
+      }
+    }catch(e){
+      throw new HttpException(
+        'Failed to get data dashboard',
+        HttpStatus.BAD_REQUEST,
+      );
+    }
+  }
+
   detail(id: string) {
     return from(
       this.persediaanBarangRepo.firstOrThrow(

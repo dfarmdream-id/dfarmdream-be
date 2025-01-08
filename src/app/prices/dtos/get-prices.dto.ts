@@ -17,4 +17,8 @@ export class GetPricesDto extends PaginationQueryDto {
   @IsOptional()
   @IsUUID()
   siteId: string;
+
+  @ApiPropertyOptional()
+  @IsOptional()
+  tanggal?: string;
 }

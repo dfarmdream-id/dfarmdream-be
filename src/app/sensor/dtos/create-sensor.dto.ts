@@ -25,4 +25,8 @@ export class CreateSensorDTO {
   @ApiProperty()
   @IsNotEmpty()
   amoniaThreshold: number;
+
+  @ApiProperty()
+  @IsNotEmpty()
+  ldrThreshold: number;
 }

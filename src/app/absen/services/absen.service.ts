@@ -175,21 +175,22 @@ export class AbsenService {
       const { pin, event_time } = transaction;
 
       if (!acc[pin!]) {
-        acc[pin!] = { masuk: null, pulang: null };
+        acc[pin!] = { masuk: null, pulang: null, total:0 };
       }
 
+      acc[pin!].total += 1;
       // const dateTime = DateTime.fromJSDate(new Date(event_time!),{ zone: "Asia/Jakarta" });
       // const dateTime = new Date(event_time!);
 
       const hour = event_time!.getUTCHours();
-      if (hour < 12) {
+      if (hour < 15) {
         // Absen Masuk: Ambil waktu terendah
         acc[pin!].masuk = acc[pin!].masuk
           ? new Date(acc[pin!].masuk) < new Date(event_time!)
             ? acc[pin!].masuk
             : event_time
           : event_time;
-      } else if (hour >= 12 && hour < 18) {
+      } else if (hour >= 15 && hour < 18) {
         // Absen Pulang: Ambil waktu tertinggi
         acc[pin!].pulang = acc[pin!].pulang
           ? new Date(acc[pin!].pulang) > new Date(event_time!)
@@ -234,6 +235,7 @@ export class AbsenService {
                 timestampMasuk: jamAbsen.masuk,
                 timestampKeluar: jamAbsen.pulang,
                 status: jamMasuk ? 1 : 0,
+                total: jamAbsen.total ?? 0
               },
             });
           } else {
@@ -247,6 +249,7 @@ export class AbsenService {
                 timestampMasuk: jamAbsen.masuk,
                 timestampKeluar: jamAbsen.pulang,
                 status: jamMasuk ? 1 : 0,
+                total: jamAbsen??0
               },
             });
           }
@@ -280,14 +283,14 @@ export class AbsenService {
             gt: latestData.checkInAt,
           },
         };
-        console.log('lastCheckInAt', latestData.checkInAt);
+        // console.log('lastCheckInAt', latestData.checkInAt);
       }
 
       const listAccTransaction =
         await this.absenClient.acc_transaction.findMany({
           where,
         });
-      console.log('count', listAccTransaction.length);
+      // console.log('count', listAccTransaction.length);
       if (listAccTransaction.length == 0) return;
 
       for (const item of listAccTransaction) {
@@ -355,7 +358,6 @@ export class AbsenService {
           { site: { name: { contains: filter.search, mode: 'insensitive' } } },
         ],
       };
-      queryWhere += ` AND (u."fullName" ILIKE '%${filter.search}%' OR c."name" ILIKE '%${filter.search}%' OR s."name" ILIKE '%${filter.search}%')`;
     }
 
     if (filter.tanggal) {
@@ -388,20 +390,19 @@ export class AbsenService {
     const skip: number = ((filter.page ?? 1) - 1) * (filter.limit ?? 10);
     const take: number = filter.limit ?? 10;
 
-    const listData = await this.prismaService.$queryRaw`
-    SELECT alg."userId", u."fullName", u."identityId", c.name as kandang, s.name as lokasi, 
-           MAX(alg."checkInAt") as checkInAt, alg.tanggal 
-    FROM "AttendanceLog" alg
-    INNER JOIN "User" u ON u.id = alg."userId"
-    INNER JOIN "Cage" c ON c.id = alg."cageId"
-    INNER JOIN "Site" s ON s.id = alg."siteId"
-    ${Prisma.raw(queryWhere)}
-    AND c."deletedAt" IS NULL
-    GROUP BY alg."userId", u."fullName", u."identityId", alg.tanggal, c.name, s.name
-    ORDER BY alg.tanggal DESC
-    LIMIT ${Prisma.raw(take.toString())}
-    OFFSET ${Prisma.raw(skip.toString())};`;
-
+    const listData = await this.prismaService.attendanceLog.findMany({
+      skip: Number(skip),
+      take: Number(take),
+      include:{
+        user:true,
+        cage:true,
+        site:true
+      },
+      where: where,
+      orderBy: {
+        checkInAt: 'desc',
+      },
+    });
     const totalRecords = await this.prismaService.attendanceLog.count({
       where,
     });

@@ -5,6 +5,8 @@ import { from } from 'rxjs';
 import { Prisma } from '@prisma/client';
 import { GetPricesDto } from '../dtos/get-prices.dto';
 import { PrismaService } from '@src/platform/database/services/prisma.service';
+import { PaginatedEntity } from '@src/common/entities/paginated.entity';
+import moment from 'moment';
 
 @Injectable()
 export class PricesService {
@@ -20,7 +22,7 @@ export class PricesService {
           name: {
             contains: paginateDto.q,
             mode: Prisma.QueryMode.insensitive,
-          },
+          }
         },
         {
           site: {
@@ -65,26 +67,63 @@ export class PricesService {
     );
   }
 
-  getLogData(paginateDto: GetPricesDto) {
-    const where = {};
+  async getLogData(paginateDto: GetPricesDto, id:string) {
+    let where = {};
+
+    const price = await this.prismaService.price.findFirst({ where: { id } });
+
 
     if (paginateDto.siteId) {
       Object.assign(where, {
         siteId: paginateDto.siteId,
       });
+    }else{
+      Object.assign(where, {
+        siteId: price?.siteId
+      });
+    }
+    const { limit = 10, page = 1 } = paginateDto;
+
+    if(price && price.type){
+      Object.assign(where, {
+        type: price.type
+      });
     }
 
-    return from(
-      this.priceRepository.paginateLog(paginateDto, {
-        include: {
-          site: true,
+    if (paginateDto.tanggal) {
+      const [startDate, endDate] = paginateDto.tanggal.split(',');
+      where = {
+        ...where,
+        createdAt: {
+          gte: moment(startDate).startOf('day').toDate(),
+          lte: moment(endDate).endOf('day').toDate(),
         },
-        where,
-        orderBy: {
-          createdAt: 'desc',
-        },
-      }),
-    );
+      };
+    }
+
+    const data = await this.prismaService.priceLog.findMany({
+      skip: (+page - 1) * +limit,
+      take: +limit,
+      where: where,
+      orderBy: {
+        createdAt:'desc'
+      },
+      include: {
+        site:true,
+        user:true
+      },
+    })
+
+    const count= await this.prismaService.price.count({
+      where: where,
+    })
+
+    return new PaginatedEntity(data, {
+      limit,
+      page,
+      totalData: count,
+    })
+
   }
 
   public detail(id: string) {
@@ -130,7 +169,7 @@ export class PricesService {
   //   );
   // }
 
-  public async create(createPricesDto: CreatePricesDto) {
+  public async create(createPricesDto: CreatePricesDto, userId:string) {
     const savedData = await this.prismaService.price.create({
       data: {
         name: createPricesDto.name,
@@ -158,6 +197,16 @@ export class PricesService {
         status: 'INACTIVE',
       },
     });
+
+    await this.prismaService.priceLog.create({
+      data: {
+        siteId: createPricesDto.siteId,
+        type: createPricesDto.type!,
+        price: createPricesDto.value!,
+        userId: userId,
+      },
+    });
+
     return savedData;
   }
 

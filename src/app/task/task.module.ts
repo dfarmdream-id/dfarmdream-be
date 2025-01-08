@@ -3,9 +3,10 @@ import { TaskService } from './task.service';
 import { TaskController } from './task.controller';
 import { ScheduleModule } from '@nestjs/schedule';
 import { AbsenModule } from '../absen';
+import { SensorModule } from '../sensor';
 
 @Module({
-  imports: [AbsenModule],
+  imports: [AbsenModule, SensorModule],
   controllers: [TaskController],
   providers: [TaskService],
 })

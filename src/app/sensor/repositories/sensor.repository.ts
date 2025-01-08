@@ -68,6 +68,7 @@ export class SensorRepository {
         }),
         this.prismaService.iotSensor.count({
           where: {
+            ...where,
             ...filter?.where,
             deletedAt: null,
           },
