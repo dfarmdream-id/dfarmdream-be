@@ -20,7 +20,9 @@ export class SensorDeviceRepository {
 
   public paginate(paginateDto: PaginationQueryDto, filter?: Filter) {
     const { q, limit = 10, page = 1 } = paginateDto;
-    let where = {};
+    let where = {
+      ...filter?.where,
+    };
     if (q && q != '') {
       let orFilter: any = [];
 
@@ -29,15 +31,7 @@ export class SensorDeviceRepository {
       }
       where = {
         ...where,
-        OR: [
-          { code: { contains: q, mode: 'insensitive' } },
-          {
-            cage: {
-              name: { contains: q, mode: 'insensitive' },
-            },
-          },
-          ...orFilter,
-        ],
+        OR: [{ code: { contains: q, mode: 'insensitive' } }, ...orFilter],
       };
     }
     return from(

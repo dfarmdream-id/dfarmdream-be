@@ -8,13 +8,15 @@ import {
   Param,
   Post,
   Put,
-  Query,
+  Query, UseGuards,
 } from '@nestjs/common';
 import { ProfitLossesService } from 'src/app/profit-loss/services';
 import { ResponseEntity } from 'src/common/entities/response.entity';
 import { ApiTags } from '@nestjs/swagger';
 import { catchError, map } from 'rxjs';
 import { Observable } from 'rxjs';
+import {AuthGuard} from "@app/auth";
+import {User} from "@app/auth/decorators";
 
 @ApiTags('ProfitLosses')
 @Controller({
@@ -24,12 +26,15 @@ import { Observable } from 'rxjs';
 export class ProfitLossesHttpController {
   constructor(private readonly profitService: ProfitLossesService) {}
 
+  
+  @UseGuards(AuthGuard)
   @Get('profit-loss')
   async profitLosses(
     @Query('month') month: string,
     @Query('year') year: string,
     @Query('cageId') cageId: string,
     @Query('batchId') batchId: string,
+    @User() user: { id: string; siteId: string },
   ) {
     try {
       const data = await this.profitService.getProfitLoss(
@@ -37,6 +42,7 @@ export class ProfitLossesHttpController {
         year,
         cageId,
         batchId,
+        user.siteId,
       );
       return {
         data,

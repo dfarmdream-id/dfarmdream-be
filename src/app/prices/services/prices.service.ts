@@ -24,6 +24,14 @@ export class PricesService {
             mode: Prisma.QueryMode.insensitive,
           }
         },
+        {
+          site: {
+            name: {
+              contains: paginateDto.q,
+              mode: Prisma.QueryMode.insensitive,
+            },
+          },
+        },
       ],
     };
 
@@ -36,11 +44,11 @@ export class PricesService {
       });
     }
 
-    if (paginateDto.siteId) {
-      Object.assign(where, {
-        siteId: paginateDto.siteId ?? siteId,
-      });
-    }
+    // if (paginateDto.siteId) {
+    //   Object.assign(where, {
+    //     siteId: paginateDto.siteId ?? siteId,
+    //   });
+    // }
 
     return from(
       this.priceRepository.paginate(paginateDto, {
@@ -49,6 +57,7 @@ export class PricesService {
         },
         where: {
           ...where,
+          siteId,
           status: 'ACTIVE',
         },
         orderBy: {

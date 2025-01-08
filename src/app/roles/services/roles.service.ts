@@ -3,16 +3,35 @@ import { RolesRepository } from '../repositories';
 import { PaginationQueryDto } from 'src/common/dtos/pagination-query.dto';
 import { CreateRolesDto, UpdateRolesDto } from '../dtos';
 import { from } from 'rxjs';
+import { Prisma } from '@prisma/client';
 
 @Injectable()
 export class RolesService {
   constructor(private readonly roleRepository: RolesRepository) {}
 
   public paginate(paginateDto: PaginationQueryDto) {
+    let where: Prisma.RoleWhereInput = {
+      deletedAt: null,
+    };
+
+    if (paginateDto.q && paginateDto.q != '') {
+      where = {
+        ...where,
+        OR: [
+          {
+            name: {
+              contains: paginateDto.q,
+              mode: 'insensitive',
+            },
+          },
+        ],
+      };
+    }
+
     return from(
       this.roleRepository.paginate(paginateDto, {
         where: {
-          deletedAt: null,
+          ...where,
         },
         include: {
           permissions: {
@@ -61,6 +80,7 @@ export class RolesService {
       this.roleRepository.update(
         { id },
         {
+          name: updateRolesDto.name,
           permissions: {
             deleteMany: {},
             createMany: {

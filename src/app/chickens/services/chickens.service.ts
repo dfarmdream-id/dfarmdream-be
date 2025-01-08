@@ -1,8 +1,8 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, NotFoundException } from '@nestjs/common';
 import { ChickensRepository } from '../repositories';
 import { PaginationQueryDto } from 'src/common/dtos/pagination-query.dto';
 import { CreateChickensDto, UpdateChickensDto } from '../dtos';
-import { from } from 'rxjs';
+import { from, map } from 'rxjs';
 import { Prisma } from '@prisma/client';
 import { DateTime } from 'luxon';
 
@@ -79,27 +79,32 @@ export class ChickensService {
 
   public detail(id: string) {
     return from(
-      this.chickenRepository.firstOrThrow(
-        { id },
-        {
-          id: true,
-          name: true,
-          status: true,
-          rackId: true,
-          batchId: true,
-          disease: {
-            select: {
-              id: true,
-              name: true,
-              description: true,
-              symptoms: true,
-              treatment: true,
-              createdAt: true,
-              updatedAt: true,
+      this.chickenRepository
+        .find({
+          where: { id },
+          include: {
+            batch: true,
+            rack: {
+              include: {
+                cage: {
+                  include: {
+                    site: true,
+                  },
+                },
+              },
             },
+            disease: true,
           },
-        },
-      ),
+        })
+        .pipe(
+          map((data) => {
+            if (!data) {
+              throw new NotFoundException('Data tidak ditemukan');
+            }
+
+            return data[0];
+          }),
+        ),
     );
   }
 

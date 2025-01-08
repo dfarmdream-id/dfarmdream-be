@@ -1,7 +1,7 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, NotFoundException } from '@nestjs/common';
 import { CageRacksRepository } from '../repositories';
 import { CreateChickenCageRacksDto, UpdateChickenCageRacksDto } from '../dtos';
-import { from } from 'rxjs';
+import { from, map } from 'rxjs';
 import { GetCageRackDto } from '../dtos/get-cage-rack.dto';
 import { Prisma } from '@prisma/client';
 
@@ -60,7 +60,31 @@ export class ChickenCageRacksService {
   }
 
   public detail(id: string) {
-    return from(this.chickencagerackRepository.firstOrThrow({ id }));
+    return from(
+      this.chickencagerackRepository
+        .find({
+          where: {
+            id,
+          },
+          include: {
+            batch: true,
+            cage: {
+              include: {
+                site: true,
+              },
+            },
+          },
+        })
+        .pipe(
+          map((data) => {
+            if (!data) {
+              throw new NotFoundException('Data tidak ditemukan');
+            }
+
+            return data[0];
+          }),
+        ),
+    );
   }
 
   public destroy(id: string) {

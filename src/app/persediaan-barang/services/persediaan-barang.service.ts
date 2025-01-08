@@ -320,7 +320,13 @@ export class PersediaanBarangService {
     }
   }
 
-  paginateTransaksi(paginateDto: FilterTransaksiBarangDTO) {
-    return from(this.persediaanBarangRepo.paginateTransaksi(paginateDto));
+  paginateTransaksi(paginateDto: FilterTransaksiBarangDTO, siteId?: string) {
+    return from(
+      this.persediaanBarangRepo.paginateTransaksi(
+        paginateDto,
+        undefined,
+        siteId,
+      ),
+    );
   }
 }

@@ -108,11 +108,13 @@ export class PersediaanBarangRepository {
   public paginateTransaksi(
     paginateDto: FilterTransaksiBarangDTO,
     filter?: FilterTransaksi,
+    siteId?: string,
   ) {
     const { limit = 10, page = 1, q } = paginateDto;
 
     let where: any = {
       deletedAt: null,
+      siteId,
       ...filter?.where,
     };
 
@@ -122,7 +124,14 @@ export class PersediaanBarangRepository {
         OR: [
           {
             barang: {
-              namaBarang: { contains: q, mode: 'insensitive' },
+              goods: {
+                name: { contains: q, mode: 'insensitive' },
+              },
+            },
+          },
+          {
+            batch: {
+              name: { contains: q, mode: 'insensitive' },
             },
           },
           {
@@ -183,7 +192,9 @@ export class PersediaanBarangRepository {
           },
         }),
         this.prismaService.kartuStokBarang.count({
-          where: filter?.where,
+          where: {
+            ...where,
+          },
         }),
       ]),
     ).pipe(

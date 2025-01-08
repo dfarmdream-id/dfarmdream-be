@@ -187,158 +187,6 @@ export class WarehouseTransactionsService {
     return from(this.journalService.create(data, userId));
   }
 
-  // async sendToCashier(
-  //   id: string,
-  //   {
-  //     typeSell,
-  //     typeCash,
-  //   }: {
-  //     typeSell: string;
-  //     typeCash: string;
-  //   },
-  //   user: JWTClaim,
-  // ) {
-  //   const models = await this.prismaService.warehouseTransaction.findFirst({
-  //     where: { id },
-  //     include: {
-  //       price: true,
-  //     },
-  //   });
-  //
-  //   const typeSellTemplate = await this.prismaService.journalTemplate.findFirst(
-  //     {
-  //       where: {
-  //         jurnalTypeId: typeSell,
-  //       },
-  //       include: {
-  //         journalTemplateDetails: {
-  //           where: {
-  //             deletedAt: null, // Filter hanya yang tidak terhapus
-  //           },
-  //           select: {
-  //             id: true,
-  //             typeLedger: true,
-  //             status: true,
-  //             coa: {
-  //               select: {
-  //                 code: true,
-  //                 name: true,
-  //               },
-  //             },
-  //           },
-  //         },
-  //       },
-  //     },
-  //   );
-  //
-  //   const typeCashTemplate = await this.prismaService.journalTemplate.findFirst(
-  //     {
-  //       where: {
-  //         jurnalTypeId: typeCash,
-  //       },
-  //       include: {
-  //         journalTemplateDetails: {
-  //           where: {
-  //             deletedAt: null, // Filter hanya yang tidak terhapus
-  //           },
-  //           select: {
-  //             id: true,
-  //             typeLedger: true,
-  //             status: true,
-  //             coa: {
-  //               select: {
-  //                 code: true,
-  //                 name: true,
-  //               },
-  //             },
-  //           },
-  //         },
-  //       },
-  //     },
-  //   );
-  //
-  //   if (!models || !typeSellTemplate || !typeCashTemplate) {
-  //     throw new HttpException('Data not found', HttpStatus.NOT_FOUND);
-  //   }
-  //
-  //   try {
-  //     const details: CreateJournalDetailDto[] =
-  //       typeSellTemplate?.journalTemplateDetails.map((detail) => ({
-  //         coaCode: detail.coa.code,
-  //         credit:
-  //           detail.typeLedger === 'CREDIT'
-  //             ? (models?.price?.value ?? 0) * models?.weight
-  //             : 0,
-  //         debit:
-  //           detail.typeLedger === 'DEBIT'
-  //             ? (models?.price?.value ?? 0) * models?.weight
-  //             : 0,
-  //         note: `Penjualan - ${detail.coa.name}`,
-  //       })) ?? [];
-  //
-  //     const journalDto: CreateJournalDto = {
-  //       code: `PM-${Date.now()}`,
-  //       date: new Date().toISOString(),
-  //       debtTotal: details.reduce((acc, item) => acc + item.debit, 0),
-  //       creditTotal: details.reduce((acc, item) => acc + item.credit, 0),
-  //       status: '1', // Status Jurnal
-  //       journalTypeId: typeSell,
-  //       cageId: models.cageId,
-  //       siteId: models.siteId,
-  //       details,
-  //     };
-  //
-  //     this.journalService.create(journalDto, user.id);
-  //
-  //     const detailsCash: CreateJournalDetailDto[] =
-  //       typeCashTemplate?.journalTemplateDetails.map((detail) => ({
-  //         coaCode: detail.coa.code,
-  //         credit:
-  //           detail.typeLedger === 'CREDIT'
-  //             ? (models?.price?.value ?? 0) * models?.weight
-  //             : 0,
-  //         debit:
-  //           detail.typeLedger === 'DEBIT'
-  //             ? (models?.price?.value ?? 0) * models?.weight
-  //             : 0,
-  //         note: `Penerimaan Kas - ${detail.coa.name}`,
-  //       })) ?? [];
-  //
-  //     const journalDtoCash: CreateJournalDto = {
-  //       code: `PM-${Date.now()}`,
-  //       date: new Date().toISOString(),
-  //       debtTotal: detailsCash.reduce((acc, item) => acc + item.debit, 0),
-  //       creditTotal: detailsCash.reduce((acc, item) => acc + item.credit, 0),
-  //       status: '1', // Status Jurnal
-  //       journalTypeId: typeCash,
-  //       cageId: models.cageId,
-  //       siteId: models.siteId,
-  //       details: detailsCash,
-  //     };
-  //
-  //     this.journalService.create(journalDtoCash, user.id);
-  //
-  //     await this.prismaService.warehouseTransaction.update({
-  //       where: {
-  //         id: id,
-  //       },
-  //       data: {
-  //         CashierDeliveryAt: new Date(),
-  //       },
-  //     });
-  //     return {
-  //       status: HttpStatus.OK,
-  //       message: 'Success send data into cashier',
-  //       data: [],
-  //     };
-  //   } catch (e) {
-  //     throw new HttpException(
-  //       'Failed to send to cashier',
-  //       HttpStatus.BAD_REQUEST,
-  //     );
-  //   }
-  // }
-
   public paginate(
     paginateDto: PaginationQueryDto,
     siteId: string,
@@ -382,6 +230,9 @@ export class WarehouseTransactionsService {
       }
 
       searchConditions.push(
+        {
+          batch: { name: { contains: q, mode: 'insensitive' } },
+        },
         { site: { name: { contains: q, mode: 'insensitive' } } },
         { cage: { name: { contains: q, mode: 'insensitive' } } },
         { createdBy: { fullName: { contains: q, mode: 'insensitive' } } },
@@ -431,6 +282,7 @@ export class WarehouseTransactionsService {
           createdBy: true,
           items: true,
           price: true,
+          batch: true,
         },
       ),
     );

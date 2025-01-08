@@ -21,10 +21,23 @@ export class JournalTypesRepository {
 
   public paginate(paginateDto: PaginationQueryDto, filter?: Filter) {
     const { limit = 10, page = 1 } = paginateDto;
-    const where = {
+    let where = {
       ...filter?.where,
       deletedAt: null,
     };
+
+    if (paginateDto.q && paginateDto.q != '') {
+      where = {
+        ...where,
+        OR: [
+          ...(paginateDto.q.match(/^[0-9]+$/)
+            ? [{ code: parseInt(paginateDto.q) }]
+            : []),
+          { name: { contains: paginateDto.q, mode: 'insensitive' } },
+        ],
+      };
+    }
+
     return from(
       this.prismaService.$transaction([
         this.prismaService.journalType.findMany({

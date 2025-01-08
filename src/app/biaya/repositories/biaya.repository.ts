@@ -33,25 +33,41 @@ export class BiayaRepository {
         ...where,
         OR: [
           {
+            keterangan: { contains: q, mode: 'insensitive' },
+          },
+          {
             kategoriBiaya: {
-              namaKategori: { contains: q, mode: 'insentive' },
+              namaKategori: { contains: q, mode: 'insensitive' }, // Perbaikan
             },
           },
-          { tanggal: { contains: q, mode: 'insentive' } },
-          { keterangan: { contains: q, mode: 'insentive' } },
+          { tanggal: { contains: q, mode: 'insensitive' } }, // Perbaikan
+          { keterangan: { contains: q, mode: 'insensitive' } }, // Perbaikan
+          {
+            persediaanPakanObat: {
+              goods: {
+                name: { contains: q, mode: 'insensitive' }, // Perbaikan
+              },
+            },
+          },
+          {
+            batch: {
+              name: { contains: q, mode: 'insensitive' }, // Perbaikan
+            },
+          },
           {
             cage: {
-              name: { contains: q, mode: 'insensitive' },
+              name: { contains: q, mode: 'insensitive' }, // Perbaikan
             },
           },
           {
             site: {
-              name: { contains: q, mode: 'insensitive' },
+              name: { contains: q, mode: 'insensitive' }, // Perbaikan
             },
           },
         ],
       };
     }
+
     return from(
       this.prismaService.$transaction([
         this.prismaService.biaya.findMany({
@@ -63,7 +79,6 @@ export class BiayaRepository {
             tanggal: 'desc',
           },
           cursor: filter?.cursor,
-          // include: filter?.include,
           include: {
             cage: true,
             kategoriBiaya: true,

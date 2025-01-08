@@ -3,16 +3,35 @@ import { PermissionsRepository } from '../repositories';
 import { PaginationQueryDto } from 'src/common/dtos/pagination-query.dto';
 import { CreatePermissionsDto, UpdatePermissionsDto } from '../dtos';
 import { from } from 'rxjs';
+import { Prisma } from '@prisma/client';
 
 @Injectable()
 export class PermissionsService {
   constructor(private readonly permissionRepository: PermissionsRepository) {}
 
   public paginate(paginateDto: PaginationQueryDto) {
+    let where: Prisma.PermissionWhereInput = {
+      deletedAt: null,
+    };
+
+    if (paginateDto.q && paginateDto.q != '') {
+      where = {
+        ...where,
+        OR: [
+          {
+            name: {
+              contains: paginateDto.q,
+              mode: 'insensitive',
+            },
+          },
+        ],
+      };
+    }
+
     return from(
       this.permissionRepository.paginate(paginateDto, {
         where: {
-          deletedAt: null,
+          ...where,
         },
         orderBy: {
           createdAt: 'desc',

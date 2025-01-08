@@ -19,12 +19,14 @@ export class JournalService {
     paginateDto: PaginationQueryDto,
     cageId: string,
     batchId: string,
+    siteId: string,
   ) {
     const { q, dateRange } = paginateDto;
 
     // Filter tambahan untuk rentang tanggal
     const where: any = {
       deletedAt: null, // Filter journal yang tidak terhapus
+      siteId,
       cageId,
       batchId,
     };
@@ -318,6 +320,7 @@ export class JournalService {
     year: string,
     cageId: string,
     batchId: string,
+    siteId: string,
   ) {
     // Step 1: Ambil semua data COA yang isBalanceSheet = true
     const coaList = await this.prismaService.coa.findMany({
@@ -355,6 +358,7 @@ export class JournalService {
               journalHeader: {
                 cageId,
                 batchId,
+                siteId,
                 createdAt: {
                   gte: await this.getFirstJournalDate(), // Fungsi untuk mendapatkan tanggal pertama di journalHeader
                   lte: new Date(
@@ -400,7 +404,7 @@ export class JournalService {
     };
   }
 
-  async getChartBalanceSheetAndProfit(month: string, year: string) {
+  async getChartBalanceSheetAndProfit(month: string, year: string, siteId: string) {
     // if year is not provided, use current year
     if (!year) {
       year = new Date().getFullYear().toString();
@@ -475,6 +479,7 @@ export class JournalService {
             where: {
               coaCode: coa.code,
               journalHeader: {
+                siteId,
                 createdAt: {
                   gte: startDate,
                   lte: endDate,
