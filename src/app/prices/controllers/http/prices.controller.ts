@@ -29,10 +29,15 @@ import { AuthGuard } from '@src/app/auth';
 export class PricesHttpController {
   constructor(private readonly priceService: PricesService) {}
 
+  @UseGuards(AuthGuard)
   @Post()
-  public async create(@Body() createPricesDto: CreatePricesDto, @User() user: { id: string; siteId: string },) {
+  public async create(
+    @Body() createPricesDto: CreatePricesDto,
+    @User() user: { id: string; siteId: string },
+  ) {
     try {
-      const data = await this.priceService.create(createPricesDto,user.id);
+      console.log('createPricesDto : ', createPricesDto);
+      const data = await this.priceService.create(createPricesDto, user.id);
       return new ResponseEntity({ data, message: 'success' });
     } catch (e) {
       throw new HttpException(e.message, HttpStatus.BAD_REQUEST);
@@ -58,10 +63,10 @@ export class PricesHttpController {
     @Query() paginateDto: GetPricesDto,
     @Param('id') id: string,
   ) {
-    try{
+    try {
       const data = await this.priceService.getLogData(paginateDto, id);
-      return new ResponseEntity({ data, message: 'success' })
-    }catch(error){
+      return new ResponseEntity({ data, message: 'success' });
+    } catch (error) {
       throw new HttpException(error.message, HttpStatus.NOT_FOUND);
     }
   }
@@ -86,18 +91,20 @@ export class PricesHttpController {
     );
   }
 
+  @UseGuards(AuthGuard)
   @Put(':id')
   @UseGuards(AuthGuard)
   public async update(
     @Param('id') id: string,
     @Body() updatePricesDto: UpdatePricesDto,
-    @User() user: { id: string },
+    @User() user: { id: string, siteId: string },
   ) {
     try {
       const data = await this.priceService.update(
         id,
         updatePricesDto,
         user.id!,
+        user.siteId,
       );
       return new ResponseEntity({ data, message: 'success' });
     } catch (e) {

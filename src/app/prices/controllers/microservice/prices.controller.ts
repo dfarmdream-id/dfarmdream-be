@@ -122,9 +122,9 @@ export class PricesMicroserviceController {
   public update(
     @Payload('id') id: string,
     @Payload() updatePricesDto: UpdatePricesDto,
-    @User() user: { id: string },
+    @User() user: { id: string, siteId: string },
   ) {
-    return from(this.priceService.update(id, updatePricesDto, user.id)).pipe(
+    return from(this.priceService.update(id, updatePricesDto, user.id, user.siteId)).pipe(
       map(
         (data) =>
           new ResponseEntity({

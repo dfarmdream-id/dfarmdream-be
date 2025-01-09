@@ -1,0 +1,2 @@
+-- AlterTable
+ALTER TABLE "Price" ADD COLUMN     "weightPerUnit" DOUBLE PRECISION NOT NULL DEFAULT 0.0;

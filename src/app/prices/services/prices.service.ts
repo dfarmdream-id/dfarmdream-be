@@ -22,7 +22,7 @@ export class PricesService {
           name: {
             contains: paginateDto.q,
             mode: Prisma.QueryMode.insensitive,
-          }
+          },
         },
         {
           site: {
@@ -67,26 +67,25 @@ export class PricesService {
     );
   }
 
-  async getLogData(paginateDto: GetPricesDto, id:string) {
+  async getLogData(paginateDto: GetPricesDto, id: string) {
     let where = {};
 
     const price = await this.prismaService.price.findFirst({ where: { id } });
-
 
     if (paginateDto.siteId) {
       Object.assign(where, {
         siteId: paginateDto.siteId,
       });
-    }else{
+    } else {
       Object.assign(where, {
-        siteId: price?.siteId
+        siteId: price?.siteId,
       });
     }
     const { limit = 10, page = 1 } = paginateDto;
 
-    if(price && price.type){
+    if (price && price.type) {
       Object.assign(where, {
-        type: price.type
+        type: price.type,
       });
     }
 
@@ -106,24 +105,23 @@ export class PricesService {
       take: +limit,
       where: where,
       orderBy: {
-        createdAt:'desc'
+        createdAt: 'desc',
       },
       include: {
-        site:true,
-        user:true
+        site: true,
+        user: true,
       },
-    })
+    });
 
-    const count= await this.prismaService.price.count({
+    const count = await this.prismaService.price.count({
       where: where,
-    })
+    });
 
     return new PaginatedEntity(data, {
       limit,
       page,
       totalData: count,
-    })
-
+    });
   }
 
   public detail(id: string) {
@@ -169,12 +167,27 @@ export class PricesService {
   //   );
   // }
 
-  public async create(createPricesDto: CreatePricesDto, userId:string) {
+  public async create(createPricesDto: CreatePricesDto, userId: string) {
+    console.log('createPricesDto:', createPricesDto);
+
+    if (!createPricesDto.siteId) {
+      throw new Error('siteId is required');
+    }
+
+    const siteExists = await this.prismaService.site.findUnique({
+      where: { id: createPricesDto.siteId },
+    });
+
+    if (!siteExists) {
+      throw new Error(`Site with id ${createPricesDto.siteId} does not exist`);
+    }
+
     const savedData = await this.prismaService.price.create({
       data: {
         name: createPricesDto.name,
         status: createPricesDto.status,
         type: createPricesDto.type,
+        weightPerUnit: parseFloat(createPricesDto.weightPerUnit),
         value: createPricesDto.value,
         site: {
           connect: {
@@ -184,17 +197,19 @@ export class PricesService {
       },
     });
 
+    console.log('savedData:', savedData);
+
     await this.prismaService.price.updateMany({
       where: {
+        siteId: createPricesDto.siteId, // Hanya di site yang sama
+        type: createPricesDto.type, // Hanya untuk type yang sama (AYAM, TELUR, dll.)
+        status: 'ACTIVE', // Hanya yang aktif
         NOT: {
-          id: savedData.id,
-          siteId: createPricesDto.siteId,
-          type: createPricesDto.type,
+          id: savedData.id, // Jangan update data yang baru saja disimpan
         },
-        status: 'ACTIVE',
       },
       data: {
-        status: 'INACTIVE',
+        status: 'INACTIVE', // Nonaktifkan data sebelumnya
       },
     });
 
@@ -214,23 +229,35 @@ export class PricesService {
     id: string,
     updatePricesDto: UpdatePricesDto,
     userId: string,
+    siteId: string,
   ) {
+    // Parsing nilai yang seharusnya menjadi float
+    const parsedData = {
+      ...updatePricesDto,
+      siteId: siteId,
+      weightPerUnit: updatePricesDto.weightPerUnit
+        ? parseFloat(updatePricesDto.weightPerUnit)
+        : 0.0, // Jika null atau undefined, tetap null
+    };
+
+    // Update data di database
     await this.prismaService.price.update({
       where: {
         id: id,
       },
-      data: {
-        ...updatePricesDto,
-      },
+      data: parsedData,
     });
+
+    // Simpan log harga
     await this.prismaService.priceLog.create({
       data: {
-        siteId: updatePricesDto.siteId,
+        siteId: updatePricesDto.siteId!,
         type: updatePricesDto.type!,
         price: updatePricesDto.value!,
         userId: userId,
       },
     });
-    return await this.priceRepository.update({ id }, updatePricesDto);
+
+    return this.priceRepository.update({ id }, parsedData);
   }
 }

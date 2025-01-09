@@ -6,6 +6,10 @@ export class CreatePricesDto {
   @ApiProperty()
   @IsString()
   name: string;
+  
+  @ApiProperty()
+  @IsString()
+  weightPerUnit: string;
 
   @ApiProperty({
     enum: PriceStatus,
