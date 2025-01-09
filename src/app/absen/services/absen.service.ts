@@ -5,6 +5,8 @@ import { FilterAbsenDTO } from '../dtos/filter-absen.dto';
 import { DateTime } from 'luxon';
 import moment from 'moment';
 import { Prisma } from '@prisma/client';
+import { PaginatedEntity } from '@src/common/entities/paginated.entity';
+import { Message } from 'nestjs-telegraf';
 
 @Injectable()
 export class AbsenService {
@@ -175,7 +177,7 @@ export class AbsenService {
       const { pin, event_time } = transaction;
 
       if (!acc[pin!]) {
-        acc[pin!] = { masuk: null, pulang: null, total:0 };
+        acc[pin!] = { masuk: null, pulang: null, total: 0 };
       }
 
       acc[pin!].total += 1;
@@ -235,7 +237,7 @@ export class AbsenService {
                 timestampMasuk: jamAbsen.masuk,
                 timestampKeluar: jamAbsen.pulang,
                 status: jamMasuk ? 1 : 0,
-                total: jamAbsen.total ?? 0
+                total: jamAbsen.total ?? 0,
               },
             });
           } else {
@@ -249,7 +251,7 @@ export class AbsenService {
                 timestampMasuk: jamAbsen.masuk,
                 timestampKeluar: jamAbsen.pulang,
                 status: jamMasuk ? 1 : 0,
-                total: jamAbsen??0
+                total: jamAbsen ?? 0,
               },
             });
           }
@@ -305,19 +307,19 @@ export class AbsenService {
             },
           });
           const tgl = this.throwIfNull(item.event_time);
-          const dt =new Date(tgl)
-          const year = dt.getUTCFullYear();  
-          const month = String(dt.getUTCMonth() + 1).padStart(2, '0'); 
-          const day = String(dt.getUTCDate()).padStart(2, '0');  
-            
-          const formattedDate = `${year}-${month}-${day}`; 
+          const dt = new Date(tgl);
+          const year = dt.getUTCFullYear();
+          const month = String(dt.getUTCMonth() + 1).padStart(2, '0');
+          const day = String(dt.getUTCDate()).padStart(2, '0');
+
+          const formattedDate = `${year}-${month}-${day}`;
           await this.prismaService.attendanceLog.create({
             data: {
               userId: user.id,
               siteId: user.sites[0].siteId,
               cageId: user.cages[0].cageId,
               checkInAt: tgl,
-              tanggal: formattedDate
+              tanggal: formattedDate,
             },
           });
         } catch (e) {
@@ -399,10 +401,10 @@ export class AbsenService {
     const listData = await this.prismaService.attendanceLog.findMany({
       skip: Number(skip),
       take: Number(take),
-      include:{
-        user:true,
-        cage:true,
-        site:true
+      include: {
+        user: true,
+        cage: true,
+        site: true,
       },
       where: where,
       orderBy: {
@@ -413,19 +415,17 @@ export class AbsenService {
       where,
     });
     const totalPages = Math.ceil(totalRecords / (filter.limit ?? 10));
+
+    const result = new PaginatedEntity(listData, {
+      limit: filter.limit || 10,
+      page: filter.page || 1,
+      totalData: totalPages,
+    });
     return {
-      status: HttpStatus.OK,
-      message: 'Success get attendance log data',
-      data: {
-        data: listData,
-        meta: {
-          totalRecords,
-          currentPage: filter.page,
-          totalPages,
-          pageSize: filter.limit,
-        },
-      },
-    };
+      status:HttpStatus.OK,
+      message:"Success get log data",
+      data:result
+    }
   }
 
   formatToHHmm = (utcDate) => {
