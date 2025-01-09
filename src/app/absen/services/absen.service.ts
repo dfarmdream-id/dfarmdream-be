@@ -305,13 +305,19 @@ export class AbsenService {
             },
           });
           const tgl = this.throwIfNull(item.event_time);
+          const dt =new Date(tgl)
+          const year = dt.getUTCFullYear();  
+          const month = String(dt.getUTCMonth() + 1).padStart(2, '0'); 
+          const day = String(dt.getUTCDate()).padStart(2, '0');  
+            
+          const formattedDate = `${year}-${month}-${day}`; 
           await this.prismaService.attendanceLog.create({
             data: {
               userId: user.id,
               siteId: user.sites[0].siteId,
               cageId: user.cages[0].cageId,
               checkInAt: tgl,
-              tanggal: moment(tgl).format('YYYY-MM-DD'),
+              tanggal: formattedDate
             },
           });
         } catch (e) {
