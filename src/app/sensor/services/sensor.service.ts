@@ -483,19 +483,6 @@ export class SensorService {
       cageIds = [filter.cageId];
     }
 
-    // const data: any = await this.prismaService.$queryRaw`
-    // SELECT
-    //   DATE_TRUNC('hour', "SensorLog"."createdAt") as hour,
-    //   AVG(value) as average_value
-    // FROM "SensorLog"
-    // LEFT JOIN "SensorDevice" on "SensorDevice"."id" = "SensorLog"."sensorId"
-    // LEFT JOIN "IotSensor" on "IotSensor"."id" = "SensorDevice"."deviceId"
-    // WHERE "epoch" >= ${startOfDay}
-    // AND "SensorDevice"."type" = ${type}::"SensorType"
-    // ${cageIds.length > 0 ? Prisma.sql`AND "IotSensor"."cageId" IN (${Prisma.join(cageIds)})` : Prisma.empty}
-    // GROUP BY DATE_TRUNC('hour', "SensorLog"."createdAt")
-    // ORDER BY hour ASC`;
-
     const data: any = await this.prismaService.$queryRaw`
   SELECT
     to_char(DATE_TRUNC('hour', "SensorLog"."createdAt"), 'YYYY-MM-DD HH24:MI:SS') as hour,
