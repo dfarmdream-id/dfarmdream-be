@@ -103,7 +103,7 @@ export class BiayaService {
                     debit: detail.typeLedger === 'DEBIT' ? nominal : 0,
                     credit: detail.typeLedger === 'CREDIT' ? nominal : 0,
                     note: `
-                      Biaya: ${barang.goods?.name ?? 'Lainnya'} (Batch: ${payload.batchId ?? 'Tidak Diketahui'}) - ${detail.coa.name} - ${payload.keterangan}
+                      Biaya: ${barang.goods?.name ?? 'Lainnya'} - ${detail.coa.name} - ${payload.keterangan}
                     `,
                     createdAt: dateCreated,
                     updatedAt: dateCreated,
@@ -111,7 +111,7 @@ export class BiayaService {
                 });
 
               const journalDto: CreateJournalDto = {
-                code: `JN-${DateTime.now().toFormat('yy-MM')}-$$${Math.floor(Math.random() * 1000) + 1}`,
+                code: `JN-${DateTime.now().toFormat('yy-MM')}-${Math.floor(Math.random() * 1000) + 1}`,
                 date: payload.tanggal,
                 debtTotal: details.reduce((acc, curr) => acc + curr.debit, 0),
                 creditTotal: details.reduce(
@@ -211,7 +211,7 @@ export class BiayaService {
             });
 
           const journalDto: CreateJournalDto = {
-            code: `JN-${DateTime.now().toFormat('yy-MM')}-$$${Math.floor(Math.random() * 1000) + 1}`,
+            code: `JN-${DateTime.now().toFormat('yy-MM')}-${Math.floor(Math.random() * 1000) + 1}`,
             date: payload.tanggal,
             debtTotal: details.reduce((acc, curr) => acc + curr.debit, 0),
             creditTotal: details.reduce((acc, curr) => acc + curr.credit, 0),

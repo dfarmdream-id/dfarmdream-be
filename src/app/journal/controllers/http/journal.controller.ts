@@ -78,14 +78,12 @@ export class JournalHttpController {
   @UseGuards(AuthGuard)
   @Get('chart-keuangan')
   async chartKeuangan(
-    @Query('month') month: string,
     @Query('year') year: string,
     @User() user: { id: string; siteId: string },
   ) {
     try {
       const data =
         await this.journalHeaderService.getChartBalanceSheetAndProfit(
-          month,
           year,
           user.siteId,
         );

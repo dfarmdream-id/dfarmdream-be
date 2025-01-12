@@ -27,13 +27,14 @@ export class ProfitLossesService {
     year: string,
     cageId: string,
     batchId: string,
-    userId: string,
+    siteId: string,
   ) {
     const pendapatan = [401, 402];
     const bebanHPPTelur = [502, 503, 504];
     const bebanHPPAfkir = [506, 507, 508];
     const bebanOperasional = [602, 603, 604, 605, 606, 607, 608, 609];
 
+    // Fetch COA list
     const coaList = await this.prismaService.coa.findMany({
       select: {
         code: true,
@@ -42,37 +43,32 @@ export class ProfitLossesService {
         isBalanceSheet: true,
         isRetainedEarnings: true,
       },
-      orderBy: [
-        {
-          code: 'asc',
-        },
-      ],
+      orderBy: [{ code: 'asc' }],
     });
 
+    // Fetch journal details for each COA
     const result = await Promise.all(
       coaList.map(async (coa) => {
         let debit = 0;
         let credit = 0;
 
+        const startDate = new Date(`${year}-${month}-01`);
+        const endDate = new Date(
+          new Date(startDate).setMonth(startDate.getMonth() + 1) - 1,
+        );
+
         if (month !== '0' && year !== '0') {
           const journalSum = await this.prismaService.journalDetail.aggregate({
-            _sum: {
-              debit: true,
-              credit: true,
-            },
+            _sum: { debit: true, credit: true },
             where: {
-              coaCode: coa.code, // Sum transaksi hanya untuk COA tertentu
+              coaCode: coa.code,
               journalHeader: {
                 cageId,
                 batchId,
-                userId,
+                siteId,
                 createdAt: {
-                  gte: await this.getFirstJournalDate(), // Fungsi untuk mendapatkan tanggal pertama di journalHeader
-                  lte: new Date(
-                    new Date(`${year}-${month}-01`).setMonth(
-                      new Date(`${year}-${month}-01`).getMonth() + 1,
-                    ) - 1,
-                  ), // Tanggal akhir berdasarkan input pengguna
+                  gte: startDate, // Fungsi untuk mendapatkan tanggal pertama di journalHeader
+                  lte: endDate, // Tanggal akhir berdasarkan input pengguna
                 },
               },
             },
@@ -83,15 +79,35 @@ export class ProfitLossesService {
         }
 
         return {
-          _sum: {
-            debit,
-            credit,
-          },
-          coa, // Tambahkan data COA
+          _sum: { debit, credit },
+          coa,
         };
       }),
     );
 
+    // Calculate totals for each category
+    const calculateTotal = (codes: number[], isPendapatan: boolean) => {
+      return result.reduce((total, balanceSheet) => {
+        if (codes.includes(Number(balanceSheet.coa.code))) {
+          const diff = isPendapatan
+            ? balanceSheet._sum.credit - balanceSheet._sum.debit
+            : balanceSheet._sum.debit - balanceSheet._sum.credit;
+          return total + diff;
+        }
+        return total;
+      }, 0);
+    };
+
+    const totalPendapatan = calculateTotal(pendapatan, true);
+    const totalBebanHPPTelur = calculateTotal(bebanHPPTelur, false);
+    const totalBebanHPPAfkir = calculateTotal(bebanHPPAfkir, false);
+    const totalBebanOperasional = calculateTotal(bebanOperasional, false);
+
+    const netProfit =
+      totalPendapatan -
+      (totalBebanHPPTelur + totalBebanHPPAfkir + totalBebanOperasional);
+
+    // Calculate debit and credit totals
     const totalDebit = result.reduce(
       (sum, item) => sum + (item._sum.debit || 0),
       0,
@@ -100,38 +116,6 @@ export class ProfitLossesService {
       (sum, item) => sum + (item._sum.credit || 0),
       0,
     );
-
-    const totalPendapatan = result.reduce((total, balanceSheet) => {
-      if (pendapatan.includes(Number(balanceSheet.coa.code))) {
-        return total + (balanceSheet._sum.debit - balanceSheet._sum.credit);
-      }
-      return total;
-    }, 0);
-
-    const totalBebanHPPTelur = result.reduce((total, balanceSheet) => {
-      if (bebanHPPTelur.includes(Number(balanceSheet.coa.code))) {
-        return total + (balanceSheet._sum.debit - balanceSheet._sum.credit);
-      }
-      return total;
-    }, 0);
-
-    const totalBebanHPPAfkir = result.reduce((total, balanceSheet) => {
-      if (bebanHPPAfkir.includes(Number(balanceSheet.coa.code))) {
-        return total + (balanceSheet._sum.debit - balanceSheet._sum.credit);
-      }
-      return total;
-    }, 0);
-
-    const totalBebanOperasional = result.reduce((total, balanceSheet) => {
-      if (bebanOperasional.includes(Number(balanceSheet.coa.code))) {
-        return total + (balanceSheet._sum.debit - balanceSheet._sum.credit);
-      }
-      return total;
-    }, 0);
-
-    const netProfit =
-      totalPendapatan -
-      (totalBebanHPPAfkir + totalBebanHPPTelur + totalBebanOperasional);
 
     return {
       trialBalance: result,

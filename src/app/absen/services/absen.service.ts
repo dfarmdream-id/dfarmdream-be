@@ -4,7 +4,6 @@ import { PrismaService } from '@src/platform/database/services/prisma.service';
 import { FilterAbsenDTO } from '../dtos/filter-absen.dto';
 import { DateTime } from 'luxon';
 import moment from 'moment';
-import { Prisma } from '@prisma/client';
 
 @Injectable()
 export class AbsenService {
@@ -175,7 +174,7 @@ export class AbsenService {
       const { pin, event_time } = transaction;
 
       if (!acc[pin!]) {
-        acc[pin!] = { masuk: null, pulang: null, total:0 };
+        acc[pin!] = { masuk: null, pulang: null, total: 0 };
       }
 
       acc[pin!].total += 1;
@@ -235,7 +234,7 @@ export class AbsenService {
                 timestampMasuk: jamAbsen.masuk,
                 timestampKeluar: jamAbsen.pulang,
                 status: jamMasuk ? 1 : 0,
-                total: jamAbsen.total ?? 0
+                total: jamAbsen.total ?? 0,
               },
             });
           } else {
@@ -249,7 +248,7 @@ export class AbsenService {
                 timestampMasuk: jamAbsen.masuk,
                 timestampKeluar: jamAbsen.pulang,
                 status: jamMasuk ? 1 : 0,
-                total: jamAbsen??0
+                total: jamAbsen.total ?? 0,
               },
             });
           }
@@ -393,10 +392,10 @@ export class AbsenService {
     const listData = await this.prismaService.attendanceLog.findMany({
       skip: Number(skip),
       take: Number(take),
-      include:{
-        user:true,
-        cage:true,
-        site:true
+      include: {
+        user: true,
+        cage: true,
+        site: true,
       },
       where: where,
       orderBy: {

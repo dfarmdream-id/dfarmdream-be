@@ -107,7 +107,8 @@ export class WarehouseTransactionsService {
           updatedAt: dateCreated,
         }));
 
-      const multiplier = (models.price?.value ?? 0) * models.weight;
+      const unit = models.category === 'EGG' ? models.weight : models.qty;
+      const multiplier = (models.price?.value ?? 0) * unit;
 
       // Detail untuk jurnal penjualan
       const detailsSell = createJournalDetails(
@@ -123,6 +124,7 @@ export class WarehouseTransactionsService {
         debtTotal: detailsSell.reduce((acc, item) => acc + item.debit, 0),
         creditTotal: detailsSell.reduce((acc, item) => acc + item.credit, 0),
         status: '1',
+        batchId: models.batchId ?? undefined,
         journalTypeId: typeSell,
         cageId: models.cageId,
         siteId: models.siteId,
@@ -148,6 +150,7 @@ export class WarehouseTransactionsService {
         creditTotal: detailsCash.reduce((acc, item) => acc + item.credit, 0),
         status: '1',
         journalTypeId: typeCash,
+        batchId: models.batchId ?? undefined,
         cageId: models.cageId,
         siteId: models.siteId,
         createdAt: dateCreated,
@@ -400,9 +403,15 @@ export class WarehouseTransactionsService {
                           totalBiayaAvailable,
                         );
 
-                        const totalCurrentTransaction =
-                          (createWarehouseTransactionsDto?.weight ?? 0) *
-                          priceData.value;
+                        const unit =
+                          createWarehouseTransactionsDto.category === 'EGG'
+                            ? createWarehouseTransactionsDto.weight ?? 0
+                            : createWarehouseTransactionsDto.haversts.reduce(
+                                (a, b) => a + b.qty,
+                                0,
+                              );
+
+                        const totalCurrentTransaction = unit * priceData.value;
 
                         console.log(
                           '[515 TOTAL CURRENT TRANSACTION]',
