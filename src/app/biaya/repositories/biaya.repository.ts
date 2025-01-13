@@ -2,10 +2,10 @@ import { Injectable } from '@nestjs/common';
 import { from } from 'rxjs';
 import { map, catchError } from 'rxjs';
 import { Prisma } from '@prisma/client';
-import { PaginationQueryDto } from 'src/common/dtos/pagination-query.dto';
 import { PaginatedEntity } from 'src/common/entities/paginated.entity';
 import { PrismaService } from 'src/platform/database/services/prisma.service';
 import { CreateBiayaDTO } from '../dtos';
+import { FilterBiayaDto } from '@app/biaya/dtos/filter-biaya.dto';
 
 export type Filter = {
   where?: Prisma.BiayaWhereInput;
@@ -20,15 +20,25 @@ export type Filter = {
 export class BiayaRepository {
   constructor(private readonly prismaService: PrismaService) {}
 
-  public paginate(paginateDto: PaginationQueryDto, filter?: Filter) {
-    const { limit = 10, page = 1, q } = paginateDto;
+  public paginate(paginateDto: FilterBiayaDto, filter?: Filter) {
+    const {
+      limit = 10,
+      page = 1,
+      q,
+      batchId,
+      cageId,
+      dateRange,
+      categoryBiayaId,
+      goodId,
+    } = paginateDto;
 
     let where: any = {
       deletedAt: null,
       ...filter?.where,
     };
 
-    if (q && q != '') {
+    // Filter untuk pencarian (q)
+    if (q && q !== '') {
       where = {
         ...where,
         OR: [
@@ -37,34 +47,75 @@ export class BiayaRepository {
           },
           {
             kategoriBiaya: {
-              namaKategori: { contains: q, mode: 'insensitive' }, // Perbaikan
+              namaKategori: { contains: q, mode: 'insensitive' },
             },
           },
-          { tanggal: { contains: q, mode: 'insensitive' } }, // Perbaikan
-          { keterangan: { contains: q, mode: 'insensitive' } }, // Perbaikan
+          { tanggal: { contains: q, mode: 'insensitive' } },
           {
             persediaanPakanObat: {
               goods: {
-                name: { contains: q, mode: 'insensitive' }, // Perbaikan
+                name: { contains: q, mode: 'insensitive' },
               },
             },
           },
           {
             batch: {
-              name: { contains: q, mode: 'insensitive' }, // Perbaikan
+              name: { contains: q, mode: 'insensitive' },
             },
           },
           {
             cage: {
-              name: { contains: q, mode: 'insensitive' }, // Perbaikan
+              name: { contains: q, mode: 'insensitive' },
             },
           },
           {
             site: {
-              name: { contains: q, mode: 'insensitive' }, // Perbaikan
+              name: { contains: q, mode: 'insensitive' },
             },
           },
         ],
+      };
+    }
+
+    if (batchId) {
+      where = {
+        ...where,
+        batchId,
+      };
+    }
+
+    if (cageId) {
+      where = {
+        ...where,
+        cageId,
+      };
+    }
+
+    if (categoryBiayaId) {
+      where = {
+        ...where,
+        kategoriId: categoryBiayaId,
+      };
+    }
+
+    if (goodId) {
+      where = {
+        ...where,
+        persediaanPakanObat: {
+          goods: {
+            id: goodId,
+          },
+        },
+      };
+    }
+
+    if (dateRange?.start && dateRange?.end) {
+      where = {
+        ...where,
+        createdAt: {
+          gte: new Date(dateRange.start).toISOString(),
+          lte: new Date(dateRange.end).toISOString(),
+        },
       };
     }
 
@@ -93,7 +144,7 @@ export class BiayaRepository {
           },
         }),
         this.prismaService.biaya.count({
-          where: filter?.where,
+          where: where,
         }),
       ]),
     ).pipe(

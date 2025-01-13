@@ -7,6 +7,13 @@ import { JournalDetailRepository } from '@app/journal/repositories/journal-detai
 import { DateTime } from 'luxon';
 import { PrismaService } from 'src/platform/database/services/prisma.service';
 
+export interface ChartData {
+  month: number;
+  totalAsset: number;
+  totalEquitas: number;
+  netProfit: number;
+}
+
 @Injectable()
 export class JournalService {
   constructor(
@@ -57,6 +64,12 @@ export class JournalService {
         where,
         include: {
           journalType: {
+            select: {
+              id: true,
+              name: true,
+            },
+          },
+          batch: {
             select: {
               id: true,
               name: true,
@@ -341,6 +354,11 @@ export class JournalService {
       ],
     });
 
+    const startDate = new Date(`${year}-${month}-01`);
+    const endDate = new Date(
+      new Date(startDate).setMonth(startDate.getMonth() + 1) - 1,
+    );
+
     // Step 2: Map COA dan cari jurnal terkait, sum debit dan kredit
     const result = await Promise.all(
       coaList.map(async (coa) => {
@@ -360,12 +378,8 @@ export class JournalService {
                 batchId,
                 siteId,
                 createdAt: {
-                  gte: await this.getFirstJournalDate(), // Fungsi untuk mendapatkan tanggal pertama di journalHeader
-                  lte: new Date(
-                    new Date(`${year}-${month}-01`).setMonth(
-                      new Date(`${year}-${month}-01`).getMonth() + 1,
-                    ) - 1,
-                  ), // Tanggal akhir berdasarkan input pengguna
+                  gte: startDate, // Fungsi untuk mendapatkan tanggal pertama di journalHeader
+                  lte: endDate, // Tanggal akhir berdasarkan input pengguna
                 },
               },
             },
@@ -404,27 +418,10 @@ export class JournalService {
     };
   }
 
-  async getChartBalanceSheetAndProfit(month: string, year: string, siteId: string) {
-    // if year is not provided, use current year
+  async getChartBalanceSheetAndProfit(year: string, siteId: string) {
     if (!year) {
       year = new Date().getFullYear().toString();
     }
-
-    // Step 1: Ambil semua data COA
-    const coaList = await this.prismaService.coa.findMany({
-      select: {
-        code: true,
-        name: true,
-        level: true,
-        isBalanceSheet: true,
-        isRetainedEarnings: true,
-      },
-      orderBy: [
-        {
-          code: 'asc',
-        },
-      ],
-    });
 
     // Group codes for categorization
     const categories = {
@@ -440,7 +437,17 @@ export class JournalService {
       bebanOperasional: [602, 603, 604, 605, 606, 607, 608, 609],
     };
 
-    // Helper function to calculate totals
+    const coaList = await this.prismaService.coa.findMany({
+      select: {
+        code: true,
+        name: true,
+        level: true,
+        isBalanceSheet: true,
+        isRetainedEarnings: true,
+      },
+      orderBy: [{ code: 'asc' }],
+    });
+
     const calculateTotal = (result, codes: number[], isCredit = false) =>
       result.reduce((total, item) => {
         if (codes.includes(Number(item.coa.code))) {
@@ -454,13 +461,8 @@ export class JournalService {
         return total;
       }, 0);
 
-    // Step 2: Iterasi untuk setiap bulan dalam tahun
-    const chartData: {
-      month: number;
-      totalAsset: number;
-      totalEquitas: number;
-      netProfit: number;
-    }[] = [];
+    const chartData: ChartData[] = [];
+
     for (let month = 1; month <= 12; month++) {
       const startDate = new Date(
         `${year}-${month.toString().padStart(2, '0')}-01`,
@@ -469,21 +471,18 @@ export class JournalService {
         new Date(startDate).setMonth(startDate.getMonth() + 1) - 1,
       );
 
+      console.log('startDate', startDate);
+      console.log('endDate', endDate);
+
       const result = await Promise.all(
         coaList.map(async (coa) => {
           const journalSum = await this.prismaService.journalDetail.aggregate({
-            _sum: {
-              debit: true,
-              credit: true,
-            },
+            _sum: { debit: true, credit: true },
             where: {
               coaCode: coa.code,
               journalHeader: {
                 siteId,
-                createdAt: {
-                  gte: startDate,
-                  lte: endDate,
-                },
+                createdAt: { gte: startDate, lte: endDate },
               },
             },
           });
@@ -498,6 +497,8 @@ export class JournalService {
         }),
       );
 
+      console.log('result', result);
+
       // Calculate totals for the month
       const totalAsset = calculateTotal(result, [
         ...categories.kasDanSetaraKas,
@@ -506,7 +507,13 @@ export class JournalService {
         ...categories.assetTetap,
       ]);
 
-      const totalPendapatan = calculateTotal(result, categories.pendapatan);
+      console.log('totalAsset', totalAsset);
+
+      const totalPendapatan = calculateTotal(
+        result,
+        categories.pendapatan,
+        true,
+      );
       const totalBebanHPPTelur = calculateTotal(
         result,
         categories.bebanHPPTelur,
@@ -525,13 +532,8 @@ export class JournalService {
         (totalBebanHPPTelur + totalBebanHPPAfkir + totalBebanOperasional);
 
       const totalEquitas =
-        calculateTotal(
-          result,
-          [...categories.utangDagang, ...categories.modal],
-          true,
-        ) + netProfit;
+        calculateTotal(result, [...categories.modal], true) + netProfit;
 
-      // Push data for the month
       chartData.push({
         month,
         totalAsset,

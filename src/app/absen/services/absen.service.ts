@@ -3,10 +3,7 @@ import { PrismaAbsenService } from '@src/platform/database/services/prisma-absen
 import { PrismaService } from '@src/platform/database/services/prisma.service';
 import { FilterAbsenDTO } from '../dtos/filter-absen.dto';
 import { DateTime } from 'luxon';
-import moment from 'moment';
-import { Prisma } from '@prisma/client';
 import { PaginatedEntity } from '@src/common/entities/paginated.entity';
-import { Message } from 'nestjs-telegraf';
 
 @Injectable()
 export class AbsenService {
@@ -251,7 +248,7 @@ export class AbsenService {
                 timestampMasuk: jamAbsen.masuk,
                 timestampKeluar: jamAbsen.pulang,
                 status: jamMasuk ? 1 : 0,
-                total: jamAbsen ?? 0,
+                total: jamAbsen.total ?? 0,
               },
             });
           }
@@ -422,10 +419,10 @@ export class AbsenService {
       totalData: totalPages,
     });
     return {
-      status:HttpStatus.OK,
-      message:"Success get log data",
-      data:result
-    }
+      status: HttpStatus.OK,
+      message: 'Success get log data',
+      data: result,
+    };
   }
 
   formatToHHmm = (utcDate) => {

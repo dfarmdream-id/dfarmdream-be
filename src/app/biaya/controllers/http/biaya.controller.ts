@@ -20,6 +20,7 @@ import { AuthGuard } from '@src/app/auth';
 import { BiayaService } from '../../services';
 import { CreateBiayaDTO, UpdateBiayaDTO } from '../../dtos';
 import { User } from '@src/app/auth/decorators';
+import {FilterBiayaDto} from "@app/biaya/dtos/filter-biaya.dto";
 
 @ApiSecurity('JWT')
 @ApiTags('Biaya')
@@ -48,7 +49,7 @@ export class BiayaController {
   @UseGuards(AuthGuard)
   @Get()
   public index(
-    @Query() paginateDto: PaginationQueryDto,
+    @Query() paginateDto: FilterBiayaDto,
     @User() user: { siteId: string },
   ): Observable<ResponseEntity> {
     return this.biayaService.paginate(paginateDto, user.siteId).pipe(

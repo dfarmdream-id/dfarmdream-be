@@ -182,6 +182,7 @@ export class PersediaanBarangService {
             (acc, item) => acc + item.credit,
             0,
           ),
+          batchId: payload.batchId,
           status: '1',
           journalTypeId: payload.journalTypeId as string,
           cageId: payload.cageId,

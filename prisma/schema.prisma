@@ -437,6 +437,7 @@ model Price {
   id     String       @id @default(uuid())
   name   String
   type   PriceType
+  weightPerUnit      Float        @default(0.0)
   status PriceStatus? @default(ACTIVE)
   value  Int          @default(0)
   site   Site?        @relation(fields: [siteId], references: [id])
