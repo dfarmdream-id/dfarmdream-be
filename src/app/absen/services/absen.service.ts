@@ -3,7 +3,7 @@ import { PrismaAbsenService } from '@src/platform/database/services/prisma-absen
 import { PrismaService } from '@src/platform/database/services/prisma.service';
 import { FilterAbsenDTO } from '../dtos/filter-absen.dto';
 import { DateTime } from 'luxon';
-import moment from 'moment';
+import { PaginatedEntity } from '@src/common/entities/paginated.entity';
 
 @Injectable()
 export class AbsenService {
@@ -304,13 +304,19 @@ export class AbsenService {
             },
           });
           const tgl = this.throwIfNull(item.event_time);
+          const dt = new Date(tgl);
+          const year = dt.getUTCFullYear();
+          const month = String(dt.getUTCMonth() + 1).padStart(2, '0');
+          const day = String(dt.getUTCDate()).padStart(2, '0');
+
+          const formattedDate = `${year}-${month}-${day}`;
           await this.prismaService.attendanceLog.create({
             data: {
               userId: user.id,
               siteId: user.sites[0].siteId,
               cageId: user.cages[0].cageId,
               checkInAt: tgl,
-              tanggal: moment(tgl).format('YYYY-MM-DD'),
+              tanggal: formattedDate,
             },
           });
         } catch (e) {
@@ -406,18 +412,16 @@ export class AbsenService {
       where,
     });
     const totalPages = Math.ceil(totalRecords / (filter.limit ?? 10));
+
+    const result = new PaginatedEntity(listData, {
+      limit: filter.limit || 10,
+      page: filter.page || 1,
+      totalData: totalPages,
+    });
     return {
       status: HttpStatus.OK,
-      message: 'Success get attendance log data',
-      data: {
-        data: listData,
-        meta: {
-          totalRecords,
-          currentPage: filter.page,
-          totalPages,
-          pageSize: filter.limit,
-        },
-      },
+      message: 'Success get log data',
+      data: result,
     };
   }
 
