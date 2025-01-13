@@ -1,5 +1,4 @@
 import { HttpException, HttpStatus, Injectable } from '@nestjs/common';
-import { PaginationQueryDto } from '@src/common/dtos/pagination-query.dto';
 import { catchError, from, Observable, switchMap, throwError } from 'rxjs';
 import { BiayaRepository } from '../repositories';
 import { CreateBiayaDTO, UpdateBiayaDTO } from '../dtos';
@@ -8,6 +7,7 @@ import { DateTime } from 'luxon';
 import { JournalService } from '@app/journal/services';
 import { JournalTemplatesService } from '@app/journal-templates/services';
 import { CreateJournalDetailDto, CreateJournalDto } from '@app/journal/dtos';
+import { FilterBiayaDto } from '@app/biaya/dtos/filter-biaya.dto';
 
 @Injectable()
 export class BiayaService {
@@ -18,7 +18,7 @@ export class BiayaService {
     private readonly prismaService: PrismaService,
   ) {}
 
-  paginate(paginateDto: PaginationQueryDto, siteId: string) {
+  paginate(paginateDto: FilterBiayaDto, siteId: string) {
     return from(
       this.biayaRepository.paginate(paginateDto, {
         where: { siteId },
