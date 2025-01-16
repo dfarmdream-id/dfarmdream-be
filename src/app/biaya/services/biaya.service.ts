@@ -295,10 +295,10 @@ export class BiayaService {
         costs.push(...locationCosts);
       }
     }
-    
-    costs.forEach((cost) => {
-      this.create(cost as CreateBiayaDTO).subscribe();
-    });
+
+    // costs.forEach((cost) => {
+    //   this.create(cost as CreateBiayaDTO).subscribe();
+    // });
 
     return costs;
   };
