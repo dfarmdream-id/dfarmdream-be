@@ -1,7 +1,4 @@
-import {
-  ApiProperty,
-  ApiPropertyOptional,
-} from '@nestjs/swagger';
+import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
 import { IsNotEmpty, IsOptional, IsString } from 'class-validator';
 
 export class CreateBiayaDTO {
@@ -48,7 +45,7 @@ export class CreateBiayaDTO {
   @ApiPropertyOptional()
   @IsOptional()
   qty: string;
-  
+
   @ApiPropertyOptional()
   @IsOptional()
   keterangan: string;

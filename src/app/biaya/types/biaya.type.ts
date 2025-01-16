@@ -13,3 +13,11 @@ export interface CreateJournalDetailDto {
   credit: number;
   note: string;
 }
+
+export type CostItem = {
+  item: string;
+  quantity: number;
+  price: number;
+  inputPerDay: number;
+  dailyCostAmount: number;
+};

@@ -14,13 +14,13 @@ import {
 import { PaginationQueryDto } from 'src/common/dtos/pagination-query.dto';
 import { ResponseEntity } from 'src/common/entities/response.entity';
 import { ApiSecurity, ApiTags } from '@nestjs/swagger';
-import { catchError, map } from 'rxjs';
+import {catchError, from, map} from 'rxjs';
 import { Observable } from 'rxjs';
 import { AuthGuard } from '@src/app/auth';
 import { BiayaService } from '../../services';
 import { CreateBiayaDTO, UpdateBiayaDTO } from '../../dtos';
 import { User } from '@src/app/auth/decorators';
-import {FilterBiayaDto} from "@app/biaya/dtos/filter-biaya.dto";
+import { FilterBiayaDto } from '@app/biaya/dtos/filter-biaya.dto';
 
 @ApiSecurity('JWT')
 @ApiTags('Biaya')
@@ -53,6 +53,17 @@ export class BiayaController {
     @User() user: { siteId: string },
   ): Observable<ResponseEntity> {
     return this.biayaService.paginate(paginateDto, user.siteId).pipe(
+      map((data) => new ResponseEntity({ data, message: 'success' })),
+      catchError((error) => {
+        throw new HttpException(error.message, HttpStatus.NOT_FOUND);
+      }),
+    );
+  }
+
+  @UseGuards(AuthGuard)
+  @Get('generate-daily-cost')
+  public handleDailyCostGeneration(): Observable<ResponseEntity> {
+    return from(this.biayaService.handleDailyCostGeneration()).pipe(
       map((data) => new ResponseEntity({ data, message: 'success' })),
       catchError((error) => {
         throw new HttpException(error.message, HttpStatus.NOT_FOUND);

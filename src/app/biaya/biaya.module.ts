@@ -21,5 +21,6 @@ import { JournalTemplateDetailsRepository } from '@app/journal-templates/reposit
     JournalTemplatesRepository,
     JournalTemplateDetailsRepository,
   ],
+  exports: [BiayaService, BiayaRepository],
 })
 export class BiayaModule {}

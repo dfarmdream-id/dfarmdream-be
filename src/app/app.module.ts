@@ -42,7 +42,7 @@ import { ChickenDiseasesModule } from './chickendiseases';
 import { GoodsModule } from './goods';
 import { ProfitLossesModule } from './profit-loss';
 import { TelegramLogModule } from './telegram-log';
-import {BatchesModule} from "@app/batches";
+import { BatchesModule } from '@app/batches';
 
 @ApiTags('App Spec')
 @Controller()

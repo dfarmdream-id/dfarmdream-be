@@ -320,7 +320,7 @@ enum ChickenStatus {
 model Chicken {
   id        String         @id @unique @default(uuid())
   name      String
-  status    ChickenStatus? @default(ALIVE)
+    status    ChickenStatus? @default(ALIVE)
   rack      CageRack?      @relation(fields: [rackId], references: [id])
   rackId    String?
   deletedAt DateTime?
