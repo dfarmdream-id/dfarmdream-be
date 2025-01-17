@@ -535,6 +535,9 @@ model IotSensor {
   humidityThreshold  Float
   amoniaThreshold    Float?
   ldrThreshold       Float?
+  tempMinThreshold Float?
+  humidityMinThreshold Float?
+  amoniaMinThreshold Float?
   currentTemperature Float?
   currentHumidty     Float?
   currentAmonia      Float?
