@@ -468,6 +468,7 @@ export class SensorService {
       ? new Date(filter.tanggal)
       : new Date();
     const startOfDay = filterTanggal.setHours(0, 0, 0, 0);
+    const endOfDay = filterTanggal.setHours(23, 59, 59, 999);
     let cageIds: any = [];
 
     if (user.siteId) {
@@ -492,7 +493,7 @@ export class SensorService {
   LEFT JOIN "IotSensor" on "IotSensor"."id" = "SensorDevice"."deviceId"
   LEFT JOIN "Cage" on "Cage"."id" = "IotSensor"."cageId"
   LEFT JOIN "Site" on "Site"."id" = "Cage"."siteId"
-  WHERE "epoch">=${startOfDay} AND "SensorDevice"."type" = ${type}::"SensorType"
+  WHERE "epoch">=${startOfDay} AND "epoch"<=${endOfDay} AND "SensorDevice"."type" = ${type}::"SensorType"
   ${filter.siteId ? Prisma.sql`AND "Site"."id" = ${filter.siteId}` : Prisma.empty}
   ${cageIds.length > 0 ? Prisma.sql`AND "IotSensor"."cageId" IN (${Prisma.join(cageIds)})` : Prisma.empty}
   GROUP BY to_char(DATE_TRUNC('hour', "SensorLog"."createdAt"), 'YYYY-MM-DD HH24:MI:SS')

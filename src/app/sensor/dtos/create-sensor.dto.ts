@@ -16,6 +16,18 @@ export class CreateSensorDTO {
 
   @ApiProperty()
   @IsNotEmpty()
+  tempMinThreshold: number;
+
+  @ApiProperty()
+  @IsNotEmpty()
+  humidityMinThreshold: number;
+
+  @ApiProperty()
+  @IsNotEmpty()
+  amoniaMinThreshold: number;
+
+  @ApiProperty()
+  @IsNotEmpty()
   tempThreshold: number;
 
   @ApiProperty()
