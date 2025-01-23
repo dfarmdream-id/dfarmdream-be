@@ -41,17 +41,6 @@ export class BiayaService {
     return from(this.biayaRepository.delete({ id }));
   }
   handleDailyCostGeneration = async () => {
-    const batchOnGoingData = await this.prismaService.batch.findMany({
-      where: { status: 'ONGOING' },
-    });
-
-    if (batchOnGoingData.length === 0) {
-      console.log('No batch ongoing');
-      return;
-    }
-
-    const batchOnGoing = batchOnGoingData[0];
-
     const locations = await this.prismaService.site.findMany({
       where: { deletedAt: null },
       include: {
@@ -63,12 +52,12 @@ export class BiayaService {
 
     const date = DateTime.now().toFormat('yyyy-MM-dd');
 
-    const chickenFeedRate = 0.12;
+    // const chickenFeedRate = 0.12;
     const depreciationRate = 0.025;
     const eggTrayCapacity = 30;
     const eggCrateCapacity = 240;
     const docLifeSpan = 90;
-    const ovkDenominator = 490;
+    // const ovkDenominator = 490;
 
     const cleaningCostPerChicken = 15000;
     const laborCost = 1800000;
@@ -80,8 +69,8 @@ export class BiayaService {
     const electricityCostPerChicken = 150;
     const doctorCostPerChicken = 65;
     const assistantCostPerChicken = 500;
-    const feedCostPerKg = 7500;
-    const ovkCostPerChicken = 350;
+    // const feedCostPerKg = 7500;
+    // const ovkCostPerChicken = 350;
     const docCostPerChicken = 13000;
     const coopBuildingCostPerChicken = 75000;
 
@@ -175,24 +164,24 @@ export class BiayaService {
         formula: (currentCountChicken: number) =>
           (currentCountChicken * assistantCostPerChicken) / 30,
       },
-      {
-        item: 'Biaya Pakan',
-        kategoriId: 'a0434547-f673-4b8a-844c-db07a290e435',
-        journalTypeId: '03ff47d9-b441-44a9-bb21-47385069491d',
-        type: 'CHICKEN',
-        price: feedCostPerKg,
-        formula: (currentCountChicken: number) =>
-          currentCountChicken * chickenFeedRate * feedCostPerKg,
-      },
-      {
-        item: 'Biaya OVK',
-        kategoriId: 'e6be7f6e-659d-4952-823c-530dd522e234',
-        journalTypeId: '03ff47d9-b441-44a9-bb21-47385069491d',
-        type: 'CHICKEN',
-        price: ovkCostPerChicken,
-        formula: (currentCountChicken: number) =>
-          (currentCountChicken * ovkCostPerChicken) / ovkDenominator,
-      },
+      // {
+      //   item: 'Biaya Pakan',
+      //   kategoriId: 'a0434547-f673-4b8a-844c-db07a290e435',
+      //   journalTypeId: '03ff47d9-b441-44a9-bb21-47385069491d',
+      //   type: 'CHICKEN',
+      //   price: feedCostPerKg,
+      //   formula: (currentCountChicken: number) =>
+      //     currentCountChicken * chickenFeedRate * feedCostPerKg,
+      // },
+      // {
+      //   item: 'Biaya OVK',
+      //   kategoriId: 'e6be7f6e-659d-4952-823c-530dd522e234',
+      //   journalTypeId: '03ff47d9-b441-44a9-bb21-47385069491d',
+      //   type: 'CHICKEN',
+      //   price: ovkCostPerChicken,
+      //   formula: (currentCountChicken: number) =>
+      //     (currentCountChicken * ovkCostPerChicken) / ovkDenominator,
+      // },
       {
         item: 'Biaya Pembelian DOC',
         kategoriId: '366bc010-6189-4e0c-8c59-31cc937624eb',
@@ -259,28 +248,40 @@ export class BiayaService {
           }),
         ]);
 
+        const batchOnGoingData = await this.prismaService.batch.findMany({
+          where: {
+            status: 'ONGOING',
+            siteId: location.id,
+          },
+        });
+
+        if (batchOnGoingData.length === 0) {
+          console.log('No batch ongoing');
+          return;
+        }
+
+        const batchOnGoing = batchOnGoingData[0];
+
         const countEggGood = countEggGoodData.reduce(
           (acc, curr) => acc + curr.qty,
           0,
         );
 
-        // console table to show the current count of chicken and egg of cage and location
-        console.table({
-          Location: location.name,
-          Cage: cage.name,
-          'Current Chicken': currentCountChicken,
-          'Current Egg': countEggGood,
-        });
+        const safeCurrentCountChicken = currentCountChicken || 0;
+        const safeCountEggGood = countEggGood || 0;
 
         const locationCosts = costTemplates.map((template) => {
-          const biaya: number = template.formula(
-            template.type == 'EGG' ? countEggGood : currentCountChicken,
-          );
+          const inputValue =
+            template.type === 'EGG'
+              ? safeCountEggGood
+              : safeCurrentCountChicken;
+          const biaya = inputValue > 0 ? template.formula(inputValue) : 0;
+          const biayaRounded = Math.ceil(biaya);
 
           return {
             kategoriId: template.kategoriId,
             tanggal: date,
-            biaya,
+            biaya: biayaRounded,
             siteId: location.id,
             cageId: cage.id,
             journalTypeId: template.journalTypeId,
@@ -288,7 +289,7 @@ export class BiayaService {
             userId: 'fafeeb2e-4783-424f-b220-321954cefb66',
             status: 1,
             keterangan:
-              'Biaya Auto-Generated by System ' + template.item + ' ' + date,
+              '(Auto-Generated) Biaya by System ' + template.item + ' ' + date,
           };
         });
 
@@ -296,11 +297,16 @@ export class BiayaService {
       }
     }
 
-    // costs.forEach((cost) => {
-    //   this.create(cost as CreateBiayaDTO).subscribe();
-    // });
+    const biayaFiltered = costs.filter(
+      (cost) =>
+        cost.biaya !== null && cost.biaya !== undefined && cost.biaya > 0,
+    );
 
-    return costs;
+    biayaFiltered.forEach((biaya) => {
+      this.create(biaya as CreateBiayaDTO).subscribe();
+    });
+
+    return biayaFiltered;
   };
 
   create(payload: CreateBiayaDTO): Observable<any> {
@@ -512,7 +518,6 @@ export class BiayaService {
         }
       }),
       catchError((err) => {
-        console.error('Error while creating biaya:', err.message);
         return throwError(
           () =>
             new HttpException(
