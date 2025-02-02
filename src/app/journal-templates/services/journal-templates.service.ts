@@ -26,6 +26,9 @@ export class JournalTemplatesService {
         where: {
           deletedAt: null, // Filter journal template yang tidak terhapus
         },
+        orderBy: {
+          createdAt: 'asc',
+        },
         include: {
           jurnalType: {
             select: {

@@ -337,9 +337,9 @@ export class JournalService {
   ) {
     // Step 1: Ambil semua data COA yang isBalanceSheet = true
     const coaList = await this.prismaService.coa.findMany({
-      where: {
-        isBalanceSheet: true,
-      },
+      // where: {
+      //   isBalanceSheet: true,
+      // },
       select: {
         code: true,
         name: true,

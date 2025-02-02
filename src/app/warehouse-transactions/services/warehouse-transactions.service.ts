@@ -394,13 +394,18 @@ export class WarehouseTransactionsService {
 
                     return previousJournalSum$.pipe(
                       concatMap((previousJournalSum) => {
-                        const totalBiayaAvailable =
-                          biayaData.reduce((acc, item) => acc + item.biaya, 0) -
-                          (previousJournalSum?.debtTotal || 0);
+                        // const totalBiayaAvailable =
+                        //   biayaData.reduce((acc, item) => acc + item.biaya, 0) -
+                        //   (previousJournalSum?.debtTotal || 0);
+                        //
+                        // console.log(
+                        //   '[510 TOTAL BIAYA AVAILABLE]',
+                        //   totalBiayaAvailable,
+                        // );
 
                         console.log(
                           '[510 TOTAL BIAYA AVAILABLE]',
-                          totalBiayaAvailable,
+                          previousJournalSum,
                         );
 
                         const unit =
@@ -411,6 +416,9 @@ export class WarehouseTransactionsService {
                                 0,
                               );
 
+                        console.log('[510 UNIT]', unit);
+                        console.log('[510 PRICE DATA]', priceData);
+
                         const totalCurrentTransaction = unit * priceData.value;
 
                         console.log(
@@ -418,7 +426,7 @@ export class WarehouseTransactionsService {
                           totalCurrentTransaction,
                         );
 
-                        let remainingBiaya = totalBiayaAvailable;
+                        // let remainingBiaya = totalBiayaAvailable;
 
                         const coaDetails =
                           journalTemplate.journalTemplateDetails.filter(
@@ -440,10 +448,7 @@ export class WarehouseTransactionsService {
 
                         console.log('[529 COA SINGLE]', coaSingle);
 
-                        const singleCoaAmount =
-                          remainingBiaya <= 0
-                            ? totalCurrentTransaction
-                            : Math.min(totalCurrentTransaction, remainingBiaya);
+                        const singleCoaAmount = totalCurrentTransaction;
 
                         console.log('[534 SINGLE COA AMOUNT]', singleCoaAmount);
                         const naturalSplit = (
@@ -477,9 +482,9 @@ export class WarehouseTransactionsService {
 
                         console.log('[543 SPLITTED AMOUNTS]', splittedAmounts);
 
-                        remainingBiaya -= singleCoaAmount;
-
-                        console.log('[546 REMAINING BIAYA]', remainingBiaya);
+                        // remainingBiaya -= singleCoaAmount;
+                        //
+                        // console.log('[546 REMAINING BIAYA]', remainingBiaya);
 
                         const journalDetails = [
                           ...coaSingle.map((coa) => ({

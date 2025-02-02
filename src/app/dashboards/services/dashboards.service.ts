@@ -198,39 +198,55 @@ export class DashboardsService {
         grouped_date: string;
         total_qty: number | null;
         total_biaya: number | null;
-        total_harga: string | null;
+        total_harga: number | null;
+        total_weight: number | null;
       }[]
     >(
       Prisma.sql`
-        SELECT
-          d.grouped_date,
-          COALESCE(SUM(wt."qty"), 0) AS total_qty,
-          COALESCE(SUM(b."biaya"), 0) AS total_biaya,
-          COALESCE(SUM((wt."weight" * p."value")::BIGINT), 0) AS total_harga
-        FROM (
-               SELECT
-                 GENERATE_SERIES(
+        WITH date_series AS (
+          SELECT GENERATE_SERIES(
                    DATE_TRUNC(${groupFormat}, ${startDate}),
                    DATE_TRUNC(${groupFormat}, ${endDate}),
-                   ${interval}::INTERVAL -- Pastikan interval didefinisikan dengan jelas
+                   ${interval}::INTERVAL
                  ) AS grouped_date
-             ) d
-               LEFT JOIN "Biaya" b
-                         ON DATE_TRUNC(${groupFormat}, b."updatedAt") = d.grouped_date
-                           AND b."siteId" = ${siteId}
-          ${chartEggDto.cageId ? Prisma.sql`AND b."cageId" = ${chartEggDto.cageId}` : Prisma.sql``}
-      LEFT JOIN "WarehouseTransaction" wt
-        ON DATE_TRUNC(${groupFormat}, wt."updatedAt") = d.grouped_date
-          AND wt."siteId" = ${siteId}
-          AND wt."deletedAt" IS NULL
-          AND wt."CashierDeliveryAt" IS NOT NULL
-          AND wt."category" = 'EGG'
+        ),
+             wt_sums AS (
+               SELECT
+                 DATE_TRUNC(${groupFormat}, wt."updatedAt") AS gdate,
+                 COALESCE(SUM(wt."qty"), 0) AS total_qty,
+                 COALESCE(SUM(wt."weight"), 0) AS total_weight,
+                 COALESCE(SUM((wt."weight" * p."value")::BIGINT), 0) AS total_harga
+               FROM "WarehouseTransaction" wt
+                      LEFT JOIN "Price" p ON wt."priceId" = p."id"
+               WHERE wt."siteId" = ${siteId}
+                 AND wt."deletedAt" IS NULL
+                 AND wt."CashierDeliveryAt" IS NOT NULL
+                 AND wt."category" = 'EGG'
           ${chartEggDto.cageId ? Prisma.sql`AND wt."cageId" = ${chartEggDto.cageId}` : Prisma.sql``}
           ${chartEggDto.batchId ? Prisma.sql`AND wt."batchId" = ${chartEggDto.batchId}` : Prisma.sql``}
-          LEFT JOIN "Price" p
-          ON wt."priceId" = p."id"
-        GROUP BY d.grouped_date
-        ORDER BY d.grouped_date ASC
+        GROUP BY DATE_TRUNC(${groupFormat}, wt."updatedAt")
+          ),
+          biaya_sums AS (
+        SELECT
+          DATE_TRUNC(${groupFormat}, b."updatedAt") AS gdate,
+          COALESCE(SUM(b."biaya"), 0) AS total_biaya
+        FROM "Biaya" b
+        WHERE b."siteId" = ${siteId}
+                           ${chartEggDto.cageId ? Prisma.sql`AND b."cageId" = ${chartEggDto.cageId}` : Prisma.sql``}
+        GROUP BY DATE_TRUNC(${groupFormat}, b."updatedAt")
+          )
+        SELECT
+          ds.grouped_date,
+          COALESCE(wt_sums.total_qty, 0) AS total_qty,
+          COALESCE(biaya_sums.total_biaya, 0) AS total_biaya,
+          COALESCE(wt_sums.total_weight, 0) AS total_weight,
+          COALESCE(wt_sums.total_harga, 0) AS total_harga
+        FROM date_series ds
+               LEFT JOIN wt_sums
+                         ON wt_sums.gdate = ds.grouped_date
+               LEFT JOIN biaya_sums
+                         ON biaya_sums.gdate = ds.grouped_date
+        ORDER BY ds.grouped_date ASC
       `,
     );
 
@@ -239,6 +255,7 @@ export class DashboardsService {
       map((results) =>
         results.map((row) => ({
           date: row.grouped_date,
+          totalWeight: row.total_weight || 0, // Jika totalWeight null, default 0
           total: row.total_qty || 0, // Jika total_qty null, default 0
           totalBiaya: row.total_biaya || 0, // Jika total_biaya null, default 0
           totalHarga: Number(row.total_harga || 0), // Jika total_harga null, default 0
@@ -258,7 +275,14 @@ export class DashboardsService {
     const groupFormat = groupByMap[chartEggDto.groupBy] || Prisma.sql`'day'`;
 
     // Tentukan interval untuk rentang waktu
-    const interval = Prisma.raw(`'1 ${chartEggDto.groupBy.slice(0, -1)}'::INTERVAL`);
+    // misalnya chartEggDto.groupBy = 'days' -> '1 day', 'weeks' -> '1 week', dll.
+    const intervalMap = {
+      days: '1 day',
+      weeks: '1 week',
+      months: '1 month',
+      years: '1 year',
+    };
+    const interval = intervalMap[chartEggDto.groupBy] || '1 day';
 
     // Gunakan startDate dan endDate dari chartEggDto, dengan fallback ke interval default
     const startDate = chartEggDto.startDate
@@ -268,46 +292,60 @@ export class DashboardsService {
       ? Prisma.sql`${new Date(chartEggDto.endDate).toISOString()}::TIMESTAMP`
       : Prisma.sql`NOW()`;
 
-    // Query Prisma dengan raw SQL
+    // Query Prisma dengan raw SQL, menggunakan CTE untuk menghindari double counting
     const query = this.prismaService.$queryRaw<
       {
         grouped_date: string;
         total_qty: number | null;
         total_biaya: number | null;
-        total_harga: string | null;
+        total_harga: number | null;
       }[]
     >(
       Prisma.sql`
-      SELECT
-        d.grouped_date,
-        COALESCE(SUM(wt."qty"), 0) AS total_qty,
-        COALESCE(SUM(b."biaya"), 0) AS total_biaya,
-        COALESCE(SUM((wt."weight" * p."value")::BIGINT), 0) AS total_harga
-      FROM (
+        WITH date_series AS (
+          SELECT
+            GENERATE_SERIES(
+              DATE_TRUNC(${groupFormat}, ${startDate}),
+              DATE_TRUNC(${groupFormat}, ${endDate}),
+              ${interval}::INTERVAL
+            ) AS grouped_date
+        ),
+             wt_sums AS (
+               SELECT
+                 DATE_TRUNC(${groupFormat}, wt."updatedAt") AS gdate,
+                 COALESCE(SUM(wt."qty"), 0) AS total_qty,
+                 COALESCE(SUM((wt."weight" * p."value")::BIGINT), 0) AS total_harga
+               FROM "WarehouseTransaction" wt
+                      LEFT JOIN "Price" p ON wt."priceId" = p."id"
+               WHERE wt."siteId" = ${siteId}
+                 AND wt."deletedAt" IS NULL
+                 AND wt."CashierDeliveryAt" IS NOT NULL
+                 AND wt."category" = 'CHICKEN'
+          ${chartEggDto.cageId ? Prisma.sql`AND wt."cageId" = ${chartEggDto.cageId}` : Prisma.sql``}
+          ${chartEggDto.batchId ? Prisma.sql`AND wt."batchId" = ${chartEggDto.batchId}` : Prisma.sql``}
+        GROUP BY DATE_TRUNC(${groupFormat}, wt."updatedAt")
+          ),
+          biaya_sums AS (
         SELECT
-          generate_series(
-            DATE_TRUNC(${groupFormat}, ${startDate}),
-            DATE_TRUNC(${groupFormat}, ${endDate}),
-            ${interval}
-          ) AS grouped_date
-      ) d
-      LEFT JOIN "Biaya" b
-        ON DATE_TRUNC(${groupFormat}, b."updatedAt") = d.grouped_date
-        AND b."siteId" = ${siteId}
-        ${chartEggDto.cageId ? Prisma.sql`AND b."cageId" = ${chartEggDto.cageId}` : Prisma.sql``}
-      LEFT JOIN "WarehouseTransaction" wt
-        ON DATE_TRUNC(${groupFormat}, wt."updatedAt") = d.grouped_date
-        AND wt."siteId" = ${siteId}
-        AND wt."deletedAt" IS NULL
-        AND wt."CashierDeliveryAt" IS NOT NULL
-        AND wt."category" = 'CHICKEN'
-        ${chartEggDto.cageId ? Prisma.sql`AND wt."cageId" = ${chartEggDto.cageId}` : Prisma.sql``}
-        ${chartEggDto.batchId ? Prisma.sql`AND wt."batchId" = ${chartEggDto.batchId}` : Prisma.sql``}
-      LEFT JOIN "Price" p
-        ON wt."priceId" = p."id"
-      GROUP BY d.grouped_date
-      ORDER BY d.grouped_date ASC
-    `,
+          DATE_TRUNC(${groupFormat}, b."updatedAt") AS gdate,
+          COALESCE(SUM(b."biaya"), 0) AS total_biaya
+        FROM "Biaya" b
+        WHERE b."siteId" = ${siteId}
+                           ${chartEggDto.cageId ? Prisma.sql`AND b."cageId" = ${chartEggDto.cageId}` : Prisma.sql``}
+        GROUP BY DATE_TRUNC(${groupFormat}, b."updatedAt")
+          )
+        SELECT
+          ds.grouped_date,
+          COALESCE(wt_sums.total_qty, 0) AS total_qty,
+          COALESCE(biaya_sums.total_biaya, 0) AS total_biaya,
+          COALESCE(wt_sums.total_harga, 0) AS total_harga
+        FROM date_series ds
+               LEFT JOIN wt_sums
+                         ON wt_sums.gdate = ds.grouped_date
+               LEFT JOIN biaya_sums
+                         ON biaya_sums.gdate = ds.grouped_date
+        ORDER BY ds.grouped_date ASC
+      `,
     );
 
     // Bungkus query Prisma dalam Observable
@@ -316,7 +354,7 @@ export class DashboardsService {
         results.map((row) => ({
           date: row.grouped_date,
           total: row.total_qty || 0,
-          totalBiaya: row.total_biaya || 0,
+          totalBiaya: 0,
           totalHarga: Number(row.total_harga || 0),
         })),
       ),

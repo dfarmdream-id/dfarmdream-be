@@ -19,8 +19,8 @@ export class TaskService {
     this.absenService.syncDataAbsen();
     this.absenService.syncAttendanceLog();
   }
-
-  // running before change day, maybe closing in 23:00
+  
+  @Cron('00 23 * * *')
   handleCostAutoGenerate() {
     this.logger.debug('Running Generate Biaya');
     this.biayaService.handleDailyCostGeneration();

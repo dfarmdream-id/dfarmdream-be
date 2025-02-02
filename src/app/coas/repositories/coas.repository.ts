@@ -46,10 +46,10 @@ export class CoasRepository {
           skip: (+page - 1) * +limit,
           take: +limit,
           where: where,
-          orderBy: {
-            ...filter?.orderBy,
-            code: 'asc',
-          },
+          orderBy: [
+            { level: 'asc' }, // Urutkan berdasarkan level (parent dulu, baru child)
+            { code: 'asc' }, // Urutkan berdasarkan kode (agar parent-child terstruktur)
+          ],
           cursor: filter?.cursor,
           include: {
             group: true,
