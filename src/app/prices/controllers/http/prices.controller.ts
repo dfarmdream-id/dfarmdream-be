@@ -36,7 +36,6 @@ export class PricesHttpController {
     @User() user: { id: string; siteId: string },
   ) {
     try {
-      console.log('createPricesDto : ', createPricesDto);
       const data = await this.priceService.create(createPricesDto, user.id);
       return new ResponseEntity({ data, message: 'success' });
     } catch (e) {

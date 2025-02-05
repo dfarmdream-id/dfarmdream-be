@@ -148,16 +148,17 @@ export class JournalService {
   }
 
   public create(createJournalHeadersDto: CreateJournalDto, userId: string) {
-    // Create the journal header
-
-    console.log('createJournalHeadersDto', createJournalHeadersDto);
-
     const createHeader$ = from(
       this.journalHeaderRepository.create({
         code: createJournalHeadersDto.code,
         creditTotal: createJournalHeadersDto.creditTotal,
-        // date: createJournalHeadersDto.date,
         date:
+          DateTime.fromISO(createJournalHeadersDto.date)?.toISO()?.toString() ??
+          DateTime.now().toISO().toString(),
+        createdAt:
+          DateTime.fromISO(createJournalHeadersDto.date)?.toISO()?.toString() ??
+          DateTime.now().toISO().toString(),
+        updatedAt:
           DateTime.fromISO(createJournalHeadersDto.date)?.toISO()?.toString() ??
           DateTime.now().toISO().toString(),
         debtTotal: createJournalHeadersDto.debtTotal,
@@ -217,12 +218,8 @@ export class JournalService {
             debit: detail.debit,
             credit: detail.credit,
             note: detail.note,
-            ...(createJournalHeadersDto.createdAt && {
-              createdAt: createJournalHeadersDto.createdAt,
-            }),
-            ...(createJournalHeadersDto.updatedAt && {
-              updatedAt: createJournalHeadersDto.updatedAt,
-            }),
+            createdAt: journalHeader.createdAt,
+            updatedAt: journalHeader.updatedAt,
           }),
         );
 
@@ -471,16 +468,13 @@ export class JournalService {
         new Date(startDate).setMonth(startDate.getMonth() + 1) - 1,
       );
 
-      console.log('startDate', startDate);
-      console.log('endDate', endDate);
-
       const result = await Promise.all(
         coaList.map(async (coa) => {
           const journalSum = await this.prismaService.journalDetail.aggregate({
             _sum: { debit: true, credit: true },
             where: {
               coaCode: coa.code,
-              journalHeader: {
+              journalHeader:  {
                 siteId,
                 createdAt: { gte: startDate, lte: endDate },
               },
@@ -497,8 +491,6 @@ export class JournalService {
         }),
       );
 
-      console.log('result', result);
-
       // Calculate totals for the month
       const totalAsset = calculateTotal(result, [
         ...categories.kasDanSetaraKas,
@@ -506,8 +498,6 @@ export class JournalService {
         ...categories.piutang,
         ...categories.assetTetap,
       ]);
-
-      console.log('totalAsset', totalAsset);
 
       const totalPendapatan = calculateTotal(
         result,
